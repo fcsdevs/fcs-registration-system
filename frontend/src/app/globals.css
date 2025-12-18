@@ -1,0 +1,350 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================
+   FCS NIGERIA DESIGN SYSTEM v2.1
+   Enterprise Color System & Theme Variables
+   Primary Brand Color: #010030 (FCS Midnight Blue)
+   ============================================================ */
+
+:root {
+  /* BRAND IDENTITY */
+  --brand-primary: #010030;
+  --brand-primary-foreground: #FFFFFF;
+  
+  /* PRIMARY COLORS */
+  --color-primary: #010030;
+  --color-primary-foreground: #FFFFFF;
+  
+  /* SECONDARY COLORS */
+  --color-success: #1F7A63;
+  --color-success-light: #E8F5F1;
+  --color-accent: #3B4A9F;
+  --color-accent-light: #F0F2FA;
+  
+  /* PARTICIPATION MODE COLORS */
+  --color-online: #1D4ED8;
+  --color-online-light: #EFF6FF;
+  --color-onsite: #F59E0B;
+  --color-onsite-light: #FFFBEB;
+  --color-hybrid: #6D28D9;
+  --color-hybrid-light: #F3E8FF;
+  
+  /* STATUS & ALERT COLORS */
+  --color-warning: #D97706;
+  --color-warning-light: #FEF3C7;
+  --color-error: #B91C1C;
+  --color-error-light: #FEE2E2;
+  --color-info: #2563EB;
+  --color-info-light: #EFF6FF;
+  
+  /* NEUTRAL PALETTE (CRITICAL WITH DARK PRIMARY) */
+  --color-gray-950: #020617;
+  --color-gray-900: #0F172A;
+  --color-gray-800: #1E293B;
+  --color-gray-700: #334155;
+  --color-gray-600: #475569;
+  --color-gray-500: #64748B;
+  --color-gray-400: #94A3B8;
+  --color-gray-300: #CBD5E1;
+  --color-gray-200: #E2E8F0;
+  --color-gray-100: #F1F5F9;
+  --color-gray-50: #F8FAFC;
+  
+  /* SEMANTIC COLORS */
+  --color-background: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-surface-secondary: #F8FAFC;
+  --color-border: #E2E8F0;
+  --color-border-secondary: #CBD5E1;
+  --color-divider: #E2E8F0;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #64748B;
+  --color-text-disabled: #CBD5E1;
+  
+  /* COMPONENT COLORS */
+  --color-button-primary-bg: #010030;
+  --color-button-primary-text: #FFFFFF;
+  --color-button-secondary-bg: transparent;
+  --color-button-secondary-text: #010030;
+  --color-button-secondary-border: #010030;
+  
+  /* SPACING */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+  --spacing-2xl: 4rem;
+  
+  /* BORDER RADIUS */
+  --radius-none: 0;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+  
+  /* SHADOWS */
+  --shadow-none: none;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  
+  /* TRANSITIONS */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Z-INDEX */
+  --z-index-hide: -1;
+  --z-index-base: 0;
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+}
+
+/* DARK MODE OVERRIDES */
+.dark {
+  --color-background: #0F172A;
+  --color-surface: #1E293B;
+  --color-surface-secondary: #334155;
+  --color-border: #334155;
+  --color-border-secondary: #475569;
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #CBD5E1;
+  --color-text-tertiary: #94A3B8;
+  --color-text-disabled: #475569;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--color-primary);
+  --color-primary-foreground: var(--color-primary-foreground);
+  --color-success: var(--color-success);
+  --color-accent: var(--color-accent);
+  --color-warning: var(--color-warning);
+  --color-error: var(--color-error);
+  --color-info: var(--color-info);
+}
+
+@layer base {
+  * {
+    @apply border-[var(--color-border)] outline-[var(--color-info)]/50;
+  }
+  
+  html {
+    @apply scroll-smooth;
+  }
+  
+  body {
+    @apply bg-[var(--color-background)] text-[var(--color-text-primary)] antialiased;
+  }
+  
+  h1 {
+    @apply text-4xl font-bold tracking-tight;
+  }
+  
+  h2 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+  
+  h3 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+  
+  h4 {
+    @apply text-xl font-semibold;
+  }
+  
+  p {
+    @apply text-[var(--color-text-secondary)] leading-relaxed;
+  }
+  
+  a {
+    @apply text-[var(--color-primary)] hover:underline transition-colors;
+  }
+}
+
+@layer components {
+  /* TYPOGRAPHY UTILITIES */
+  .text-primary-heading {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-text-primary);
+  }
+  
+  .text-secondary-heading {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-text-primary);
+  }
+  
+  .text-tertiary-heading {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--color-text-primary);
+  }
+  
+  .text-body {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    color: var(--color-text-secondary);
+  }
+  
+  .text-body-small {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-text-secondary);
+  }
+  
+  .text-muted {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-text-tertiary);
+  }
+  
+  /* CONTAINER UTILITIES */
+  .container-primary {
+    background-color: var(--color-surface);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    border: 1px solid var(--color-border);
+  }
+  
+  .card {
+    background-color: var(--color-surface);
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    border: 1px solid var(--color-border);
+    padding: 1.5rem;
+  }
+  
+  .card-elevated {
+    background-color: var(--color-surface);
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+    border: 1px solid var(--color-border);
+    padding: 1.5rem;
+  }
+  
+  /* BADGE & TAG UTILITIES */
+  .badge-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+  
+  .badge-success {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background-color: var(--color-success-light);
+    color: var(--color-success);
+  }
+  
+  .badge-warning {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background-color: var(--color-warning-light);
+    color: var(--color-warning);
+  }
+  
+  .badge-error {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background-color: var(--color-error-light);
+    color: var(--color-error);
+  }
+  
+  /* BUTTON BASE UTILITIES */
+  .btn-base {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 200ms ease;
+  }
+  
+  .btn-primary {
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
+    border: none;
+  }
+  
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+  
+  .btn-primary:active {
+    opacity: 0.75;
+  }
+  
+  .btn-secondary {
+    background-color: var(--color-surface);
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+  }
+  
+  .btn-secondary:hover {
+    background-color: var(--color-background);
+  }
+  
+  .btn-success {
+    background-color: var(--color-success);
+    color: white;
+  }
+  
+  .btn-success:hover {
+    opacity: 0.9;
+  }
+  
+  .btn-error {
+    background-color: var(--color-error);
+    color: white;
+  }
+  
+  .btn-error:hover {
+    opacity: 0.9;
+  }
+}
