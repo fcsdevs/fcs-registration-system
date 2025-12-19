@@ -14,7 +14,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (data: any) => Promise<void>;
+  signup: (data: any) => Promise<{ email: string } | void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
 }
@@ -49,18 +49,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await api.post<{
-        user: User;
-        accessToken: string;
-        refreshToken: string;
-      }>("/auth/login", {
+      const response = await api.post<any>("/auth/login", {
         email,
         password,
       });
 
-      localStorage.setItem("accessToken", response.accessToken);
-      localStorage.setItem("refreshToken", response.refreshToken);
-      setUser(response.user);
+      // Backend returns { data: { token, session, ... }, message }
+      const authData = response.data || response;
+      
+      localStorage.setItem("accessToken", authData.token);
+      localStorage.setItem("refreshToken", authData.session?.id || authData.token);
+      
+      // Map backend response to User type
+      setUser({
+        id: authData.id,
+        email: authData.email || '',
+        firstName: authData.member?.firstName || '',
+        lastName: authData.member?.lastName || '',
+        phone: authData.phoneNumber,
+        roles: [],
+        unitId: '',
+        memberCode: authData.member?.fcsCode || '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (error: any) {
+      // Re-throw with the actual error message from backend
+      throw new Error(error.message || 'Login failed');
     } finally {
       setIsLoading(false);
     }
@@ -69,15 +84,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = async (data: any) => {
     setIsLoading(true);
     try {
-      const response = await api.post<{
-        user: User;
-        accessToken: string;
-        refreshToken: string;
-      }>("/auth/signup", data);
+      // Check if phone exists
+      if (!data.phone) {
+        throw new Error('Phone number is required');
+      }
 
-      localStorage.setItem("accessToken", response.accessToken);
-      localStorage.setItem("refreshToken", response.refreshToken);
-      setUser(response.user);
+      // Transform phone number to international format (234...)
+      let phoneNumber = data.phone.replace(/\s/g, ''); // Remove spaces
+      if (phoneNumber.startsWith('0')) {
+        phoneNumber = '234' + phoneNumber.substring(1); // Replace leading 0 with 234
+      } else if (!phoneNumber.startsWith('234') && !phoneNumber.startsWith('+234')) {
+        phoneNumber = '234' + phoneNumber; // Add 234 prefix
+      }
+      phoneNumber = phoneNumber.replace(/^\+/, ''); // Remove + if present
+
+      // Map frontend form fields to backend API fields
+      const payload = {
+        phoneNumber,
+        email: data.email,
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+        firstName: data.firstName,
+        lastName: data.lastName,
+      };
+
+      await api.post<any>("/auth/register", payload);
+
+      // Return the email for prefilling login form
+      return { email: data.email };
+    } catch (error: any) {
+      // Re-throw with the actual error message from backend
+      throw new Error(error.message || 'Signup failed');
     } finally {
       setIsLoading(false);
     }

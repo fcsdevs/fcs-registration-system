@@ -6,8 +6,9 @@
 "use client";
 
 import { ProtectedRoute } from "@/components/common/route-guards";
-import { Header } from "@/components/layout/header";
+import { AppLayout } from "@/components/layout/app-layout";
 import { useAuth } from "@/context/auth-context";
+import { api } from "@/lib/api/client";
 import {
   StatCard,
   EventCard,
@@ -22,12 +23,74 @@ import {
   Plus,
 } from "lucide-react";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 export default function HomePage() {
   const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
 
-  // Mock data - replace with real API calls
-  const stats = [
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [dashboardRes, eventsRes] = await Promise.all([
+        api.get("/reports/dashboard"),
+        api.get("/events"),
+      ]);
+      
+      const dashboardData = (dashboardRes as any).data?.data || (dashboardRes as any).data;
+      setDashboardData(dashboardData);
+      
+      const eventsData = (eventsRes as any).data?.data || (eventsRes as any).data || [];
+      setUpcomingEvents(Array.isArray(eventsData) ? eventsData.slice(0, 3) : []);
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Stats derived from API data
+  const stats = dashboardData ? [
+    {
+      title: "Total Members",
+      value: dashboardData.overview?.totalMembers?.toLocaleString() || "0",
+      metric: "members",
+      icon: Users,
+      trend: { value: 12, isPositive: true },
+      color: "primary" as const,
+    },
+    {
+      title: "Active Events",
+      value: dashboardData.overview?.activeEvents?.toString() || "0",
+      metric: "events",
+      icon: Calendar,
+      trend: { value: 8, isPositive: true },
+      color: "info" as const,
+    },
+    {
+      title: "Attendance Rate",
+      value: `${dashboardData.overview?.attendanceRate?.toFixed(1) || 0}%`,
+      metric: "this month",
+      icon: CheckCircle2,
+      trend: { value: 5, isPositive: true },
+      color: "success" as const,
+    },
+    {
+      title: "Registrations",
+      value: dashboardData.overview?.thisMonthRegistrations?.toLocaleString() || "0",
+      metric: "this month",
+      icon: TrendingUp,
+      trend: { value: 23, isPositive: true },
+      color: "warning" as const,
+    },
+  ] : [
+    // Loading placeholders
     {
       title: "Total Members",
       value: "2,847",
@@ -62,41 +125,20 @@ export default function HomePage() {
     },
   ];
 
-  const upcomingEvents = [
-    {
-      title: "National Conference 2025",
-      date: "March 15-17, 2025",
-      location: "Lagos Convention Center, Lagos State",
-      registrations: 542,
-      capacity: 600,
-      participationMode: "HYBRID" as const,
-      status: "active" as const,
-    },
-    {
-      title: "Bible Study Summit - North",
-      date: "January 28, 2025",
-      location: "Abuja Centre, Federal Capital Territory",
-      registrations: 234,
-      capacity: 250,
-      participationMode: "ON_SITE" as const,
-      status: "published" as const,
-    },
-    {
-      title: "Online Training Series",
-      date: "January 20-22, 2025",
-      location: "Virtual",
-      registrations: 1205,
-      capacity: 2000,
-      participationMode: "ONLINE" as const,
-      status: "active" as const,
-    },
-  ];
+  // Format events for display
+  const formattedEvents = upcomingEvents.map(event => ({
+    title: event.title || event.name,
+    date: event.startDate ? new Date(event.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'TBD',
+    location: event.location || 'Location TBD',
+    registrations: event._count?.registrations || 0,
+    capacity: event.capacity || 0,
+    participationMode: event.participationMode || 'HYBRID' as const,
+    status: event.isPublished ? 'active' as const : 'draft' as const,
+  }));
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-[#F8FAFC]">
-        <Header />
-        
+      <AppLayout>
         {/* DASHBOARD HEADER */}
         <div className="border-b border-[#CBD5E1] bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -122,11 +164,17 @@ export default function HomePage() {
           {/* KEY PERFORMANCE INDICATORS */}
           <section className="mb-12">
             <h2 className="text-tertiary-heading mb-6">Key Metrics</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {stats.map((stat, i) => (
-                <StatCard key={i} {...stat} />
-              ))}
-            </div>
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {stats.map((stat, i) => (
+                  <StatCard key={i} {...stat} />
+                ))}
+              </div>
+            )}
           </section>
 
           {/* UPCOMING EVENTS */}
@@ -137,11 +185,22 @@ export default function HomePage() {
                 View All <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {upcomingEvents.map((event, i) => (
-                <EventCard key={i} {...event} />
-              ))}
-            </div>
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              </div>
+            ) : formattedEvents.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {formattedEvents.map((event, i) => (
+                  <EventCard key={i} {...event} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                <p>No upcoming events</p>
+              </div>
+            )}
           </section>
 
           {/* RECENT ATTENDANCE */}
@@ -258,7 +317,7 @@ export default function HomePage() {
             </div>
           </section>
         </div>
-      </div>
+      </AppLayout>
     </ProtectedRoute>
   );
 }

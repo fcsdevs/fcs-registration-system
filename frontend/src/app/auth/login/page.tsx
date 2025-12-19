@@ -4,35 +4,54 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormData } from "@/lib/validations/schemas";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, isLoading } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
 
+  useEffect(() => {
+    // Check if redirected from signup
+    const email = searchParams.get('email');
+    const registered = searchParams.get('registered');
+    
+    if (email) {
+      setValue('email', email);
+    }
+    
+    if (registered === 'true') {
+      setSuccessMessage('Account created successfully! Please sign in with your credentials.');
+    }
+  }, [searchParams, setValue]);
+
   const onSubmit = async (data: LoginFormData) => {
     try {
       setError(null);
+      setSuccessMessage(null);
       await login(data.email, data.password);
       router.push("/home");
     } catch (err: any) {
+      console.error('Login error:', err);
       setError(err.message || "Login failed. Please try again.");
     }
   };
@@ -57,6 +76,13 @@ export default function LoginPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow p-6 space-y-4">
+          {successMessage && (
+            <div className="p-4 bg-green-50 border border-green-200 text-green-800 rounded-md text-sm flex items-start gap-2">
+              <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <span>{successMessage}</span>
+            </div>
+          )}
+          
           {error && (
             <div className="p-4 bg-error/10 border border-error text-error rounded-md text-sm">
               {error}
@@ -126,5 +152,17 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

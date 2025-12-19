@@ -5,7 +5,7 @@
 
 import { ApiResponse, PaginatedResponse } from "@/types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3005/api";
 
 export interface ApiClientConfig {
   timeout?: number;
@@ -71,31 +71,55 @@ class ApiClient {
 
         clearTimeout(timeoutId);
 
+        // Parse response body for both success and error cases
+        const contentType = response.headers.get("content-type");
+        let responseData: any;
+        
+        if (contentType?.includes("application/json")) {
+          responseData = await response.json();
+        } else {
+          responseData = await response.text();
+        }
+
         if (!response.ok) {
+          // Handle unauthorized - clear tokens and redirect
           if (response.status === 401) {
-            // Handle unauthorized - clear tokens and redirect
             if (typeof window !== "undefined") {
               localStorage.removeItem("accessToken");
               localStorage.removeItem("refreshToken");
               window.location.href = "/auth/login";
             }
           }
-          throw new Error(
-            `HTTP ${response.status}: ${response.statusText}`
-          );
+
+          // Extract error message from backend response
+          const errorMessage = 
+            responseData?.error?.message || 
+            responseData?.message || 
+            `HTTP ${response.status}: ${response.statusText}`;
+          
+          const error: any = new Error(errorMessage);
+          error.status = response.status;
+          error.code = responseData?.error?.code || 'UNKNOWN_ERROR';
+          error.response = responseData;
+          
+          throw error;
         }
 
-        const data = await response.json();
-        return data;
-      } catch (error) {
+        return responseData;
+      } catch (error: any) {
         lastError = error as Error;
 
-        // Don't retry on 4xx errors
-        if (error instanceof Error && error.message.includes("HTTP 4")) {
+        // Don't retry on 4xx errors (client errors) or aborted requests
+        const status = error?.status || 0;
+        if (status >= 400 && status < 500) {
+          break;
+        }
+        
+        if (error.name === 'AbortError') {
           break;
         }
 
-        // Wait before retrying
+        // Wait before retrying (exponential backoff)
         if (attempt < this.config.retries - 1) {
           await new Promise((resolve) =>
             setTimeout(resolve, Math.pow(2, attempt) * 1000)

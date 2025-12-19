@@ -33,7 +33,8 @@ export default function SignupPage() {
     try {
       setError(null);
       await signup(data);
-      router.push("/home");
+      // Redirect to login with email prefilled
+      router.push(`/auth/login?email=${encodeURIComponent(data.email)}&registered=true`);
     } catch (err: any) {
       setError(err.message || "Sign up failed. Please try again.");
     }
