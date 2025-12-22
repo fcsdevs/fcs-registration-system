@@ -13,7 +13,7 @@ import { Event } from '@/types/api';
 import { api } from '@/lib/api/client';
 import Link from 'next/link';
 
-export default function MyEventsPage() {
+function MyEventsContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [activeTab, setActiveTab] = useState<'available' | 'registered' | 'past'>('available');
@@ -240,5 +240,17 @@ export default function MyEventsPage() {
                 </div>
             </div>
         </ProtectedRoute>
+    );
+}
+
+export default function MyEventsPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+        }>
+            <MyEventsContent />
+        </Suspense>
     );
 }
