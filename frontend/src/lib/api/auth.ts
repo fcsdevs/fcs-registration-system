@@ -12,6 +12,8 @@ import type {
   SendOTPRequest,
   VerifyOTPRequest,
   CurrentUser,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
 } from '@/types/api';
 
 export const authApi = {
@@ -22,6 +24,15 @@ export const authApi = {
   register: async (data: RegisterRequest): Promise<ApiResponse<{ user: any; token: string }>> => {
     return api.post('/auth/register', data);
   },
+
+  /**
+   * POST /api/auth/check-existence
+   * Check if user exists
+   */
+  checkExistence: async (data: { email?: string; phoneNumber?: string }): Promise<ApiResponse<{ exists: boolean; message: string; field?: string }>> => {
+    return api.post('/auth/check-existence', data);
+  },
+
 
   /**
    * POST /api/auth/login
@@ -69,5 +80,21 @@ export const authApi = {
    */
   logout: async (): Promise<ApiResponse<{ message: string }>> => {
     return api.post('/auth/logout');
+  },
+
+  /**
+   * POST /api/auth/forgot-password
+   * Request password reset OTP
+   */
+  forgotPassword: async (data: ForgotPasswordRequest): Promise<ApiResponse<{ message: string }>> => {
+    return api.post('/auth/forgot-password', data);
+  },
+
+  /**
+   * POST /api/auth/reset-password
+   * Reset password with OTP
+   */
+  resetPassword: async (data: ResetPasswordRequest): Promise<ApiResponse<{ message: string }>> => {
+    return api.post('/auth/reset-password', data);
   },
 };

@@ -8,6 +8,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { User } from "@/types";
 import { api } from "@/lib/api/client";
+import { useRouter } from "next/navigation";
 
 interface AuthContextType {
   user: User | null;
@@ -17,6 +18,8 @@ interface AuthContextType {
   signup: (data: any) => Promise<{ email: string } | void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
+  forgotPassword: (emailOrCode: string) => Promise<void>;
+  resetPassword: (emailOrCode: string, otp: string, password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,6 +27,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   // Check if user is already authenticated on mount
   useEffect(() => {
@@ -31,8 +35,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const token = localStorage.getItem("accessToken");
         if (token) {
-          const currentUser = await api.get<User>("/auth/me");
-          setUser(currentUser);
+          const response = await api.get<any>("/auth/me");
+          const authData = response.data || response;
+
+          const userData: User = {
+            id: authData.id,
+            email: authData.email || '',
+            firstName: authData.member?.firstName || '',
+            lastName: authData.member?.lastName || '',
+            phone: authData.phoneNumber,
+            gender: authData.member?.gender,
+            roles: authData.roles || [],
+            unitId: authData.unit?.id || authData.unitId || '',
+            level: authData.unit?.level || authData.level,
+            memberCode: authData.member?.fcsCode || '',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+
+          setUser(userData);
         }
       } catch (error) {
         console.error("Auth check failed:", error);
@@ -56,23 +77,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Backend returns { data: { token, session, ... }, message }
       const authData = response.data || response;
-      
+
       localStorage.setItem("accessToken", authData.token);
       localStorage.setItem("refreshToken", authData.session?.id || authData.token);
-      
+
       // Map backend response to User type
-      setUser({
+      const userData: User = {
         id: authData.id,
         email: authData.email || '',
         firstName: authData.member?.firstName || '',
         lastName: authData.member?.lastName || '',
         phone: authData.phoneNumber,
-        roles: [],
-        unitId: '',
+        gender: authData.member?.gender,
+        roles: authData.roles || [],
+        unitId: authData.unit?.id || authData.unitId || '',
+        level: authData.unit?.level || authData.level,
         memberCode: authData.member?.fcsCode || '',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      });
+      };
+
+      setUser(userData);
+
+      // Redirect based on role
+      const isAdmin = userData.roles.some((r: string) => r.toLowerCase().includes('admin') || r.toLowerCase() === 'leader');
+
+      if (isAdmin) {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error: any) {
       // Re-throw with the actual error message from backend
       throw new Error(error.message || 'Login failed');
@@ -156,6 +190,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const forgotPassword = async (emailOrCode: string) => {
+    setIsLoading(true);
+    try {
+      await api.post("/auth/forgot-password", { identifier: emailOrCode });
+    } catch (error: any) {
+      throw new Error(error.message || "Failed to send reset instructions");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resetPassword = async (emailOrCode: string, otp: string, password: string) => {
+    setIsLoading(true);
+    try {
+      await api.post("/auth/reset-password", {
+        identifier: emailOrCode,
+        otp,
+        password
+      });
+    } catch (error: any) {
+      throw new Error(error.message || "Failed to reset password");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -166,6 +226,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signup,
         logout,
         refreshToken,
+        forgotPassword,
+        resetPassword,
       }}
     >
       {children}

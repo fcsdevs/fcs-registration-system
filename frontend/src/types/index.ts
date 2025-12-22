@@ -31,9 +31,11 @@ export interface User {
   firstName: string;
   lastName: string;
   phone?: string;
+  gender?: string;
   avatar?: string;
   roles: UserRole[];
   unitId: string;
+  level?: OrganizationalLevel;
   membershipStatus?: MembershipStatus;
   memberCode: string;
   createdAt: string;

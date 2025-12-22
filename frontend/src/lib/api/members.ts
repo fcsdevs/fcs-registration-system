@@ -70,6 +70,18 @@ export const membersApi = {
    * PUT /api/members/:id
    * Update member
    */
+  /**
+   * PUT /api/members/profile
+   * Update own profile
+   */
+  updateProfile: async (data: UpdateMemberRequest): Promise<ApiResponse<Member>> => {
+    return api.put('/members/profile', data);
+  },
+
+  /**
+   * PUT /api/members/:id
+   * Update member
+   */
   update: async (id: string, data: UpdateMemberRequest): Promise<ApiResponse<Member>> => {
     return api.put(`/members/${id}`, data);
   },

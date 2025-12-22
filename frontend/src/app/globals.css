@@ -6,16 +6,16 @@
 /* ============================================================
    FCS NIGERIA DESIGN SYSTEM v2.1
    Enterprise Color System & Theme Variables
-   Primary Brand Color: #010030 (FCS Midnight Blue)
+   Primary Brand Color: #060CCD (Bright Electric Blue)
    ============================================================ */
 
 :root {
   /* BRAND IDENTITY */
-  --brand-primary: #010030;
+  --brand-primary: #060CCD;
   --brand-primary-foreground: #FFFFFF;
   
   /* PRIMARY COLORS */
-  --color-primary: #010030;
+  --color-primary: #060CCD;
   --color-primary-foreground: #FFFFFF;
   
   /* SECONDARY COLORS */
@@ -66,11 +66,11 @@
   --color-text-disabled: #CBD5E1;
   
   /* COMPONENT COLORS */
-  --color-button-primary-bg: #010030;
+  --color-button-primary-bg: #060CCD;
   --color-button-primary-text: #FFFFFF;
   --color-button-secondary-bg: transparent;
-  --color-button-secondary-text: #010030;
-  --color-button-secondary-border: #010030;
+  --color-button-secondary-text: #060CCD;
+  --color-button-secondary-border: #060CCD;
   
   /* SPACING */
   --spacing-xs: 0.5rem;

@@ -28,13 +28,13 @@ export default function NewCenterPage() {
     const fetchData = async () => {
       try {
         const [eventsRes, unitsRes] = await Promise.all([
-          api.get("/events"),
-          api.get("/units"),
+          api.get<any>("/events"),
+          api.get<any>("/units"),
         ]);
-        
-        const eventsData = eventsRes.data?.data || eventsRes.data || [];
-        const unitsData = unitsRes.data?.data || unitsRes.data || [];
-        
+
+        const eventsData = (eventsRes as any).data?.data || (eventsRes as any).data || [];
+        const unitsData = (unitsRes as any).data?.data || (unitsRes as any).data || [];
+
         setEvents(Array.isArray(eventsData) ? eventsData : []);
         setUnits(Array.isArray(unitsData) ? unitsData : []);
       } catch (err) {
@@ -72,7 +72,7 @@ export default function NewCenterPage() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
         <Header />
-        
+
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link href="/centers" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6">
             <ArrowLeft className="w-4 h-4" />

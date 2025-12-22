@@ -67,6 +67,16 @@ export interface SendOTPRequest {
   purpose: 'EMAIL_VERIFICATION' | 'PHONE_VERIFICATION' | 'PASSWORD_RESET';
 }
 
+export interface ForgotPasswordRequest {
+  identifier: string; // Email or FCS Code
+}
+
+export interface ResetPasswordRequest {
+  identifier: string;
+  otp: string;
+  password: string;
+}
+
 export interface VerifyOTPRequest {
   phoneNumber: string;
   code: string;

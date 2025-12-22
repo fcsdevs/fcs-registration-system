@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/context/auth-context";
 import {
   BarChart3,
   Users,
@@ -36,9 +37,15 @@ interface NavGroup {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { user } = useAuth();
   const [expandedGroups, setExpandedGroups] = useState<string[]>(["Main", "Management"]);
 
-  const navigationGroups: NavGroup[] = [
+  const isAdmin = user?.roles?.some((r: any) => {
+    const role = r.toLowerCase();
+    return role.includes('admin') || role === 'leader';
+  });
+
+  const adminNavigationGroups: NavGroup[] = [
     {
       label: "Main",
       items: [
@@ -76,6 +83,20 @@ export function Sidebar() {
     },
   ];
 
+  const memberNavigationGroups: NavGroup[] = [
+    {
+      label: "Menu",
+      items: [
+        { href: "/dashboard", label: "Dashboard", icon: Home },
+        { href: "/events", label: "Events", icon: Calendar },
+        { href: "/profile", label: "My Profile", icon: UsersRound },
+        { href: "/my-events", label: "My Registrations", icon: CheckSquare },
+      ]
+    }
+  ];
+
+  const navigationGroups = isAdmin ? adminNavigationGroups : memberNavigationGroups;
+
   const isActive = (href: string) => pathname === href;
 
   const toggleGroup = (label: string) => {
@@ -90,7 +111,7 @@ export function Sidebar() {
         <nav className="flex-1 px-3 py-4 space-y-6">
           {navigationGroups.map((group) => {
             const isExpanded = expandedGroups.includes(group.label);
-            
+
             return (
               <div key={group.label}>
                 <button
@@ -99,23 +120,21 @@ export function Sidebar() {
                 >
                   <span>{group.label}</span>
                   <ChevronRight
-                    className={`w-4 h-4 transition-transform ${
-                      isExpanded ? "rotate-90" : ""
-                    }`}
+                    className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-90" : ""
+                      }`}
                   />
                 </button>
-                
+
                 {isExpanded && (
                   <div className="mt-2 space-y-1">
                     {group.items.map((item) => (
                       <Link
                         key={item.href}
                         href={item.href}
-                        className={`flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                          isActive(item.href)
-                            ? "bg-blue-50 text-blue-700"
-                            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                        }`}
+                        className={`flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors ${isActive(item.href)
+                          ? "bg-blue-50 text-blue-700"
+                          : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                          }`}
                       >
                         <div className="flex items-center gap-3">
                           <item.icon className="w-5 h-5" />
@@ -135,26 +154,28 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* Quick Actions Footer */}
-        <div className="p-4 border-t border-gray-200 bg-gray-50">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-            Quick Actions
-          </p>
-          <div className="space-y-2">
-            <Link
-              href="/members/new"
-              className="block px-3 py-2 text-sm text-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              + New Member
-            </Link>
-            <Link
-              href="/events/new"
-              className="block px-3 py-2 text-sm text-center bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              + New Event
-            </Link>
+        {/* Quick Actions Footer - Admin Only */}
+        {isAdmin && (
+          <div className="p-4 border-t border-gray-200 bg-gray-50">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              Quick Actions
+            </p>
+            <div className="space-y-2">
+              <Link
+                href="/members"
+                className="block px-3 py-2 text-sm text-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Make Admin
+              </Link>
+              <Link
+                href="/events/new"
+                className="block px-3 py-2 text-sm text-center bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                + New Event
+              </Link>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </aside>
   );

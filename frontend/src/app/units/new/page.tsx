@@ -32,7 +32,7 @@ export default function NewUnitPage() {
   useEffect(() => {
     const fetchUnits = async () => {
       try {
-        const response = await api.get("/units");
+        const response = await api.get<any>("/units");
         const data = response.data?.data || response.data || [];
         setUnits(Array.isArray(data) ? data : []);
       } catch (err) {
@@ -68,7 +68,7 @@ export default function NewUnitPage() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
         <Header />
-        
+
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link href="/units" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6">
             <ArrowLeft className="w-4 h-4" />

@@ -23,7 +23,7 @@ export default function CentersPage() {
       // In a real app, you'd have a filter to select which event's centers to view
       const eventsResponse = await api.get<any>("/events");
       const events = eventsResponse.data?.data || eventsResponse.data || [];
-      
+
       if (events.length > 0) {
         // Fetch centers for the first event (or you could fetch for all events)
         const response = await api.get<any>(`/centers?eventId=${events[0].id}`);
@@ -56,7 +56,7 @@ export default function CentersPage() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
         <Header />
-        
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <div className="flex items-center justify-between">
@@ -149,10 +149,10 @@ export default function CentersPage() {
                 <div key={state}>
                   <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-blue-600" />
-                    {state} ({stateCenters.length})
+                    {state} ({(stateCenters as any[]).length})
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {stateCenters.map((center) => (
+                    {(stateCenters as any[]).map((center: any) => (
                       <div key={center.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6">
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">

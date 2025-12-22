@@ -23,6 +23,7 @@ import {
   CheckSquare,
   UsersRound,
   X,
+  User,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -33,7 +34,12 @@ export function EnhancedHeader() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
-  const [notificationCount] = useState(3); // Mock notification count
+  const [notificationCount] = useState(0); // Reset mock count for now
+
+  const isAdmin = user?.roles?.some((r: any) => {
+    const role = r.toLowerCase();
+    return role.includes('admin') || role === 'leader';
+  });
 
   // Command Palette keyboard shortcut
   useEffect(() => {
@@ -56,7 +62,8 @@ export function EnhancedHeader() {
     router.push("/auth/login");
   };
 
-  const navigationGroups = [
+  // Navigation Groups (Mobile & Command Palette only)
+  const adminNavigationGroups = [
     {
       label: "Main",
       items: [
@@ -86,6 +93,19 @@ export function EnhancedHeader() {
     },
   ];
 
+  const memberNavigationGroups = [
+    {
+      label: "Menu",
+      items: [
+        { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
+        { href: "/events", label: "Events", icon: Calendar },
+        { href: "/profile", label: "My Profile", icon: UserCircle },
+      ],
+    }
+  ];
+
+  const navigationGroups = isAdmin ? adminNavigationGroups : memberNavigationGroups;
+
   const quickActions = [
     { href: "/members/new", label: "New Member", icon: Users },
     { href: "/events/new", label: "New Event", icon: Calendar },
@@ -102,7 +122,7 @@ export function EnhancedHeader() {
           <div className="flex items-center justify-between h-16">
             {/* Logo & Brand */}
             <div className="flex items-center gap-8">
-              <Link href="/home" className="flex items-center gap-3 hover:opacity-80 transition">
+              <Link href={isAdmin ? "/home" : "/dashboard"} className="flex items-center gap-3 hover:opacity-80 transition">
                 <Image
                   src="/fcs_logo.png"
                   alt="FCS Logo"
@@ -112,23 +132,6 @@ export function EnhancedHeader() {
                 />
                 <span className="text-xl font-bold text-[#010030]">FCS Registry</span>
               </Link>
-
-              {/* Primary Navigation - Desktop */}
-              <div className="hidden lg:flex items-center gap-1">
-                {navigationGroups[0].items.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive(item.href)
-                        ? "bg-blue-50 text-blue-700"
-                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
             </div>
 
             {/* Right Side Actions */}
@@ -184,32 +187,44 @@ export function EnhancedHeader() {
                         </p>
                         <p className="text-xs text-gray-500 mt-0.5">{user?.email}</p>
                       </div>
-                      
+
                       <div className="py-2">
                         <Link
-                          href="/settings"
+                          href="/profile"
                           className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           onClick={() => setShowUserMenu(false)}
                         >
-                          <Settings className="w-4 h-4" />
-                          Settings
+                          <UserCircle className="w-4 h-4" />
+                          Profile
                         </Link>
-                        <Link
-                          href="/admin"
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          onClick={() => setShowUserMenu(false)}
-                        >
-                          <Shield className="w-4 h-4" />
-                          Admin Panel
-                        </Link>
-                        <Link
-                          href="/command"
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          onClick={() => setShowUserMenu(false)}
-                        >
-                          <Command className="w-4 h-4" />
-                          Command Center
-                        </Link>
+                        {isAdmin && (
+                          <>
+                            <Link
+                              href="/settings"
+                              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              onClick={() => setShowUserMenu(false)}
+                            >
+                              <Settings className="w-4 h-4" />
+                              Settings
+                            </Link>
+                            <Link
+                              href="/admin"
+                              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              onClick={() => setShowUserMenu(false)}
+                            >
+                              <Shield className="w-4 h-4" />
+                              Admin Panel
+                            </Link>
+                            <Link
+                              href="/command"
+                              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              onClick={() => setShowUserMenu(false)}
+                            >
+                              <Command className="w-4 h-4" />
+                              Command Center
+                            </Link>
+                          </>
+                        )}
                       </div>
 
                       <div className="border-t border-gray-200 pt-2">
@@ -252,11 +267,10 @@ export function EnhancedHeader() {
                         key={item.href}
                         href={item.href}
                         onClick={() => setShowMobileMenu(false)}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${
-                          isActive(item.href)
-                            ? "bg-blue-50 text-blue-700"
-                            : "text-gray-700 hover:bg-gray-100"
-                        }`}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive(item.href)
+                          ? "bg-blue-50 text-blue-700"
+                          : "text-gray-700 hover:bg-gray-100"
+                          }`}
                       >
                         <item.icon className="w-5 h-5" />
                         {item.label}

@@ -31,7 +31,7 @@ export default function NewGroupPage() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await api.get("/events");
+        const response = await api.get<any>("/events");
         const data = response.data?.data || response.data || [];
         setEvents(Array.isArray(data) ? data : []);
       } catch (err) {

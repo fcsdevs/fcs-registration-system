@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { RootProviders } from "@/components/layout/providers";
+import { AppLayout } from "@/components/layout/app-layout";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -29,7 +30,9 @@ export default function RootLayout({
       </head>
       <body>
         <RootProviders>
-          {children}
+          <AppLayout>
+            {children}
+          </AppLayout>
         </RootProviders>
       </body>
     </html>

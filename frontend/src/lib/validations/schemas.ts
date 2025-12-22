@@ -22,6 +22,10 @@ export const signupSchema = z.object({
     .regex(/[A-Z]/, "Password must contain an uppercase letter")
     .regex(/[0-9]/, "Password must contain a number"),
   confirmPassword: z.string(),
+  unitId: z.string().optional(), // Keeping for backward compatibility if needed, but made optional
+  state: z.string().min(1, "State is required"),
+  zone: z.string().min(1, "Zone/Area is required"),
+  branch: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],

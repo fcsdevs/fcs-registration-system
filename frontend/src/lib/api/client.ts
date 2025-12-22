@@ -74,7 +74,7 @@ class ApiClient {
         // Parse response body for both success and error cases
         const contentType = response.headers.get("content-type");
         let responseData: any;
-        
+
         if (contentType?.includes("application/json")) {
           responseData = await response.json();
         } else {
@@ -87,21 +87,28 @@ class ApiClient {
             if (typeof window !== "undefined") {
               localStorage.removeItem("accessToken");
               localStorage.removeItem("refreshToken");
-              window.location.href = "/auth/login";
+
+              // Only redirect if we're not already on a login/auth page
+              const currentPath = window.location.pathname;
+              const isAuthPage = currentPath.includes('/auth/') || currentPath.includes('/login');
+
+              if (!isAuthPage) {
+                window.location.href = "/auth/login";
+              }
             }
           }
 
           // Extract error message from backend response
-          const errorMessage = 
-            responseData?.error?.message || 
-            responseData?.message || 
+          const errorMessage =
+            responseData?.error?.message ||
+            responseData?.message ||
             `HTTP ${response.status}: ${response.statusText}`;
-          
+
           const error: any = new Error(errorMessage);
           error.status = response.status;
           error.code = responseData?.error?.code || 'UNKNOWN_ERROR';
           error.response = responseData;
-          
+
           throw error;
         }
 
@@ -114,7 +121,7 @@ class ApiClient {
         if (status >= 400 && status < 500) {
           break;
         }
-        
+
         if (error.name === 'AbortError') {
           break;
         }

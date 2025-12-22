@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { ProtectedRoute } from "@/components/common/route-guards";
-import { Header } from "@/components/layout/header";
+import { useAuth } from "@/context/auth-context";
 import { api } from "@/lib/api/client";
 import { Event } from "@/types";
-import { 
-  Calendar, 
-  Plus, 
-  MapPin, 
-  Users, 
+import {
+  Calendar,
+  Plus,
+  MapPin,
+  Users,
   Clock,
   Filter,
   Search,
@@ -20,7 +20,10 @@ import {
 import Link from "next/link";
 
 export default function EventPage() {
+  const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
+
+  const isAdmin = user?.roles?.some((r: any) => ['admin', 'leader', 'center_admin'].includes(r));
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "draft" | "published" | "active" | "completed">("all");
@@ -73,64 +76,67 @@ export default function EventPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
-        <Header />
-        
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">Events</h1>
-                <p className="text-gray-600 mt-1">Manage church events and programs</p>
+                <p className="text-gray-600 mt-1">{isAdmin ? "Manage church events and programs" : "Browse upcoming events and programs"}</p>
               </div>
-              <Link
-                href="/events/new"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="w-5 h-5" />
-                Create Event
-              </Link>
+              {isAdmin && (
+                <Link
+                  href="/events/new"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-5 h-5" />
+                  Create Event
+                </Link>
+              )}
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Events</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">{stats.total}</p>
-                </div>
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Calendar className="w-8 h-8 text-blue-600" />
+          {/* Stats - Admin Only */}
+          {isAdmin && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Total Events</p>
+                    <p className="text-3xl font-bold text-gray-900 mt-1">{stats.total}</p>
+                  </div>
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <Calendar className="w-8 h-8 text-blue-600" />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Active Events</p>
-                  <p className="text-3xl font-bold text-green-600 mt-1">{stats.active}</p>
-                </div>
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <Users className="w-8 h-8 text-green-600" />
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Active Events</p>
+                    <p className="text-3xl font-bold text-green-600 mt-1">{stats.active}</p>
+                  </div>
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <Users className="w-8 h-8 text-green-600" />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Upcoming</p>
-                  <p className="text-3xl font-bold text-blue-600 mt-1">{stats.upcoming}</p>
-                </div>
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Clock className="w-8 h-8 text-blue-600" />
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Upcoming</p>
+                    <p className="text-3xl font-bold text-blue-600 mt-1">{stats.upcoming}</p>
+                  </div>
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <Clock className="w-8 h-8 text-blue-600" />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Search & Filters */}
           <div className="bg-white rounded-lg shadow p-6 mb-8">
@@ -170,14 +176,16 @@ export default function EventPage() {
             <div className="bg-white rounded-lg shadow p-12 text-center">
               <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No events found</h3>
-              <p className="text-gray-600 mb-6">Get started by creating your first event</p>
-              <Link
-                href="/events/new"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="w-5 h-5" />
-                Create Event
-              </Link>
+              <p className="text-gray-600 mb-6">{isAdmin ? "Get started by creating your first event" : "Check back later for upcoming events"}</p>
+              {isAdmin && (
+                <Link
+                  href="/events/new"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-5 h-5" />
+                  Create Event
+                </Link>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -214,13 +222,15 @@ export default function EventPage() {
                       <Eye className="w-4 h-4" />
                       View Details
                     </Link>
-                    <Link
-                      href={`/events/${event.id}/edit`}
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-                    >
-                      <Edit className="w-4 h-4" />
-                      Edit
-                    </Link>
+                    {isAdmin && (
+                      <Link
+                        href={`/events/${event.id}/edit`}
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </Link>
+                    )}
                   </div>
                 </div>
               ))}
