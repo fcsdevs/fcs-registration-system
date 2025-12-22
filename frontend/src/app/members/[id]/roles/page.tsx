@@ -308,7 +308,7 @@ export default function MemberRolesPage() {
                                             value={selectedUnitId}
                                             onChange={(e) => setSelectedUnitId(e.target.value)}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            disabled={selectedRoleId && availableRoles.find(r => r.id === selectedRoleId)?.unitScope === false}
+                                            disabled={!!selectedRoleId && availableRoles.find(r => r.id === selectedRoleId)?.unitScope === false}
                                         >
                                             <option value="">-- Global / No Unit --</option>
                                             {availableUnits.map(unit => (
