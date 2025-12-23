@@ -29,10 +29,33 @@ export default function NewEventPage() {
   useEffect(() => {
     const fetchUnits = async () => {
       try {
+        console.log('Fetching units...');
         const response = await api.get<any>("/units");
-        setUnits(response.data || []);
-      } catch (err) {
+        console.log('Units response:', response);
+
+        // Handle different response formats
+        let unitsData = [];
+        if (response.data) {
+          // Check if it's paginated (has data.data property)
+          if (response.data.data) {
+            unitsData = response.data.data;
+          } else {
+            unitsData = response.data;
+          }
+        } else {
+          unitsData = response;
+        }
+
+        console.log('Extracted units data:', unitsData);
+        setUnits(Array.isArray(unitsData) ? unitsData : []);
+
+        if (!Array.isArray(unitsData) || unitsData.length === 0) {
+          console.warn('No units found or invalid format');
+        }
+      } catch (err: any) {
         console.error("Failed to fetch units:", err);
+        console.error("Error details:", err.response?.data);
+        setError("Failed to load units. Please refresh the page.");
       } finally {
         setLoadingUnits(false);
       }
@@ -68,7 +91,6 @@ export default function NewEventPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
-        <Header />
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link href="/events" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6">
@@ -116,24 +138,68 @@ export default function NewEventPage() {
                 />
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Participation Mode *
+                  </label>
+                  <select
+                    required
+                    value={formData.participationMode}
+                    onChange={(e) => setFormData({ ...formData, participationMode: e.target.value as "ONLINE" | "ONSITE" | "HYBRID" })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="ONSITE">On-site</option>
+                    <option value="ONLINE">Online</option>
+                    <option value="HYBRID">Hybrid</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">Select how participants will attend this event</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Capacity
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.capacity}
+                    onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Leave empty for unlimited"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Maximum number of participants (optional)</p>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Unit *
+                  Organizing Unit {!loadingUnits && units.length === 0 && "(Optional)"}
                 </label>
                 <select
-                  required
                   value={formData.unitId}
                   onChange={(e) => setFormData({ ...formData, unitId: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={loadingUnits}
                 >
-                  <option value="">Select a unit</option>
+                  <option value="">Select a unit (optional)</option>
                   {units.map((unit) => (
                     <option key={unit.id} value={unit.id}>
                       {unit.name} {unit.code ? `(${unit.code})` : ""}
                     </option>
                   ))}
                 </select>
+                {loadingUnits && (
+                  <p className="text-xs text-gray-500 mt-1">Loading units...</p>
+                )}
+                {!loadingUnits && units.length === 0 && (
+                  <p className="text-xs text-yellow-600 mt-1">
+                    ⚠️ No units available. You can create the event without selecting a unit, or create units first from the Units management page.
+                  </p>
+                )}
+                {!loadingUnits && units.length > 0 && (
+                  <p className="text-xs text-gray-500 mt-1">The organizational unit hosting this event (e.g., National, State, Center)</p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -192,37 +258,6 @@ export default function NewEventPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Participation Mode *
-                  </label>
-                  <select
-                    required
-                    value={formData.participationMode}
-                    onChange={(e) => setFormData({ ...formData, participationMode: e.target.value as "ONLINE" | "ONSITE" | "HYBRID" })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="ONSITE">On-site</option>
-                    <option value="ONLINE">Online</option>
-                    <option value="HYBRID">Hybrid</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Capacity
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.capacity}
-                    onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Leave empty for unlimited"
-                  />
-                </div>
-              </div>
 
               <div className="flex items-center gap-4 pt-6 border-t">
                 <button

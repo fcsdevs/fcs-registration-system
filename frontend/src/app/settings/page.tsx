@@ -18,8 +18,7 @@ export default function SettingPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
-        <Header />
-        
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
@@ -37,11 +36,10 @@ export default function SettingPage() {
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                          activeTab === tab.id
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeTab === tab.id
                             ? "bg-blue-50 text-blue-600"
                             : "text-gray-700 hover:bg-gray-50"
-                        }`}
+                          }`}
                       >
                         <Icon className="w-5 h-5" />
                         <span className="font-medium">{tab.label}</span>
@@ -58,7 +56,7 @@ export default function SettingPage() {
                 {activeTab === "general" && (
                   <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-900">General Settings</h2>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Organization Name
@@ -94,7 +92,7 @@ export default function SettingPage() {
                 {activeTab === "notifications" && (
                   <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-900">Notification Preferences</h2>
-                    
+
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
@@ -126,7 +124,7 @@ export default function SettingPage() {
                 {activeTab === "security" && (
                   <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-900">Security Settings</h2>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Current Password
@@ -162,7 +160,7 @@ export default function SettingPage() {
                 {activeTab === "email" && (
                   <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-900">Email Configuration</h2>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         SMTP Host

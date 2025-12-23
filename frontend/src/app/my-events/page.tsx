@@ -40,10 +40,30 @@ function MyEventsContent() {
                 // Extract data from response { data: { docs: [] } } or { data: [] }
                 const eventsData = response.data?.docs || response.data || [];
                 setEvents(Array.isArray(eventsData) ? eventsData : []);
-            } else if (activeTab === 'registered') {
+            } else if (activeTab === 'registered' || activeTab === 'past') {
+                // Fetch ALL registrations for both tabs
                 const response = await api.get<any>('/registrations');
                 const regsData = response.data?.docs || response.data || [];
-                setRegistrations(Array.isArray(regsData) ? regsData : []);
+                const allRegs = Array.isArray(regsData) ? regsData : [];
+
+                const now = new Date();
+
+                if (activeTab === 'registered') {
+                    // Filter for upcoming/current events (endDate >= now)
+                    // If no date is available, we assume it's upcoming/current
+                    const upcoming = allRegs.filter((reg: any) => {
+                        if (!reg.event?.endDate) return true;
+                        return new Date(reg.event.endDate) >= now;
+                    });
+                    setRegistrations(upcoming);
+                } else {
+                    // Filter for past events (endDate < now)
+                    const past = allRegs.filter((reg: any) => {
+                        if (!reg.event?.endDate) return false;
+                        return new Date(reg.event.endDate) < now;
+                    });
+                    setRegistrations(past);
+                }
             }
         } catch (error) {
             console.error('Failed to fetch data:', error);
@@ -184,20 +204,30 @@ function MyEventsContent() {
                                 ))
                             )}
                         </div>
-                    ) : activeTab === 'registered' ? (
+                    ) : activeTab === 'registered' || activeTab === 'past' ? (
                         <div className="space-y-4">
                             {registrations.length === 0 ? (
                                 <div className="text-center py-12 bg-white rounded-lg shadow">
-                                    <CheckCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Registrations Yet</h3>
-                                    <p className="text-gray-600 mb-6">You haven't registered for any events</p>
-                                    <button
-                                        onClick={() => setActiveTab('available')}
-                                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                    >
-                                        Browse Events
-                                        <ArrowRight className="w-4 h-4" />
-                                    </button>
+                                    {activeTab === 'registered' ? (
+                                        <>
+                                            <CheckCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                                            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Registrations Yet</h3>
+                                            <p className="text-gray-600 mb-6">You haven't registered for any events</p>
+                                            <button
+                                                onClick={() => setActiveTab('available')}
+                                                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                            >
+                                                Browse Events
+                                                <ArrowRight className="w-4 h-4" />
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                                            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Past Events</h3>
+                                            <p className="text-gray-600">Your past event attendance will appear here</p>
+                                        </>
+                                    )}
                                 </div>
                             ) : (
                                 registrations.map((registration) => (
@@ -205,7 +235,7 @@ function MyEventsContent() {
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
                                                 <h3 className="text-lg font-semibold text-[#010030] mb-1">
-                                                    {registration.event?.name || 'Event'}
+                                                    {registration.event?.title || registration.event?.name || 'Event'}
                                                 </h3>
                                                 <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
                                                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getParticipationModeColor(registration.participationMode)}`}>
@@ -215,6 +245,12 @@ function MyEventsContent() {
                                                         <div className="flex items-center gap-1">
                                                             <MapPin className="w-3 h-3" />
                                                             <span>{registration.center.name}</span>
+                                                        </div>
+                                                    )}
+                                                    {registration.event?.startDate && (
+                                                        <div className="flex items-center gap-1">
+                                                            <Calendar className="w-3 h-3" />
+                                                            <span>{new Date(registration.event.startDate).toLocaleDateString()}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -230,13 +266,7 @@ function MyEventsContent() {
                                 ))
                             )}
                         </div>
-                    ) : (
-                        <div className="text-center py-12 bg-white rounded-lg shadow">
-                            <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Past Events</h3>
-                            <p className="text-gray-600">Your past event attendance will appear here</p>
-                        </div>
-                    )}
+                    ) : null}
                 </div>
             </div>
         </ProtectedRoute>

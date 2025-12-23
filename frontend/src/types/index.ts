@@ -43,7 +43,7 @@ export interface User {
 }
 
 // Events & Participation
-export type ParticipationMode = "ONLINE" | "ON_SITE" | "HYBRID";
+export type ParticipationMode = "ONLINE" | "ONSITE" | "HYBRID";
 export type EventStatus = "draft" | "published" | "active" | "completed" | "cancelled";
 
 export interface EventCenter {
@@ -78,11 +78,14 @@ export interface Event {
   description?: string;
   startDate: string;
   endDate: string;
-  participationModes: ParticipationMode[];
+  participationMode: ParticipationMode;
+  unit?: OrganizationalUnit;
   centers?: EventCenter[];
   groups?: BibleStudyGroup[];
   status: EventStatus;
   visibility: "public" | "private";
+  registrationStart: string;
+  registrationEnd: string;
   registrationOpen: boolean;
   maxCapacity?: number;
   unitId: string;

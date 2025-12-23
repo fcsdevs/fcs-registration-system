@@ -33,7 +33,7 @@ export const designTokens = {
     warning: "#D97706", // Capacity warnings, alerts
     error: "#B91C1C", // Errors, validation failures
     info: "#2563EB", // Informational alerts
-    
+
     // Neutral Palette (Critical with dark primary - soft & readable)
     gray: {
       950: "#020617", // Rare use: deep headers
@@ -57,7 +57,7 @@ export const designTokens = {
       badge_bg: "#EFF6FF",
       badge_text: "#1D4ED8",
     },
-    ON_SITE: {
+    ONSITE: {
       name: "On-Site",
       description: "Physical attendance at designated center",
       color: "#F59E0B",

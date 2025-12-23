@@ -15,18 +15,28 @@ import {
   Search,
   Eye,
   Edit,
-  MoreVertical
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function EventPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
 
-  const isAdmin = user?.roles?.some((r: any) => ['admin', 'leader', 'center_admin'].includes(r));
+  // Match the auth context logic for admin detection
+  const isAdmin = user?.roles?.some((r: string) => r.toLowerCase().includes('admin') || r.toLowerCase() === 'leader');
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "draft" | "published" | "active" | "completed">("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "upcoming" | "current" | "past">("all");
+
+  // Debug logging
+  useEffect(() => {
+    console.log('User:', user);
+    console.log('User roles:', user?.roles);
+    console.log('Is Admin:', isAdmin);
+  }, [user, isAdmin]);
 
   useEffect(() => {
     fetchEvents();
@@ -35,19 +45,50 @@ export default function EventPage() {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams();
-      if (filterStatus !== "all") {
-        params.append("status", filterStatus);
+
+      // Fetch all events
+      const response = await api.get<any>(`/events`);
+      const eventsData = response.data || response || [];
+      const allEvents = Array.isArray(eventsData) ? eventsData : [];
+
+      // Filter by date status
+      const now = new Date();
+      let filtered = allEvents;
+
+      if (filterStatus === "upcoming") {
+        // Events that haven't started yet
+        filtered = allEvents.filter((e: Event) => new Date(e.startDate) > now);
+      } else if (filterStatus === "current") {
+        // Events that are currently happening
+        filtered = allEvents.filter((e: Event) =>
+          new Date(e.startDate) <= now && new Date(e.endDate) >= now
+        );
+      } else if (filterStatus === "past") {
+        // Events that have ended
+        filtered = allEvents.filter((e: Event) => new Date(e.endDate) < now);
       }
 
-      const response = await api.get<any>(`/events?${params.toString()}`);
-      const eventsData = response.data || response || [];
-      setEvents(Array.isArray(eventsData) ? eventsData : []);
+      setEvents(filtered);
     } catch (error) {
       console.error("Failed to fetch events:", error);
       setEvents([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (eventId: string, eventTitle: string) => {
+    if (!confirm(`Are you sure you want to delete "${eventTitle}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await api.delete(`/events/${eventId}`);
+      alert('Event deleted successfully');
+      fetchEvents(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to delete event:', error);
+      alert('Failed to delete event. Please try again.');
     }
   };
 
@@ -158,11 +199,10 @@ export default function EventPage() {
                 onChange={(e) => setFilterStatus(e.target.value as any)}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="all">All Status</option>
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-                <option value="active">Active</option>
-                <option value="completed">Completed</option>
+                <option value="all">All Events</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="current">Current/Active</option>
+                <option value="past">Past</option>
               </select>
             </div>
           </div>
@@ -223,13 +263,21 @@ export default function EventPage() {
                       View Details
                     </Link>
                     {isAdmin && (
-                      <Link
-                        href={`/events/${event.id}/edit`}
-                        className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-                      >
-                        <Edit className="w-4 h-4" />
-                        Edit
-                      </Link>
+                      <>
+                        <button
+                          onClick={() => router.push(`/events/${event.id}/edit`)}
+                          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(event.id, event.title)}
+                          className="inline-flex items-center justify-center px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>

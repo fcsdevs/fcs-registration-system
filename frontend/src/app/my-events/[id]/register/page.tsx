@@ -51,7 +51,6 @@ export default function EventRegistrationPage() {
         return (
             <ProtectedRoute>
                 <div className="min-h-screen bg-gray-50">
-                    <Header />
                     <div className="flex items-center justify-center py-20">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                     </div>
@@ -64,7 +63,6 @@ export default function EventRegistrationPage() {
         return (
             <ProtectedRoute>
                 <div className="min-h-screen bg-gray-50">
-                    <Header />
                     <div className="max-w-3xl mx-auto px-4 py-20 text-center">
                         <h2 className="text-2xl font-bold text-gray-900 mb-4">Event Not Found</h2>
                         <Link
@@ -83,7 +81,6 @@ export default function EventRegistrationPage() {
     return (
         <ProtectedRoute>
             <div className="min-h-screen bg-gray-50">
-                <Header />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Back Button */}

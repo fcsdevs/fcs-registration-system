@@ -37,8 +37,7 @@ export default function GroupsPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
-        <Header />
-        
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <div className="flex items-center justify-between">
@@ -85,7 +84,7 @@ export default function GroupsPage() {
                 <div>
                   <p className="text-sm text-gray-600">Avg Group Size</p>
                   <p className="text-3xl font-bold text-purple-600 mt-1">
-                    {groups.length > 0 
+                    {groups.length > 0
                       ? Math.round(groups.reduce((sum, g) => sum + (g.memberCount || 0), 0) / groups.length)
                       : 0}
                   </p>
