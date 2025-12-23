@@ -52,16 +52,15 @@ export default function AttendancePage() {
     total: Array.isArray(attendance) ? attendance.length : 0,
     present: Array.isArray(attendance) ? attendance.filter(a => a.status === "present").length : 0,
     absent: Array.isArray(attendance) ? attendance.filter(a => a.status === "absent").length : 0,
-    rate: Array.isArray(attendance) && attendance.length > 0 
-      ? Math.round((attendance.filter(a => a.status === "present").length / attendance.length) * 100) 
+    rate: Array.isArray(attendance) && attendance.length > 0
+      ? Math.round((attendance.filter(a => a.status === "present").length / attendance.length) * 100)
       : 0,
   };
 
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
-        <Header />
-        
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <div className="flex items-center justify-between">
@@ -183,11 +182,10 @@ export default function AttendancePage() {
                             {record.checkInTime ? new Date(record.checkInTime).toLocaleString() : "-"}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              record.status === "present" 
-                                ? "bg-green-100 text-green-800" 
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${record.status === "present"
+                                ? "bg-green-100 text-green-800"
                                 : "bg-red-100 text-red-800"
-                            }`}>
+                              }`}>
                               {record.status}
                             </span>
                           </td>

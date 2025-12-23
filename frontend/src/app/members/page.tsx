@@ -30,10 +30,13 @@ export default function MemberPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all");
-  const [filterGender, setFilterGender] = useState<"all" | "MALE" | "FEMALE" | "OTHER">("all");
+  const [filterGender, setFilterGender] = useState<"all" | "MALE" | "FEMALE">("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalResults, setTotalResults] = useState(0);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   // Close menu when clicking outside
@@ -50,14 +53,14 @@ export default function MemberPage() {
 
   useEffect(() => {
     fetchMembers();
-  }, [currentPage, filterStatus, filterGender]);
+  }, [currentPage, filterStatus, filterGender, appliedSearchQuery, limit]);
 
   const fetchMembers = async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
         page: currentPage.toString(),
-        limit: "12",
+        limit: limit.toString(),
       });
 
       if (filterStatus !== "all") {
@@ -67,23 +70,25 @@ export default function MemberPage() {
         params.append("gender", filterGender);
       }
 
-      if (searchQuery) {
-        params.append("search", searchQuery);
+      if (appliedSearchQuery) {
+        params.append("search", appliedSearchQuery);
       }
 
       const response = await api.get<any>(`/members?${params.toString()}`);
-      // Backend returns { data: [...], pagination: {...} } OR just [...] depending on previous fix
-      // My previous fix unwrapped it to just the array or object. 
-      // Let's handle both cases robustly.
 
       let membersData = [];
       if (Array.isArray(response)) {
         membersData = response;
+        setTotalPages(1);
+        setTotalResults(response.length);
       } else if (response && Array.isArray(response.data)) {
         membersData = response.data;
-        setTotalPages(response.pagination?.totalPages || 1);
+        setTotalPages(response.pagination?.pages || 1);
+        setTotalResults(response.pagination?.total || 0);
       } else {
         membersData = [];
+        setTotalPages(1);
+        setTotalResults(0);
       }
 
       setMembers(membersData);
@@ -95,13 +100,10 @@ export default function MemberPage() {
     }
   };
 
-  const handleSearch = async () => {
+  const handleSearch = () => {
     setCurrentPage(1); // Reset to page 1 on new search
-    fetchMembers();
+    setAppliedSearchQuery(searchQuery);
   };
-
-  // Debounce search or just use enter key (current implementation uses Enter or manually triggering fetch)
-  // Let's attach to Enter key in the input
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this member? This action cannot be undone.")) return;
@@ -114,15 +116,6 @@ export default function MemberPage() {
     }
   };
 
-  const stats = {
-    total: members.length, // accurate only if we fetched all, but with pagination this is just page count. 
-    // Ideally we'd get stats from a separate endpoint or the pagination metadata.
-    // For now keep as is or just hide if inaccurate. 
-    // Let's assume pagination metadata gives total if available, otherwise just count visible.
-    active: members.filter(m => m.isActive).length,
-    inactive: members.filter(m => !m.isActive).length,
-  };
-
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50 pb-12">
@@ -131,9 +124,11 @@ export default function MemberPage() {
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Members</h1>
-              <p className="text-gray-600 mt-1">Manage church members and their information</p>
+              <p className="text-gray-600 mt-1">
+                Manage church members and their information
+                {totalResults > 0 && <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">{totalResults} total</span>}
+              </p>
             </div>
-            {/* Add Member button removed as per request */}
           </div>
 
           {/* Search and Filters */}
@@ -174,7 +169,6 @@ export default function MemberPage() {
                 <option value="all">All Genders</option>
                 <option value="MALE">Male</option>
                 <option value="FEMALE">Female</option>
-                <option value="OTHER">Other</option>
               </select>
 
               <button
@@ -327,25 +321,47 @@ export default function MemberPage() {
             )}
 
             {/* Pagination remains mostly same */}
-            {totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50">
-                <button
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 border border-gray-300 bg-white rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium text-gray-700"
-                >
-                  Previous
-                </button>
-                <span className="text-sm text-gray-600">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 border border-gray-300 bg-white rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium text-gray-700"
-                >
-                  Next
-                </button>
+            {/* Pagination */}
+            {totalResults > 0 && (
+              <div className="px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between bg-gray-50 gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Rows per page:</span>
+                  <select
+                    value={limit}
+                    onChange={(e) => {
+                      setLimit(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="border border-gray-300 rounded text-sm p-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 border border-gray-300 bg-white rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium text-gray-700 transition-colors"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-4 py-2 border border-gray-300 bg-white rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium text-gray-700 transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>

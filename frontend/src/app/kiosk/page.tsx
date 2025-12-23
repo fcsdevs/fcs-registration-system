@@ -23,7 +23,7 @@ export default function KioskPage() {
     try {
       const response = await api.get<any>(`/members/search?q=${encodeURIComponent(searchQuery)}`);
       const members = response.data || response || [];
-      
+
       if (Array.isArray(members) && members.length > 0) {
         setSearchResult(members[0]);
       } else {
@@ -58,8 +58,7 @@ export default function KioskPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <Header />
-        
+
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center mb-12">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mb-4">
@@ -96,9 +95,8 @@ export default function KioskPage() {
 
             {/* Messages */}
             {message && (
-              <div className={`mt-6 p-4 rounded-lg flex items-center gap-3 ${
-                message.type === "success" ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"
-              }`}>
+              <div className={`mt-6 p-4 rounded-lg flex items-center gap-3 ${message.type === "success" ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"
+                }`}>
                 {message.type === "success" ? (
                   <CheckCircle className="w-6 h-6" />
                 ) : (

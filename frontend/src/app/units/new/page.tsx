@@ -9,11 +9,12 @@ import { Building, ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 
 const UNIT_TYPES = [
-  { value: "NATIONAL", label: "National" },
-  { value: "REGIONAL", label: "Regional" },
-  { value: "DISTRICT", label: "District" },
-  { value: "LOCAL", label: "Local" },
-  { value: "CELL", label: "Cell" },
+  { value: "National", label: "National" },
+  { value: "Regional", label: "Regional" },
+  { value: "State", label: "State" },
+  { value: "Zone", label: "Zone" },
+  { value: "Area", label: "Area" },
+  { value: "Branch", label: "Branch" },
 ];
 
 export default function NewUnitPage() {
@@ -24,7 +25,7 @@ export default function NewUnitPage() {
   const [loadingUnits, setLoadingUnits] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
-    type: "LOCAL" as string,
+    type: "Branch" as string,
     description: "",
     parentUnitId: "",
   });
@@ -67,7 +68,6 @@ export default function NewUnitPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
-        <Header />
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link href="/units" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6">
