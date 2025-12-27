@@ -15,6 +15,7 @@ import {
     Clock,
     Loader2,
     CheckCircle2,
+    Edit,
 } from "lucide-react";
 import Link from "next/link";
 import { ProtectedRoute } from "@/components/common/route-guards";
@@ -98,14 +99,24 @@ export default function EventDetailsPage() {
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Header */}
                     <div className="mb-6">
-                        <Button
-                            variant="ghost"
-                            onClick={() => router.push("/events")}
-                            className="mb-4"
-                        >
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Back to Events
-                        </Button>
+                        <div className="flex items-center justify-between mb-4">
+                            <Button
+                                variant="ghost"
+                                onClick={() => router.push("/events")}
+                            >
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                Back to Events
+                            </Button>
+
+                            <Button
+                                variant="outline"
+                                onClick={() => router.push(`/events/${eventId}/edit`)}
+                                className="border-blue-200 hover:bg-blue-50 text-blue-700"
+                            >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit Event
+                            </Button>
+                        </div>
 
                         <div className="bg-white rounded-lg shadow-lg p-8">
                             <div className="flex items-start justify-between mb-4">

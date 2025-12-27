@@ -282,7 +282,7 @@ export default function MemberPage() {
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <Link
-                                    href={`/members/${member.id}/roles`}
+                                    href={`/admin/users/new?userId=${member.id}`}
                                     className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                                     onClick={() => setOpenMenuId(null)}
                                   >

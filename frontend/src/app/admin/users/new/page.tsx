@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ProtectedRoute } from "@/components/common/route-guards";
 import { useAdmin } from "@/context/admin-context";
 import { api } from "@/lib/api/client";
@@ -15,6 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AssignAdminPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const preselectedUserId = searchParams.get('userId');
     const { currentScope } = useAdmin();
 
     // Search State
@@ -22,6 +24,24 @@ export default function AssignAdminPage() {
     const [isSearching, setIsSearching] = useState(false);
     const [searchResults, setSearchResults] = useState<User[]>([]);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+    // Effect to handle pre-selected user
+    useEffect(() => {
+        if (preselectedUserId) {
+            const fetchUser = async () => {
+                try {
+                    const response = await api.get<any>(`/users/${preselectedUserId}`);
+                    if (response.data) {
+                        setSelectedUser(response.data);
+                        setSearchQuery(response.data.email || response.data.firstName);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch preselected user:", error);
+                }
+            };
+            fetchUser();
+        }
+    }, [preselectedUserId]);
 
     // Assignment State
     const [states, setStates] = useState<Unit[]>([]);
@@ -45,9 +65,10 @@ export default function AssignAdminPage() {
         setSuccessMessage(null);
         setError(null);
         try {
-            // Mock search endpoint or use list with filter
-            const response = await api.get<any>(`/users/search?q=${encodeURIComponent(searchQuery)}`);
-            setSearchResults(response.data.data || []);
+            // Use the list endpoint with search filter
+            const response = await api.get<any>(`/users?search=${encodeURIComponent(searchQuery)}`);
+            // The backend returns a flat array of users
+            setSearchResults(Array.isArray(response) ? response : (response.data || []));
         } catch (err) {
             console.error("Search failed", err);
             // Fallback for demo if API endpoint doesn't exist
@@ -65,7 +86,13 @@ export default function AssignAdminPage() {
             // If National, load States
             if (currentScope.level === 'National') {
                 const res = await unitsApi.list({ type: 'State' });
-                if (res.data) setStates(res.data.data);
+                // Handle both paginated and non-paginated responses
+                if (res.data) {
+                    const statesList = Array.isArray(res.data)
+                        ? res.data
+                        : (Array.isArray(res.data.data) ? res.data.data : []);
+                    setStates(statesList as Unit[]);
+                }
             }
             // If State, set States to [currentUnit] and load Zones
             else if (currentScope.level === 'State') {
@@ -133,6 +160,11 @@ export default function AssignAdminPage() {
         // Determine target unit
         let targetUnitId = selectedBranchId || selectedZoneId || selectedStateId;
 
+        if (!targetUnitId) {
+            setError("Please select the organizational unit (State, Zone, etc.)");
+            return;
+        }
+
         // Determine Role based on Type of target unit
         // This requires knowing the type of the selected unit. 
         // Simplified Logic: 
@@ -147,22 +179,38 @@ export default function AssignAdminPage() {
         // 'admin' might be generic, 'leader' might be branch. 
         // Let's assume user wants "Admin" of that level.
 
+        console.log("🔍 [DEBUG] Assignment Details:", {
+            selectedUser: selectedUser.id,
+            targetRole,
+            targetUnitId,
+            selectedStateId,
+            selectedZoneId,
+            selectedBranchId
+        });
+
         setIsSaving(true);
         setSuccessMessage(null);
         setError(null);
         try {
-            await api.put(`/users/${selectedUser.id}/roles`, {
+            const response = await api.put(`/users/${selectedUser.id}/roles`, {
                 role: targetRole,
                 unitId: targetUnitId,
                 // We might need to pass specific Unit Level too
             });
+            console.log("✅ [DEBUG] Assignment Response:", response);
             setSuccessMessage("Admin assigned successfully!");
             setTimeout(() => {
                 router.push("/admin/users");
             }, 1500);
         } catch (err: any) {
-            console.error("Assignment failed", err);
-            setError("Failed to assign role: " + err.message);
+            console.error("❌ [DEBUG] Assignment failed:", err);
+            console.error("❌ [DEBUG] Error details:", {
+                message: err.message,
+                response: err.response?.data,
+                status: err.response?.status
+            });
+            const errorMessage = err.response?.data?.message || err.message || "Unknown error occurred";
+            setError("Failed to assign role: " + errorMessage);
         } finally {
             setIsSaving(false);
         }
@@ -188,7 +236,7 @@ export default function AssignAdminPage() {
 
                 {/* Step 1: Search */}
                 <Card>
-                    <CardHeader><CardTitle>1. Select Member</CardTitle></CardHeader>
+                    <CardHeader><CardTitle>Select Member</CardTitle></CardHeader>
                     <CardContent className="space-y-4">
                         <form onSubmit={handleSearch} className="flex gap-2">
                             <Input
@@ -224,7 +272,7 @@ export default function AssignAdminPage() {
                 {/* Step 2: Assign Scope */}
                 {selectedUser && (
                     <Card>
-                        <CardHeader><CardTitle>2. Assign Jurisdiction</CardTitle></CardHeader>
+                        <CardHeader><CardTitle>Assign Jurisdiction</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
                             <p className="text-sm text-muted-foreground mb-4">
                                 Select the organizational unit this user will administer.
@@ -241,7 +289,7 @@ export default function AssignAdminPage() {
                                         disabled={currentScope?.level !== 'National'} // Lock if not National
                                     >
                                         <option value="">Select State</option>
-                                        {states.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                                        {(states || []).map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                                     </select>
                                 </div>
 
@@ -255,7 +303,7 @@ export default function AssignAdminPage() {
                                         disabled={!selectedStateId || (currentScope?.level === 'Zone')}
                                     >
                                         <option value="">Select Zone</option>
-                                        {zones.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                                        {(zones || []).map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                                     </select>
                                 </div>
 
@@ -269,7 +317,7 @@ export default function AssignAdminPage() {
                                         disabled={!selectedZoneId}
                                     >
                                         <option value="">Select Branch</option>
-                                        {branches.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                                        {(branches || []).map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                                     </select>
                                 </div>
                             </div>
@@ -278,7 +326,6 @@ export default function AssignAdminPage() {
                                 <Button
                                     onClick={handleAssign}
                                     disabled={!selectedStateId || isSaving}
-                                    className="bg-primary text-white"
                                 >
                                     {isSaving ? <Loader2 className="animate-spin mr-2" /> : <UserPlus className="mr-2 w-4 h-4" />}
                                     Confirm Assignment

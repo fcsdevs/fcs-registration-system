@@ -39,6 +39,13 @@ export interface User {
   membershipStatus?: MembershipStatus;
   memberCode: string;
   createdAt: string;
+  assignments?: Array<{
+    id: string;
+    role: string;
+    unitId?: string;
+    unitName?: string;
+    level?: string;
+  }>;
   updatedAt: string;
 }
 

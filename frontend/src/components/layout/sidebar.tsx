@@ -60,6 +60,8 @@ export function Sidebar() {
       items: [
         { href: "/units", label: "Units", icon: Building2 },
         { href: "/centers", label: "Centers", icon: MapPin },
+        { href: "/admin/users", label: "Manage Admins", icon: Shield },
+        { href: "/admin/registrars", label: "Manage Registrars", icon: UsersRound },
         { href: "/groups", label: "Groups", icon: UsersRound },
         { href: "/attendance", label: "Attendance", icon: CheckSquare },
       ],
@@ -162,7 +164,7 @@ export function Sidebar() {
             </p>
             <div className="space-y-2">
               <Link
-                href="/members"
+                href="/admin/users/new"
                 className="block px-3 py-2 text-sm text-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Make Admin
