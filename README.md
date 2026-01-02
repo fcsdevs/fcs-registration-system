@@ -1,5 +1,4 @@
 # FCS Nigeria - Registration & Attendance System
-## Frontend Application
 
 **Digital registration, event management, and attendance tracking system for FCS Nigeria**
 
@@ -77,7 +76,7 @@ The FCS Registration System is a comprehensive web application designed to strea
 ## 📂 Project Structure
 
 ```
-frontend/
+fcs-registration-system/
 ├── src/
 │   ├── app/
 │   │   ├── layout.tsx              # Root layout with providers
@@ -147,7 +146,7 @@ frontend/
 1. **Clone the repository**
 ```bash
 git clone https://github.com/fcsdevs/fcs-registration-system.git
-cd fcs-registration-system/frontend
+cd fcs-registration-system
 ```
 
 2. **Install dependencies**
