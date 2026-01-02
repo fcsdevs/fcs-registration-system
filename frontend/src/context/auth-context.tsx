@@ -47,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             gender: authData.member?.gender,
             roles: authData.roles || [],
             unitId: authData.unit?.id || authData.unitId || '',
+            unitName: authData.unit?.name || '',
             level: authData.unit?.level || authData.level,
             memberCode: authData.member?.fcsCode || '',
             createdAt: new Date().toISOString(),
@@ -91,6 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         gender: authData.member?.gender,
         roles: authData.roles || [],
         unitId: authData.unit?.id || authData.unitId || '',
+        unitName: authData.unit?.name || '',
         level: authData.unit?.level || authData.level,
         memberCode: authData.member?.fcsCode || '',
         createdAt: new Date().toISOString(),
@@ -103,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const isAdmin = userData.roles.some((r: string) => r.toLowerCase().includes('admin') || r.toLowerCase() === 'leader');
 
       if (isAdmin) {
-        router.push('/admin');
+        router.push('/home');
       } else {
         router.push('/dashboard');
       }

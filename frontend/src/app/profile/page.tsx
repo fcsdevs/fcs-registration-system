@@ -80,17 +80,17 @@ export default function ProfilePage() {
                         <div className="h-32 bg-gradient-to-r from-blue-600 to-[#010030]"></div>
 
                         <div className="px-6 pb-6">
-                            <div className="relative flex items-end -mt-12 mb-6">
-                                <div className={`w-24 h-24 rounded-full border-4 border-white flex items-center justify-center text-3xl font-bold text-white shadow-md ${user?.gender === 'FEMALE' ? 'bg-pink-600' :
+                            <div className="relative flex flex-col md:flex-row items-center md:items-end -mt-12 mb-6 gap-4">
+                                <div className={`w-24 h-24 rounded-full border-4 border-white flex items-center justify-center text-3xl font-bold text-white shadow-md shrink-0 ${user?.gender === 'FEMALE' ? 'bg-pink-600' :
                                     user?.gender === 'MALE' ? 'bg-blue-600' : 'bg-[#010030]'
                                     }`}>
                                     {user.firstName?.[0] || "U"}
                                 </div>
-                                <div className="ml-4 translate-y-3">
+                                <div className="text-center md:text-left md:ml-4 md:translate-y-3">
                                     <h2 className="text-2xl font-bold text-gray-900">{user.firstName} {user.lastName}</h2>
                                     <p className="text-gray-500">{user.email}</p>
                                 </div>
-                                <div className="ml-auto mb-1">
+                                <div className="md:ml-auto mb-1 w-full md:w-auto flex justify-center md:block">
                                     <Button variant="outline" onClick={handleEditClick}>Edit Profile</Button>
                                 </div>
                             </div>
@@ -148,7 +148,7 @@ export default function ProfilePage() {
                                     </div>
                                     <div className="p-3 bg-gray-50 rounded-lg">
                                         <span className="block text-xs text-gray-500 uppercase">Unit/Branch</span>
-                                        <span className="font-medium">{user.unitId || "Not assigned"}</span>
+                                        <span className="font-medium">{user.unitName || user.unitId || "Not assigned"}</span>
                                     </div>
                                     <div className="p-3 bg-gray-50 rounded-lg">
                                         <span className="block text-xs text-gray-500 uppercase">Role</span>

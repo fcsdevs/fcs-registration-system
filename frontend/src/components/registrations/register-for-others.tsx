@@ -1,216 +1,201 @@
 /**
  * Register for Others Wizard
- * Allows users to register dependents/others for events
+ * Allows users to register others for events by searching via FCS Code
  */
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Plus, X, ChevronRight } from 'lucide-react';
+import { Search, UserCheck, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
 import { Event } from '@/types/api';
 import { EventRegistrationWizard } from './event-registration-wizard';
-
-interface Dependent {
-    id: string;
-    firstName: string;
-    lastName: string;
-    relationship: string;
-}
+import { api } from '@/lib/api/client';
 
 interface RegisterForOthersWizardProps {
     event: Event;
     currentUserId: string;
 }
 
+interface Member {
+    id: string;
+    firstName: string;
+    lastName: string;
+    fcsCode: string;
+    email?: string;
+    phoneNumber?: string;
+    // Add other fields as needed
+}
+
 export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOthersWizardProps) {
     const router = useRouter();
-    const [dependents, setDependents] = useState<Dependent[]>([]);
-    const [selectedDependents, setSelectedDependents] = useState<string[]>([]);
-    const [currentDependentIndex, setCurrentDependentIndex] = useState<number | null>(null);
-    const [completedRegistrations, setCompletedRegistrations] = useState<Set<string>>(new Set());
-    const [loading, setLoading] = useState(true);
+    const [searchCode, setSearchCode] = useState('');
+    const [foundMember, setFoundMember] = useState<Member | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [isRegistering, setIsRegistering] = useState(false);
 
-    useEffect(() => {
-        fetchDependents();
-    }, [currentUserId]);
+    const handleSearch = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!searchCode.trim()) return;
 
-    const fetchDependents = async () => {
+        setLoading(true);
+        setError(null);
+        setFoundMember(null);
+
         try {
-            setLoading(true);
-            // TODO: Replace with actual API call
-            const response = await fetch(`/api/members/${currentUserId}/dependents`);
-            const data = await response.json();
-            setDependents(data.data || []);
-        } catch (error) {
-            console.error('Failed to fetch dependents:', error);
-            setDependents([]);
+            // Using the specific endpoint for code lookup
+            // Note: Use simple api.get which returns the data unwrapped if interception is uniform
+            // or check the response structure. 
+            // Based on other files: api.get returns response.body.
+            // backend route: router.get('/code/:code', ...)
+            const response = await api.get<{ data: Member } | Member>(`/members/code/${encodeURIComponent(searchCode.trim())}`);
+
+            // Check structure
+            let memberData: Member | null = null;
+            if ((response as any).data) { // wrapped
+                memberData = (response as any).data;
+            } else {
+                memberData = response as Member;
+            }
+
+            if (memberData) {
+                setFoundMember(memberData);
+            } else {
+                setError('Member not found. Please check the FCS Code.');
+            }
+        } catch (err: any) {
+            console.error('Search failed:', err);
+            // Handle 404 specifically if needed, otherwise generic
+            if (err.response?.status === 404) {
+                setError('Member with this FCS Code not found.');
+            } else {
+                setError('Failed to search for member. Please try again.');
+            }
         } finally {
             setLoading(false);
         }
     };
 
-    const toggleDependent = (dependentId: string) => {
-        setSelectedDependents(prev =>
-            prev.includes(dependentId)
-                ? prev.filter(id => id !== dependentId)
-                : [...prev, dependentId]
-        );
-    };
-
-    const startRegistrations = () => {
-        if (selectedDependents.length > 0) {
-            setCurrentDependentIndex(0);
+    const handleProceed = () => {
+        if (foundMember) {
+            setIsRegistering(true);
         }
     };
 
-    const handleDependentRegistrationComplete = (registrationId: string) => {
-        if (currentDependentIndex === null) return;
-
-        const currentDependentId = selectedDependents[currentDependentIndex];
-        setCompletedRegistrations(prev => new Set([...prev, currentDependentId]));
-
-        // Move to next dependent or finish
-        if (currentDependentIndex < selectedDependents.length - 1) {
-            setCurrentDependentIndex(currentDependentIndex + 1);
-        } else {
-            // All done!
-            router.push('/my-events?registered=true');
-        }
+    const handleRegistrationComplete = (registrationId: string) => {
+        router.push(`/my-events/${event.id}/registration-success`);
     };
 
-    // If we're in registration mode for a specific dependent
-    if (currentDependentIndex !== null) {
-        const currentDependentId = selectedDependents[currentDependentIndex];
-        const currentDependent = dependents.find(d => d.id === currentDependentId);
-
-        if (!currentDependent) return null;
-
+    // Registration Mode
+    if (isRegistering && foundMember) {
         return (
             <div>
                 <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-blue-600 text-white rounded-full p-2">
+                            <UserCheck className="w-5 h-5" />
+                        </div>
                         <div>
-                            <p className="text-sm text-blue-700">
-                                Registering for {currentDependentIndex + 1} of {selectedDependents.length}
-                            </p>
+                            <p className="text-sm text-blue-700">Registering For</p>
                             <p className="font-semibold text-blue-900">
-                                {currentDependent.firstName} {currentDependent.lastName}
+                                {foundMember.firstName} {foundMember.lastName}
+                                <span className="ml-2 text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full">
+                                    {foundMember.fcsCode}
+                                </span>
                             </p>
                         </div>
-                        <div className="flex gap-1">
-                            {selectedDependents.map((id, index) => (
-                                <div
-                                    key={id}
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${completedRegistrations.has(id)
-                                            ? 'bg-green-600 text-white'
-                                            : index === currentDependentIndex
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-200 text-gray-600'
-                                        }`}
-                                >
-                                    {index + 1}
-                                </div>
-                            ))}
-                        </div>
+                        <button
+                            onClick={() => setIsRegistering(false)}
+                            className="ml-auto text-sm text-blue-600 hover:text-blue-800 underline"
+                        >
+                            Change Person
+                        </button>
                     </div>
                 </div>
 
                 <EventRegistrationWizard
                     event={event}
-                    memberId={currentDependent.id}
-                    memberName={`${currentDependent.firstName} ${currentDependent.lastName}`}
-                    onComplete={handleDependentRegistrationComplete}
+                    memberId={foundMember.id}
+                    memberName={`${foundMember.firstName} ${foundMember.lastName}`}
+                    onComplete={handleRegistrationComplete}
                 />
             </div>
         );
     }
 
-    // Selection screen
+    // Search Mode
     return (
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
                 <div className="mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Register for Others</h2>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Register Others</h2>
                     <p className="text-gray-600">
-                        Select the people you'd like to register for this event
+                        Enter the person's FCS Code to find them in the registry.
                     </p>
                 </div>
 
-                {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    </div>
-                ) : dependents.length === 0 ? (
-                    <div className="text-center py-12">
-                        <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Dependents Found</h3>
-                        <p className="text-gray-600 mb-6">
-                            You haven't added any dependents to your profile yet
-                        </p>
+                <form onSubmit={handleSearch} className="mb-8">
+                    <div className="flex gap-3">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                            <input
+                                type="text"
+                                value={searchCode}
+                                onChange={(e) => setSearchCode(e.target.value)}
+                                placeholder="Enter FCS Code (e.g., FCS/123/XYZ)"
+                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            />
+                        </div>
                         <button
-                            onClick={() => router.push('/settings/dependents')}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            type="submit"
+                            disabled={loading || !searchCode.trim()}
+                            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
-                            <Plus className="w-4 h-4" />
-                            Add Dependent
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Search'}
                         </button>
                     </div>
-                ) : (
-                    <>
-                        <div className="space-y-3 mb-6">
-                            {dependents.map(dependent => {
-                                const isSelected = selectedDependents.includes(dependent.id);
+                </form>
 
-                                return (
-                                    <button
-                                        key={dependent.id}
-                                        type="button"
-                                        onClick={() => toggleDependent(dependent.id)}
-                                        className={`w-full text-left p-4 rounded-lg border-2 transition-all ${isSelected
-                                                ? 'border-blue-600 bg-blue-50'
-                                                : 'border-gray-200 hover:border-blue-300 bg-white'
-                                            }`}
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-                                                    }`}>
-                                                    {dependent.firstName.charAt(0)}{dependent.lastName.charAt(0)}
-                                                </div>
-                                                <div>
-                                                    <p className="font-semibold text-gray-900">
-                                                        {dependent.firstName} {dependent.lastName}
-                                                    </p>
-                                                    <p className="text-sm text-gray-600">{dependent.relationship}</p>
-                                                </div>
-                                            </div>
+                {error && (
+                    <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6 animate-fadeIn">
+                        <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                        <p>{error}</p>
+                    </div>
+                )}
 
-                                            {isSelected && (
-                                                <div className="bg-blue-600 text-white rounded-full p-1">
-                                                    <Users className="w-4 h-4" />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
+                {foundMember && !loading && (
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 animate-fadeIn">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-lg">
+                                    {foundMember.firstName.charAt(0)}{foundMember.lastName.charAt(0)}
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-gray-900 text-lg">
+                                        {foundMember.firstName} {foundMember.lastName}
+                                    </h3>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-sm text-gray-500">FCS Code:</span>
+                                        <span className="text-sm font-medium bg-gray-200 px-2 py-0.5 rounded text-gray-700">
+                                            {foundMember.fcsCode}
+                                        </span>
+                                    </div>
+                                    {foundMember.email && (
+                                        <p className="text-sm text-gray-500 mt-1">{foundMember.email}</p>
+                                    )}
+                                </div>
+                            </div>
 
-                        <div className="flex justify-between items-center pt-6 border-t border-gray-200">
-                            <p className="text-sm text-gray-600">
-                                {selectedDependents.length} {selectedDependents.length === 1 ? 'person' : 'people'} selected
-                            </p>
                             <button
-                                onClick={startRegistrations}
-                                disabled={selectedDependents.length === 0}
-                                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={handleProceed}
+                                className="flex items-center justify-center gap-2 px-6 py-3 bg-[#1F7A63] text-white rounded-lg font-medium hover:bg-[#18614f] transition-colors w-full sm:w-auto shadow-md hover:shadow-lg transform active:scale-95 duration-200"
                             >
-                                Start Registration
-                                <ChevronRight className="w-5 h-5" />
+                                Proceed
+                                <ArrowRight className="w-5 h-5" />
                             </button>
                         </div>
-                    </>
+                    </div>
                 )}
             </div>
         </div>

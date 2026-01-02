@@ -124,7 +124,7 @@ export default function MemberDetailPage() {
 
     return (
         <ProtectedRoute>
-            <div className="min-h-screen bg-gray-50 pb-12">
+            <div className="min-h-screen bg-gray-50 pb-12 w-full overflow-x-hidden">
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Back Button */}
                     <Link
@@ -137,8 +137,8 @@ export default function MemberDetailPage() {
 
                     {/* Header Card */}
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
-                        <div className="px-6 py-8">
-                            <div className="flex items-start justify-between">
+                        <div className="p-4 sm:p-6 sm:py-8">
+                            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                                 <div className="flex items-center gap-4">
                                     {/* Avatar */}
                                     <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">
@@ -193,7 +193,7 @@ export default function MemberDetailPage() {
                     {/* Details Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Contact Information */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 w-full">
                             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                                 <Mail className="w-5 h-5 text-blue-600" />
                                 Contact Information
@@ -228,7 +228,7 @@ export default function MemberDetailPage() {
                         </div>
 
                         {/* Personal Information */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 w-full">
                             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                                 <User className="w-5 h-5 text-blue-600" />
                                 Personal Information
@@ -260,7 +260,7 @@ export default function MemberDetailPage() {
                         </div>
 
                         {/* Location Information */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 w-full">
                             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                                 <MapPin className="w-5 h-5 text-blue-600" />
                                 Location
@@ -305,7 +305,7 @@ export default function MemberDetailPage() {
                         </div>
 
                         {/* Organization Information */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 w-full">
                             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                                 <Building2 className="w-5 h-5 text-blue-600" />
                                 Organization
@@ -350,7 +350,7 @@ export default function MemberDetailPage() {
                     </div>
 
                     {/* Metadata */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mt-6 w-full">
                         <h2 className="text-lg font-semibold text-gray-900 mb-4">
                             System Information
                         </h2>

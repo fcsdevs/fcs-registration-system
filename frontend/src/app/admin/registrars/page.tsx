@@ -34,20 +34,16 @@ export default function RegistrarsPage() {
 
             setIsLoading(true);
             try {
-                // Fetch users with roles that can register others
-                // For now, let's just fetch all users and filter locally or as a placeholder
+                // Fetch users with the Registrar role
                 const query = new URLSearchParams({
+                    role: 'Registrar',
                     unitId: currentScope.unitId
                 }).toString();
 
                 const response = await api.get<any>(`/users?${query}`);
 
-                if (response.data) {
-                    const data = Array.isArray(response.data) ? response.data : (response.data.data || []);
-                    // Filter for users who are NOT necessarily admins but have registration capability
-                    // (This is a placeholder logic)
-                    setRegistrars(data);
-                }
+                const data = Array.isArray(response) ? response : (response.data || []);
+                setRegistrars(data);
             } catch (err) {
                 console.error("Failed to fetch registrars", err);
             } finally {
@@ -68,7 +64,7 @@ export default function RegistrarsPage() {
                             Manage users authorized to register members at {currentScope?.name}.
                         </p>
                     </div>
-                    <Link href="/admin/users/new">
+                    <Link href="/admin/users/new?role=Registrar">
                         <Button className="bg-primary text-white">
                             <UserPlus className="mr-2 h-4 w-4" /> Add New Registrar
                         </Button>

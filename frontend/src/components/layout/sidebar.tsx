@@ -19,6 +19,8 @@ import {
   FileText,
   ChevronRight,
   Home,
+  Printer,
+  Search,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -38,11 +40,16 @@ interface NavGroup {
 export function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
-  const [expandedGroups, setExpandedGroups] = useState<string[]>(["Main", "Management"]);
+  const [expandedGroups, setExpandedGroups] = useState<string[]>(["Main", "Management", "Menu", "Registrar Portal"]);
 
   const isAdmin = user?.roles?.some((r: any) => {
     const role = r.toLowerCase();
     return role.includes('admin') || role === 'leader';
+  });
+
+  const isRegistrar = user?.roles?.some((r: any) => {
+    const role = r.toLowerCase();
+    return role === 'registrar';
   });
 
   const adminNavigationGroups: NavGroup[] = [
@@ -85,6 +92,27 @@ export function Sidebar() {
     },
   ];
 
+  const registrarNavigationGroups: NavGroup[] = [
+    {
+      label: "Menu",
+      items: [
+        { href: "/dashboard", label: "Dashboard", icon: Home },
+        { href: "/events", label: "Events", icon: Calendar },
+        { href: "/profile", label: "My Profile", icon: UsersRound },
+      ]
+    },
+    {
+      label: "Registrar Portal",
+      items: [
+        { href: "/my-events", label: "My Registrations", icon: CheckSquare },
+        { href: "/registration-tray", label: "Registration Tray", icon: FileText },
+        { href: "/attendance", label: "Attendance", icon: Users },
+        { href: "/print-tags", label: "Print Tags", icon: Printer },
+        { href: "/extensive-search", label: "Extensive Search", icon: Search },
+      ]
+    }
+  ];
+
   const memberNavigationGroups: NavGroup[] = [
     {
       label: "Menu",
@@ -97,7 +125,11 @@ export function Sidebar() {
     }
   ];
 
-  const navigationGroups = isAdmin ? adminNavigationGroups : memberNavigationGroups;
+  const navigationGroups = isAdmin
+    ? adminNavigationGroups
+    : isRegistrar
+      ? registrarNavigationGroups
+      : memberNavigationGroups;
 
   const isActive = (href: string) => pathname === href;
 

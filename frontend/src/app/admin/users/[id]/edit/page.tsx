@@ -85,24 +85,47 @@ export default function EditAdminPage() {
     // Zones
     useEffect(() => {
         const fetchZones = async () => {
-            if (!selectedStateId) { setZones([]); return; }
+            // 1. Check Scope Lock First
             if (currentScope?.level === 'Zone' && currentScope.unitId) {
                 const zoneRes = await unitsApi.getById(currentScope.unitId);
                 if (zoneRes.data) { setZones([zoneRes.data]); setSelectedZoneId(currentScope.unitId); }
                 return;
             }
+
+            // 2. Normal Cascade
+            if (!selectedStateId) { setZones([]); return; }
+
             try {
                 const res = await unitsApi.getChildren(selectedStateId);
                 if (res.data) setZones(res.data);
             } catch (e) { }
         };
         fetchZones();
-        if (currentScope?.level !== 'Zone') setSelectedZoneId("");
+
+        // Reset only if not scoped
+        if (currentScope?.level !== 'Zone' && currentScope?.level !== 'Branch') {
+            // If we are strictly Zone or Branch scoped, we don't want to clear this if state changes (state won't change though)
+            // Actually, if we are Branch scoped, Zone might be irrelevant or hidden.
+            // If we are Zone scoped, we keep it.
+            // If we are National/State, we reset when state changes.
+            if (!selectedStateId) setSelectedZoneId("");
+        }
     }, [selectedStateId, currentScope]);
 
     // Branches
     useEffect(() => {
         const fetchBranches = async () => {
+            // 1. Check Scope Lock First
+            if (currentScope?.level === 'Branch' && currentScope.unitId) {
+                const res = await unitsApi.getById(currentScope.unitId);
+                if (res.data) {
+                    setBranches([res.data]);
+                    setSelectedBranchId(currentScope.unitId);
+                }
+                return;
+            }
+
+            // 2. Normal Cascade
             if (!selectedZoneId) { setBranches([]); return; }
             try {
                 const res = await unitsApi.getChildren(selectedZoneId);
@@ -110,14 +133,20 @@ export default function EditAdminPage() {
             } catch (e) { }
         };
         fetchBranches();
-        setSelectedBranchId("");
-    }, [selectedZoneId]);
+
+        if (currentScope?.level !== 'Branch') {
+            if (!selectedZoneId) setSelectedBranchId("");
+        }
+    }, [selectedZoneId, currentScope]);
 
 
     const handleSave = async () => {
         if (!user) return;
 
         let targetUnitId = selectedBranchId || selectedZoneId || selectedStateId;
+        // If strictly scoped to Branch, we might not have State/Zone selected, but we have Branch.
+        // It works because selectedBranchId is set.
+
         if (!targetUnitId) { setError("Please select a unit."); return; }
 
         let targetRole = "";
@@ -164,6 +193,10 @@ export default function EditAdminPage() {
         </ProtectedRoute>
     );
     if (!user) return <div className="p-8">User not found</div>;
+
+    // Helper to determine if we should disable headers
+    const isStrictBranch = currentScope?.level === 'Branch';
+    const isStrictZone = currentScope?.level === 'Zone';
 
     return (
         <ProtectedRoute>
@@ -234,10 +267,10 @@ export default function EditAdminPage() {
                             <div>
                                 <label className="block text-sm font-medium mb-1">State</label>
                                 <select
-                                    className="w-full border rounded-md p-2 text-sm"
+                                    className="w-full border rounded-md p-2 text-sm disabled:opacity-50 disabled:bg-gray-100"
                                     value={selectedStateId}
                                     onChange={e => setSelectedStateId(e.target.value)}
-                                    disabled={currentScope?.level !== 'National'}
+                                    disabled={currentScope?.level !== 'National' || isStrictBranch || isStrictZone}
                                 >
                                     <option value="">Select State</option>
                                     {states.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
@@ -247,10 +280,10 @@ export default function EditAdminPage() {
                             <div>
                                 <label className="block text-sm font-medium mb-1">Zone</label>
                                 <select
-                                    className="w-full border rounded-md p-2 text-sm"
+                                    className="w-full border rounded-md p-2 text-sm disabled:opacity-50 disabled:bg-gray-100"
                                     value={selectedZoneId}
                                     onChange={e => setSelectedZoneId(e.target.value)}
-                                    disabled={!selectedStateId || (currentScope?.level === 'Zone')}
+                                    disabled={(!selectedStateId && !isStrictZone && !isStrictBranch) || (currentScope?.level === 'Zone') || isStrictBranch}
                                 >
                                     <option value="">Select Zone</option>
                                     {zones.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
@@ -260,10 +293,10 @@ export default function EditAdminPage() {
                             <div>
                                 <label className="block text-sm font-medium mb-1">Branch</label>
                                 <select
-                                    className="w-full border rounded-md p-2 text-sm"
+                                    className="w-full border rounded-md p-2 text-sm disabled:opacity-50 disabled:bg-gray-100"
                                     value={selectedBranchId}
                                     onChange={e => setSelectedBranchId(e.target.value)}
-                                    disabled={!selectedZoneId}
+                                    disabled={(!selectedZoneId && !isStrictBranch)}
                                 >
                                     <option value="">Select Branch</option>
                                     {branches.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}

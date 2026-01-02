@@ -35,6 +35,7 @@ export interface User {
   avatar?: string;
   roles: UserRole[];
   unitId: string;
+  unitName?: string;
   level?: OrganizationalLevel;
   membershipStatus?: MembershipStatus;
   memberCode: string;

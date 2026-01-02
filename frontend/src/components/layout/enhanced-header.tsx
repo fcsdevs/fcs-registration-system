@@ -252,33 +252,72 @@ export function EnhancedHeader() {
           </div>
         </nav>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu Overlay */}
         {showMobileMenu && (
-          <div className="lg:hidden border-t border-gray-200 bg-white">
-            <div className="px-4 py-4 space-y-4 max-h-[80vh] overflow-y-auto">
-              {navigationGroups.map((group) => (
-                <div key={group.label}>
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                    {group.label}
-                  </h3>
+          <div className="lg:hidden fixed inset-0 top-16 z-40">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+              onClick={() => setShowMobileMenu(false)}
+            />
+
+            {/* Menu Content */}
+            <div className="relative bg-white border-t border-gray-200 shadow-xl max-h-[calc(100vh-4rem)] overflow-y-auto animate-in slide-in-from-top-2 duration-200">
+              <div className="px-4 py-6 space-y-6">
+                {navigationGroups.map((group) => (
+                  <div key={group.label}>
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
+                      {group.label}
+                    </h3>
+                    <div className="space-y-1">
+                      {group.items.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setShowMobileMenu(false)}
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive(item.href)
+                            ? "bg-blue-50 text-blue-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                            }`}
+                        >
+                          <item.icon className="w-5 h-5" />
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Mobile User Profile Section */}
+                <div className="pt-6 border-t border-gray-100">
+                  <div className="flex items-center gap-3 px-3 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-[#010030] text-white flex items-center justify-center font-bold text-lg">
+                      {user?.firstName?.[0] || "U"}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
+                      <p className="text-xs text-gray-500">{user?.email}</p>
+                    </div>
+                  </div>
                   <div className="space-y-1">
-                    {group.items.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setShowMobileMenu(false)}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive(item.href)
-                          ? "bg-blue-50 text-blue-700"
-                          : "text-gray-700 hover:bg-gray-100"
-                          }`}
-                      >
-                        <item.icon className="w-5 h-5" />
-                        {item.label}
-                      </Link>
-                    ))}
+                    <Link
+                      href="/profile"
+                      onClick={() => setShowMobileMenu(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100"
+                    >
+                      <UserCircle className="w-5 h-5" />
+                      My Profile
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      Logout
+                    </button>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         )}

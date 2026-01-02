@@ -170,6 +170,17 @@ class ApiClient {
       method: "DELETE",
     });
   }
+
+  async getBlob(endpoint: string): Promise<Blob> {
+    const url = `${this.baseUrl}${endpoint}`;
+    const headers = this.getHeaders();
+    const response = await fetch(url, {
+      method: "GET",
+      headers,
+    });
+    if (!response.ok) throw new Error("Failed to fetch blob");
+    return response.blob();
+  }
 }
 
 export const apiClient = new ApiClient();
@@ -182,4 +193,5 @@ export const api = {
   patch: <T>(endpoint: string, data?: any) =>
     apiClient.patch<T>(endpoint, data),
   delete: <T>(endpoint: string) => apiClient.delete<T>(endpoint),
+  getBlob: (endpoint: string) => apiClient.getBlob(endpoint),
 };

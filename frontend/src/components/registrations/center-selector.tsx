@@ -9,11 +9,12 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, Search, Users, AlertCircle } from 'lucide-react';
 import { EventCenter } from '@/types/api';
 import { CapacityIndicator } from '../ui/capacity-indicator';
+import { centersApi } from '@/lib/api/centers';
 
 interface CenterSelectorProps {
     eventId: string;
     selectedCenterId?: string;
-    onSelect: (centerId: string) => void;
+    onSelect: (centerId: string, centerName: string) => void;
     error?: string;
 }
 
@@ -29,11 +30,20 @@ export function CenterSelector({ eventId, selectedCenterId, onSelect, error }: C
 
     const fetchCenters = async () => {
         try {
-            setLoading(true);
-            // TODO: Replace with actual API call
-            const response = await fetch(`/api/events/${eventId}/centers`);
-            const data = await response.json();
-            setCenters(data.data || []);
+            const response = await centersApi.listActive({ eventId });
+            // API returns { data: { data: EventCenter[], meta: ... } }
+
+            let fetchedCenters: EventCenter[] = [];
+
+            if (response.data) {
+                if (Array.isArray(response.data)) {
+                    fetchedCenters = response.data;
+                } else if ((response.data as any).data && Array.isArray((response.data as any).data)) {
+                    fetchedCenters = (response.data as any).data;
+                }
+            }
+
+            setCenters(fetchedCenters || []);
         } catch (error) {
             console.error('Failed to fetch centers:', error);
             setCenters([]);
@@ -42,14 +52,37 @@ export function CenterSelector({ eventId, selectedCenterId, onSelect, error }: C
         }
     };
 
-    // Extract unique states from centers
-    const states = Array.from(new Set(centers.map(c => c.stateId).filter(Boolean))) as string[];
+    // Extract unique states from centers - API returns state as { id, name }
+    const states = Array.from(
+        new Set(
+            centers.map(c => {
+                // Handle state as object with name property
+                if (c.state && typeof c.state === 'object' && 'name' in c.state) {
+                    return c.state.name;
+                }
+                // Fallback to stateId if it's a string
+                return c.stateId;
+            }).filter(Boolean)
+        )
+    ) as string[];
 
     // Filter centers
     const filteredCenters = centers.filter(center => {
         const matchesSearch = center.centerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             center.address.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesState = selectedState === 'all' || center.stateId === selectedState;
+
+        // Handle state filtering with both object and string formats
+        // Handle state filtering with case-insensitivity
+        if (selectedState === 'all') return matchesSearch && center.isActive;
+
+        const normalize = (s: string) => s.toLowerCase().trim();
+        const targetState = normalize(selectedState);
+
+        const centerStateName = center.state?.name ? normalize(center.state.name) : '';
+        const centerStateId = center.stateId ? normalize(center.stateId) : '';
+
+        const matchesState = centerStateName === targetState || centerStateId === targetState;
+
         return matchesSearch && matchesState && center.isActive;
     });
 
@@ -98,14 +131,14 @@ export function CenterSelector({ eventId, selectedCenterId, onSelect, error }: C
                     className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                     <option value="all">All States</option>
-                    {states.map(state => (
+                    {states.sort().map(state => (
                         <option key={state} value={state}>{state}</option>
                     ))}
                 </select>
             </div>
 
             {/* Centers List */}
-            <div className="space-y-3 max-h-96 overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1">
                 {filteredCenters.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
                         <MapPin className="w-12 h-12 mx-auto mb-2 text-gray-400" />
@@ -121,13 +154,13 @@ export function CenterSelector({ eventId, selectedCenterId, onSelect, error }: C
                             <button
                                 key={center.id}
                                 type="button"
-                                onClick={() => !isFull && onSelect(center.id)}
+                                onClick={() => !isFull && onSelect(center.id, center.centerName)}
                                 disabled={isFull}
-                                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${isSelected
-                                        ? 'border-blue-600 bg-blue-50'
-                                        : isFull
-                                            ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-                                            : 'border-gray-200 hover:border-blue-300 bg-white'
+                                className={`w-full text-left p-3 rounded-lg border-2 transition-all ${isSelected
+                                    ? 'border-blue-600 bg-blue-50'
+                                    : isFull
+                                        ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+                                        : 'border-gray-200 hover:border-blue-300 bg-white'
                                     }`}
                             >
                                 <div className="flex items-start justify-between mb-2">
@@ -137,6 +170,11 @@ export function CenterSelector({ eventId, selectedCenterId, onSelect, error }: C
                                             <MapPin className="w-3 h-3" />
                                             <span>{center.address}</span>
                                         </div>
+                                        {center.state?.name && (
+                                            <div className="text-xs text-blue-600 mt-1 font-medium">
+                                                {center.state.name}
+                                            </div>
+                                        )}
                                     </div>
                                     {isFull && (
                                         <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full font-medium">
@@ -160,12 +198,14 @@ export function CenterSelector({ eventId, selectedCenterId, onSelect, error }: C
                 )}
             </div>
 
-            {error && (
-                <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>{error}</span>
-                </div>
-            )}
-        </div>
+            {
+                error && (
+                    <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg">
+                        <AlertCircle className="w-4 h-4" />
+                        <span>{error}</span>
+                    </div>
+                )
+            }
+        </div >
     );
 }

@@ -8,7 +8,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/common/route-guards';
-import { Calendar, MapPin, Users, Clock, Plus, CheckCircle, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, Plus, CheckCircle, ArrowRight, LayoutDashboard } from 'lucide-react';
 import { Event } from '@/types/api';
 import { api } from '@/lib/api/client';
 import Link from 'next/link';
@@ -20,6 +20,11 @@ function MyEventsContent() {
     const [events, setEvents] = useState<Event[]>([]);
     const [registrations, setRegistrations] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [currentUser, setCurrentUser] = useState<any>(null);
+
+    useEffect(() => {
+        api.get<any>('/auth/profile').then(res => setCurrentUser(res.data)).catch(console.error);
+    }, []);
 
     useEffect(() => {
         fetchData();
@@ -105,7 +110,7 @@ function MyEventsContent() {
                     </div>
 
                     {/* Tabs */}
-                    <div className="border-b border-gray-200 mb-8">
+                    <div className="border-b border-gray-200 mb-8 overflow-x-auto">
                         <nav className="-mb-px flex space-x-8">
                             <button
                                 onClick={() => setActiveTab('available')}
@@ -199,6 +204,15 @@ function MyEventsContent() {
                                                 <Users className="w-4 h-4" />
                                                 Register for Others
                                             </Link>
+                                            {currentUser?.roles?.some((r: any) => r.name === 'Registrar') && (
+                                                <Link
+                                                    href={`/my-events/${event.id}/registrar`}
+                                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                                                    title="Registrar Dashboard"
+                                                >
+                                                    <LayoutDashboard className="w-4 h-4" />
+                                                </Link>
+                                            )}
                                         </div>
                                     </div>
                                 ))

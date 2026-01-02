@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ProtectedRoute } from "@/components/common/route-guards";
 import { useAdmin } from "@/context/admin-context";
@@ -13,10 +13,12 @@ import { Input } from "@/components/ui/input";
 import { Search, Loader2, UserPlus, Check, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function AssignAdminPage() {
+function AssignAdminContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const preselectedUserId = searchParams.get('userId');
+    const roleParam = searchParams.get('role'); // Get the role parameter
+    const isRegistrarMode = roleParam === 'Registrar';
     const { currentScope } = useAdmin();
 
     // Search State
@@ -165,15 +167,19 @@ export default function AssignAdminPage() {
             return;
         }
 
-        // Determine Role based on Type of target unit
-        // This requires knowing the type of the selected unit. 
-        // Simplified Logic: 
+        // Determine Role based on mode
         let targetRole = "";
-        if (selectedBranchId) targetRole = "Branch Admin";
-        else if (selectedZoneId) targetRole = "Zone Admin";
-        else if (selectedStateId) targetRole = "State Admin";
-        else if (currentScope?.level === 'National') targetRole = "National Admin";
-        else targetRole = "State Admin"; // Fallback
+        if (isRegistrarMode) {
+            // Always assign Registrar role when in registrar mode
+            targetRole = "Registrar";
+        } else {
+            // Determine admin role based on Type of target unit
+            if (selectedBranchId) targetRole = "Branch Admin";
+            else if (selectedZoneId) targetRole = "Zone Admin";
+            else if (selectedStateId) targetRole = "State Admin";
+            else if (currentScope?.level === 'National') targetRole = "National Admin";
+            else targetRole = "State Admin"; // Fallback
+        }
 
         // Note: Actual mapping depends on your Roles definition. 
         // 'admin' might be generic, 'leader' might be branch. 
@@ -198,9 +204,9 @@ export default function AssignAdminPage() {
                 // We might need to pass specific Unit Level too
             });
             console.log("✅ [DEBUG] Assignment Response:", response);
-            setSuccessMessage("Admin assigned successfully!");
+            setSuccessMessage(isRegistrarMode ? "Registrar assigned successfully!" : "Admin assigned successfully!");
             setTimeout(() => {
-                router.push("/admin/users");
+                router.push(isRegistrarMode ? "/admin/registrars" : "/admin/users");
             }, 1500);
         } catch (err: any) {
             console.error("❌ [DEBUG] Assignment failed:", err);
@@ -220,8 +226,14 @@ export default function AssignAdminPage() {
         <ProtectedRoute>
             <div className="max-w-3xl mx-auto space-y-8">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Assign New Admin</h1>
-                    <p className="text-muted-foreground">Search for a member and assign them an administrative role.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        {isRegistrarMode ? 'Assign New Registrar' : 'Assign New Admin'}
+                    </h1>
+                    <p className="text-muted-foreground">
+                        {isRegistrarMode
+                            ? 'Search for a member and assign them the Registrar role.'
+                            : 'Search for a member and assign them an administrative role.'}
+                    </p>
                     {successMessage && (
                         <div className="mt-4 p-4 bg-green-50 text-green-700 border border-green-200 rounded-md">
                             {successMessage}
@@ -336,5 +348,13 @@ export default function AssignAdminPage() {
                 )}
             </div>
         </ProtectedRoute>
+    );
+}
+
+export default function AssignAdminPage() {
+    return (
+        <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin" /></div>}>
+            <AssignAdminContent />
+        </Suspense>
     );
 }

@@ -16,17 +16,24 @@ import {
     Loader2,
     CheckCircle2,
     Edit,
+    UserPlus,
 } from "lucide-react";
 import Link from "next/link";
 import { ProtectedRoute } from "@/components/common/route-guards";
+import { useAuth } from "@/context/auth-context";
 
 export default function EventDetailsPage() {
     const params = useParams();
     const router = useRouter();
     const eventId = params.eventId as string;
+    const { user } = useAuth();
 
     const [event, setEvent] = useState<Event | null>(null);
     const [loading, setLoading] = useState(true);
+
+    // Check if user is a registrar (not an admin)
+    const isRegistrar = user?.roles?.some((r: any) => r.toLowerCase() === 'registrar') &&
+        !user?.roles?.some((r: any) => r.toLowerCase().includes('admin'));
 
     useEffect(() => {
         fetchEventDetails();
@@ -50,6 +57,11 @@ export default function EventDetailsPage() {
 
     const handleRegister = () => {
         router.push(`/events/register/${eventId}`);
+    };
+
+    const handleRegisterUser = () => {
+        // Navigate to registrar dashboard for this event
+        router.push(`/my-events/${eventId}/registrar?tab=register`);
     };
 
     if (loading) {
@@ -108,14 +120,24 @@ export default function EventDetailsPage() {
                                 Back to Events
                             </Button>
 
-                            <Button
-                                variant="outline"
-                                onClick={() => router.push(`/events/${eventId}/edit`)}
-                                className="border-blue-200 hover:bg-blue-50 text-blue-700"
-                            >
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit Event
-                            </Button>
+                            {isRegistrar ? (
+                                <Button
+                                    onClick={handleRegisterUser}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                                >
+                                    <UserPlus className="h-4 w-4 mr-2" />
+                                    Register User
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="outline"
+                                    onClick={() => router.push(`/events/${eventId}/edit`)}
+                                    className="border-blue-200 hover:bg-blue-50 text-blue-700"
+                                >
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Edit Event
+                                </Button>
+                            )}
                         </div>
 
                         <div className="bg-white rounded-lg shadow-lg p-8">

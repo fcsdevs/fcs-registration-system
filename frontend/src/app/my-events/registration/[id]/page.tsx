@@ -80,8 +80,9 @@ export default function RegistrationDetailsPage() {
         );
     }
 
-    // Generate mock QR code (in real implementation, this would come from backend)
-    const mockQRCode = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect fill='%23ffffff' width='200' height='200'/%3E%3Cg fill='%23000000'%3E%3Crect x='20' y='20' width='20' height='20'/%3E%3Crect x='60' y='20' width='20' height='20'/%3E%3Crect x='100' y='20' width='20' height='20'/%3E%3Crect x='140' y='20' width='20' height='20'/%3E%3Crect x='20' y='60' width='20' height='20'/%3E%3Crect x='60' y='60' width='20' height='20'/%3E%3Crect x='100' y='60' width='20' height='20'/%3E%3Crect x='140' y='60' width='20' height='20'/%3E%3C/g%3E%3C/svg%3E`;
+    // Generate QR code using public API
+    const qrValue = registration.id;
+    const mockQRCode = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrValue)}`;
     const mockSAC = registration.id.substring(0, 8).toUpperCase();
 
     return (
@@ -105,13 +106,13 @@ export default function RegistrationDetailsPage() {
 
                             <div className="bg-white rounded-lg shadow p-6 mb-6">
                                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                                    {registration.event?.name || 'Event'}
+                                    {registration.event?.title || 'Event'}
                                 </h2>
 
                                 <div className="space-y-4">
                                     <div>
                                         <p className="text-sm text-gray-600">Participant</p>
-                                        <p className="font-semibold text-gray-900">{registration.member?.name}</p>
+                                        <p className="font-semibold text-gray-900">{registration.member?.firstName} {registration.member?.lastName}</p>
                                         <p className="text-sm text-gray-500">FCS Code: {registration.member?.fcsCode}</p>
                                     </div>
 
@@ -192,8 +193,8 @@ export default function RegistrationDetailsPage() {
                             <QRCodeDisplay
                                 qrCode={mockQRCode}
                                 sac={mockSAC}
-                                eventName={registration.event?.name || 'Event'}
-                                participantName={registration.member?.name || 'Participant'}
+                                eventName={registration.event?.title || 'Event'}
+                                participantName={`${registration.member?.firstName} ${registration.member?.lastName}` || 'Participant'}
                                 showDownload={true}
                                 showPrint={true}
                             />
