@@ -6,6 +6,8 @@ import { Header } from "@/components/layout/header";
 import { api } from "@/lib/api/client";
 import { Users, Plus, Search, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { groupsApi } from "@/lib/api/groups";
+import toast from "react-hot-toast";
 
 export default function GroupsPage() {
   const [groups, setGroups] = useState<any[]>([]);
@@ -20,13 +22,28 @@ export default function GroupsPage() {
     try {
       setLoading(true);
       const response = await api.get<any>("/groups");
-      const data = response.data || response || [];
-      setGroups(Array.isArray(data) ? data : []);
+      // Handle nested response structure { data: { groups: [], meta: {} } }
+      const payload = response.data || response;
+      const groupsList = payload.data?.groups || payload.groups || payload || [];
+      setGroups(Array.isArray(groupsList) ? groupsList : []);
     } catch (error) {
       console.error("Failed to fetch groups:", error);
       setGroups([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (groupId: string) => {
+    if (!window.confirm("Are you sure you want to delete this group?")) return;
+
+    try {
+      await groupsApi.deactivate(groupId);
+      toast.success("Group deleted successfully");
+      fetchGroups(); // Refresh list
+    } catch (error) {
+      console.error("Failed to delete group:", error);
+      toast.error("Failed to delete group");
     }
   };
 
@@ -156,8 +173,19 @@ export default function GroupsPage() {
                     >
                       View Details
                     </Link>
-                    <button className="inline-flex items-center justify-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <Link
+                      href={`/groups/${group.id}/edit`}
+                      className="inline-flex items-center justify-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                      title="Edit Group"
+                    >
                       <Edit className="w-4 h-4" />
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(group.id)}
+                      className="inline-flex items-center justify-center p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete Group"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>

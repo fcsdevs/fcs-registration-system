@@ -290,7 +290,7 @@ export default function PublicEventRegistrationPage() {
                                             value={formData.phone}
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            placeholder="+234 800 000 0000"
+                                            placeholder="08135711111"
                                         />
                                     </div>
                                     {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone}</p>}

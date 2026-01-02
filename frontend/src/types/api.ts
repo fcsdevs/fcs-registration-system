@@ -294,6 +294,10 @@ export interface EventCenter {
   centerName: string;
   country: string;
   stateId?: string;
+  state?: {
+    id: string;
+    name: string;
+  };
   address: string;
   capacity?: number;
   isActive: boolean;
@@ -375,23 +379,28 @@ export interface Registration {
   centerId?: string;
   groupId?: string;
   participationMode: 'ONLINE' | 'ONSITE';
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'WAITLISTED';
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'WAITLISTED' | 'CHECKED_IN';
   registeredBy: string;
   registeredAt: string;
   createdAt: string;
   updatedAt: string;
   member?: {
     id: string;
-    name: string;
+    name?: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phoneNumber?: string;
     fcsCode: string;
   };
   event?: {
     id: string;
-    name: string;
+    title: string;
   };
   center?: {
     id: string;
     name: string;
+    centerName?: string;
   };
   group?: {
     id: string;
@@ -425,6 +434,8 @@ export interface ListRegistrationsParams extends PaginationParams {
   memberId?: string;
   centerId?: string;
   status?: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'WAITLISTED';
+  search?: string;
+  registeredBy?: string;
 }
 
 // ============================================================

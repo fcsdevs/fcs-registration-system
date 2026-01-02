@@ -36,6 +36,8 @@ export const registrationsApi = {
     if (params?.memberId) queryParams.append('memberId', params.memberId);
     if (params?.centerId) queryParams.append('centerId', params.centerId);
     if (params?.status) queryParams.append('status', params.status);
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.registeredBy) queryParams.append('registeredBy', params.registeredBy);
 
     const query = queryParams.toString();
     return api.get(`/registrations${query ? `?${query}` : ''}`);
@@ -109,5 +111,26 @@ export const registrationsApi = {
 
     const query = queryParams.toString();
     return api.get(`/registrations/member/${memberId}${query ? `?${query}` : ''}`);
+  },
+
+  /**
+   * GET /api/registrations/stats
+   * Get registrar statistics
+   */
+  getStats: async (params: { eventId: string; centerId?: string }): Promise<ApiResponse<any>> => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('eventId', params.eventId);
+    if (params.centerId) queryParams.append('centerId', params.centerId);
+
+    const query = queryParams.toString();
+    return api.get(`/registrations/stats?${query}`);
+  },
+
+  /**
+   * GET /api/registrations/:id/tag-pdf
+   * Download registration tag PDF
+   */
+  downloadTag: async (id: string): Promise<Blob> => {
+    return api.getBlob(`/registrations/${id}/tag-pdf`);
   },
 };

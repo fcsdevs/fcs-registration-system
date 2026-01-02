@@ -26,7 +26,9 @@ type Step = 'mode' | 'center' | 'group' | 'review';
 interface RegistrationData {
     participationMode?: 'ONLINE' | 'ONSITE';
     centerId?: string;
+    centerName?: string;
     groupId?: string;
+    groupName?: string;
 }
 
 export function EventRegistrationWizard({
@@ -151,8 +153,8 @@ export function EventRegistrationWizard({
                     <CenterSelector
                         eventId={event.id}
                         selectedCenterId={formData.centerId}
-                        onSelect={(centerId) => {
-                            setFormData({ ...formData, centerId });
+                        onSelect={(centerId, centerName) => {
+                            setFormData({ ...formData, centerId, centerName });
                             setErrors({});
                         }}
                         error={errors.center}
@@ -164,8 +166,8 @@ export function EventRegistrationWizard({
                     <GroupSelector
                         eventId={event.id}
                         selectedGroupId={formData.groupId}
-                        onSelect={(groupId) => {
-                            setFormData({ ...formData, groupId });
+                        onSelect={(groupId, groupName) => {
+                            setFormData({ ...formData, groupId, groupName });
                             setErrors({});
                         }}
                         error={errors.group}
@@ -204,14 +206,14 @@ export function EventRegistrationWizard({
                             {formData.centerId && (
                                 <div className="p-4">
                                     <p className="text-sm text-gray-600">Event Center</p>
-                                    <p className="font-semibold text-gray-900">Selected Center</p>
+                                    <p className="font-semibold text-gray-900">{formData.centerName}</p>
                                 </div>
                             )}
 
                             {formData.groupId && (
                                 <div className="p-4">
                                     <p className="text-sm text-gray-600">Bible Study Group</p>
-                                    <p className="font-semibold text-gray-900">Selected Group</p>
+                                    <p className="font-semibold text-gray-900">{formData.groupName}</p>
                                 </div>
                             )}
                         </div>
@@ -254,10 +256,10 @@ export function EventRegistrationWizard({
                             <div className="flex flex-col items-center">
                                 <div
                                     className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${index < currentStepIndex
-                                            ? 'bg-green-600 text-white'
-                                            : index === currentStepIndex
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-200 text-gray-600'
+                                        ? 'bg-green-600 text-white'
+                                        : index === currentStepIndex
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-200 text-gray-600'
                                         }`}
                                 >
                                     {index < currentStepIndex ? <Check className="w-5 h-5" /> : index + 1}
@@ -288,8 +290,8 @@ export function EventRegistrationWizard({
                     onClick={handleBack}
                     disabled={isFirstStep}
                     className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${isFirstStep
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                 >
                     <ChevronLeft className="w-5 h-5" />

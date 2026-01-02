@@ -40,16 +40,29 @@ export default function EventPage() {
 
   useEffect(() => {
     fetchEvents();
-  }, [filterStatus]);
+  }, [filterStatus, user]);
 
   const fetchEvents = async () => {
     try {
       setLoading(true);
 
-      // Fetch all events
-      const response = await api.get<any>(`/events`);
+      // Fetch events with hierarchical visibility
+      // - If user has unitId: fetch events for their unit + ancestors (national, regional, state) + descendants
+      // - If no unitId or admin: fetch all events
+      let url = '/events';
+
+      if (user?.unitId && !isAdmin) {
+        // Regular users with unitId: get hierarchical events
+        url = `/events?unitId=${user.unitId}&isPublished=true`;
+      } else if (!isAdmin) {
+        // Regular users without unitId: get all published events
+        url = '/events?isPublished=true';
+      }
+      // Admins get all events (no filters)
+
+      const response = await api.get<any>(url);
       const eventsData = response.data || response || [];
-      const allEvents = Array.isArray(eventsData) ? eventsData : [];
+      const allEvents = Array.isArray(eventsData) ? eventsData : (eventsData.data || []);
 
       // Filter by date status
       const now = new Date();

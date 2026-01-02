@@ -118,21 +118,21 @@ export default function MemberPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 pb-12">
+      <div className="min-h-screen bg-gray-50 pb-12 w-full overflow-x-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header Section */}
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Members</h1>
               <p className="text-gray-600 mt-1">
-                Manage church members and their information
+                Manage members and their information
                 {totalResults > 0 && <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">{totalResults} total</span>}
               </p>
             </div>
           </div>
 
           {/* Search and Filters */}
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-8 w-full">
             <div className="flex flex-col md:flex-row gap-4">
               {/* Search */}
               <div className="flex-1">
@@ -140,7 +140,7 @@ export default function MemberPage() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
                     type="text"
-                    placeholder="Search by name, FCS code, email, or phone..."
+                    placeholder="Search by name, email, code..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -181,7 +181,7 @@ export default function MemberPage() {
           </div>
 
           {/* Members List (Table) */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white rounded-lg shadow w-full overflow-hidden">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -199,17 +199,17 @@ export default function MemberPage() {
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-100">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Member</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-3 py-4 sm:px-6 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Member</th>
+                      <th className="hidden md:table-cell px-3 py-4 sm:px-6 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
+                      <th className="hidden lg:table-cell px-3 py-4 sm:px-6 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</th>
+                      <th className="px-3 py-4 sm:px-6 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-3 py-4 sm:px-6 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {members.map((member) => (
                       <tr key={member.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-3 py-4 sm:px-6 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                               {member.firstName?.[0]}{member.lastName?.[0]}
@@ -220,7 +220,7 @@ export default function MemberPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="hidden md:table-cell px-3 py-4 sm:px-6 whitespace-nowrap">
                           <div className="space-y-1">
                             {member.email && (
                               <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -236,7 +236,7 @@ export default function MemberPage() {
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="hidden lg:table-cell px-3 py-4 sm:px-6 whitespace-nowrap">
                           {member.state && (
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                               <MapPin className="w-3.5 h-3.5" />
@@ -244,7 +244,7 @@ export default function MemberPage() {
                             </div>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-3 py-4 sm:px-6 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${member.isActive
                             ? 'bg-green-100 text-green-800'
                             : 'bg-gray-100 text-gray-800'
@@ -252,7 +252,7 @@ export default function MemberPage() {
                             {member.isActive ? 'Active' : 'Inactive'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <td className="px-3 py-4 sm:px-6 whitespace-nowrap text-right">
                           <div className="flex items-center justify-end gap-2 relative">
                             {/* Eye Icon - View Details */}
                             <Link
@@ -282,7 +282,7 @@ export default function MemberPage() {
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <Link
-                                    href={`/members/${member.id}/roles`}
+                                    href={`/admin/users/new?userId=${member.id}`}
                                     className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                                     onClick={() => setOpenMenuId(null)}
                                   >

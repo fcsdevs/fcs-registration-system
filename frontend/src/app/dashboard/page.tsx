@@ -21,21 +21,30 @@ export default function UserDashboardPage() {
 
             setIsLoading(true);
             try {
-                // Fetch events relevant to user. 
-                // Logic: 
-                // 1. If user has unitId, fetch events for that unit.
-                // 2. Fetch public events is also an option, but for now focusing on "Your Unit's Events"
+                // Fetch events with hierarchical visibility:
+                // - If user has unitId: fetch events for their unit + ancestors (national, regional, state) + descendants
+                // - If no unitId: fetch all published events
+                // The backend already handles hierarchical logic when unitId is provided
 
                 let fetchedEvents: Event[] = [];
 
                 if (user.unitId) {
-                    const unitEventsRes = await api.get<any>(`/events?unitId=${user.unitId}`);
-                    if (unitEventsRes.data) {
-                        fetchedEvents = [...fetchedEvents, ...(unitEventsRes.data.data || [])];
+                    // Fetch hierarchical events (own + ancestors + descendants)
+                    // Backend will automatically include:
+                    // - Events from user's unit
+                    // - Events from ancestor units (National, Regional, State, etc.)
+                    // - Events from descendant units
+                    const response = await api.get<any>(`/events?unitId=${user.unitId}&isPublished=true`);
+                    if (response.data) {
+                        fetchedEvents = response.data.data || [];
+                    }
+                } else {
+                    // No unitId assigned - show all published events
+                    const response = await api.get<any>(`/events?isPublished=true`);
+                    if (response.data) {
+                        fetchedEvents = response.data.data || [];
                     }
                 }
-
-                // TODO: Also fetch National/Regional events based on hierarchy if API supports it.
 
                 setEvents(fetchedEvents);
 

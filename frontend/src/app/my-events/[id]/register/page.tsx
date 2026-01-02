@@ -35,7 +35,7 @@ export default function EventRegistrationPage() {
                 api.get<any>('/auth/me'),
             ]);
             setEvent(eventResponse.data);
-            setUser(userResponse);
+            setUser(userResponse.data);
         } catch (error) {
             console.error('Failed to fetch data:', error);
         } finally {

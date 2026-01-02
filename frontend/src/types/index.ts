@@ -35,10 +35,18 @@ export interface User {
   avatar?: string;
   roles: UserRole[];
   unitId: string;
+  unitName?: string;
   level?: OrganizationalLevel;
   membershipStatus?: MembershipStatus;
   memberCode: string;
   createdAt: string;
+  assignments?: Array<{
+    id: string;
+    role: string;
+    unitId?: string;
+    unitName?: string;
+    level?: string;
+  }>;
   updatedAt: string;
 }
 

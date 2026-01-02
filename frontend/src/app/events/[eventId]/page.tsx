@@ -15,17 +15,25 @@ import {
     Clock,
     Loader2,
     CheckCircle2,
+    Edit,
+    UserPlus,
 } from "lucide-react";
 import Link from "next/link";
 import { ProtectedRoute } from "@/components/common/route-guards";
+import { useAuth } from "@/context/auth-context";
 
 export default function EventDetailsPage() {
     const params = useParams();
     const router = useRouter();
     const eventId = params.eventId as string;
+    const { user } = useAuth();
 
     const [event, setEvent] = useState<Event | null>(null);
     const [loading, setLoading] = useState(true);
+
+    // Check if user is a registrar (not an admin)
+    const isRegistrar = user?.roles?.some((r: any) => r.toLowerCase() === 'registrar') &&
+        !user?.roles?.some((r: any) => r.toLowerCase().includes('admin'));
 
     useEffect(() => {
         fetchEventDetails();
@@ -49,6 +57,11 @@ export default function EventDetailsPage() {
 
     const handleRegister = () => {
         router.push(`/events/register/${eventId}`);
+    };
+
+    const handleRegisterUser = () => {
+        // Navigate to registrar dashboard for this event
+        router.push(`/my-events/${eventId}/registrar?tab=register`);
     };
 
     if (loading) {
@@ -98,14 +111,34 @@ export default function EventDetailsPage() {
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Header */}
                     <div className="mb-6">
-                        <Button
-                            variant="ghost"
-                            onClick={() => router.push("/events")}
-                            className="mb-4"
-                        >
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Back to Events
-                        </Button>
+                        <div className="flex items-center justify-between mb-4">
+                            <Button
+                                variant="ghost"
+                                onClick={() => router.push("/events")}
+                            >
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                Back to Events
+                            </Button>
+
+                            {isRegistrar ? (
+                                <Button
+                                    onClick={handleRegisterUser}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                                >
+                                    <UserPlus className="h-4 w-4 mr-2" />
+                                    Register User
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="outline"
+                                    onClick={() => router.push(`/events/${eventId}/edit`)}
+                                    className="border-blue-200 hover:bg-blue-50 text-blue-700"
+                                >
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Edit Event
+                                </Button>
+                            )}
+                        </div>
 
                         <div className="bg-white rounded-lg shadow-lg p-8">
                             <div className="flex items-start justify-between mb-4">
