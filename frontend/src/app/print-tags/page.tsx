@@ -63,18 +63,19 @@ export default function PrintTagsPage() {
             const response = await registrationsApi.list(params);
 
             if (response.data && response.data.data) {
-                setRegistrations(response.data.data);
-                if (response.data.pagination) {
+                const responseData = response.data;
+                setRegistrations(responseData.data);
+                if (responseData.pagination) {
                     setPagination(prev => ({
                         ...prev,
-                        total: response.data.pagination.total,
-                        pages: response.data.pagination.pages
+                        total: responseData.pagination.total,
+                        pages: responseData.pagination.pages
                     }));
-                } else if ((response.data as any).meta) {
+                } else if ((responseData as any).meta) {
                     setPagination(prev => ({
                         ...prev,
-                        total: (response.data as any).meta.total,
-                        pages: (response.data as any).meta.pages
+                        total: (responseData as any).meta.total,
+                        pages: (responseData as any).meta.pages
                     }));
                 }
             } else {
@@ -96,11 +97,27 @@ export default function PrintTagsPage() {
         return () => clearTimeout(timer);
     }, [search, activeTab, pagination.page, user?.id]);
 
-    const handlePrint = (registration: any) => {
-        // Placeholder for print functionality
-        // In a real app, this would open a PDF or a print window
-        toast.success(`Scanning/Printing tag for ${registration.member?.firstName}...`);
-        console.log("Printing tag for:", registration);
+    const handlePrint = async (registration: any) => {
+        try {
+            toast.loading("Generating Tag...", { id: "print-toast" });
+            const blob = await registrationsApi.downloadTag(registration.id);
+            const url = window.URL.createObjectURL(blob);
+            // Open in new tab which usually triggers browser PDF viewer with print option
+            const win = window.open(url, '_blank');
+            if (win) {
+                win.focus();
+            } else {
+                // Fallback for popup blockers
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Tag-${registration.member?.firstName}.pdf`;
+                a.click();
+            }
+            toast.success("Tag Generated!", { id: "print-toast" });
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to generate tag", { id: "print-toast" });
+        }
     };
 
     const handleExport = async () => {
@@ -133,7 +150,7 @@ export default function PrintTagsPage() {
                     </div>
                 </div>
 
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <Tabs defaultValue="my-registrations" onValueChange={setActiveTab} className="w-full">
                     <TabsList className="grid w-full grid-cols-2 max-w-[400px] mb-4">
                         <TabsTrigger value="my-registrations">Registered by Me</TabsTrigger>
                         <TabsTrigger value="center-registrations">Center Registrations</TabsTrigger>
