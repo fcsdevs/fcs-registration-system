@@ -25,7 +25,7 @@ export default function PrintTagsPage() {
     const [loading, setLoading] = useState(false);
     const [registrations, setRegistrations] = useState<any[]>([]);
     const [search, setSearch] = useState("");
-    const [activeTab, setActiveTab] = useState("my-registrations");
+    const [activeTab, setActiveTab] = useState("center-registrations");
     const [pagination, setPagination] = useState({
         page: 1,
         limit: 20,
@@ -50,14 +50,7 @@ export default function PrintTagsPage() {
             if (activeTab === "my-registrations") {
                 params.registeredBy = user.id;
             } else if (activeTab === "center-registrations") {
-                // If the user has a centerId, we filter by it. 
-                // Note: user object might not have centerId directly if not updated in context, 
-                // but usually registrars are scoped.
-                // If no centerId is passed, backend might return all or scoped based on token.
-                // We'll leave it open mostly, or rely on backend defaults.
-                if ((user as any).centerId) {
-                    params.centerId = (user as any).centerId;
-                }
+                // Rely on backend scoping
             }
 
             const response = await registrationsApi.list(params);
@@ -134,7 +127,7 @@ export default function PrintTagsPage() {
                     <div className="relative flex-1 max-w-sm w-full">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
                         <Input
-                            placeholder="Search user by name, email, phone..."
+                            placeholder="Search by FCS Code (e.g. FCS-123...)"
                             className="pl-9"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -150,10 +143,10 @@ export default function PrintTagsPage() {
                     </div>
                 </div>
 
-                <Tabs defaultValue="my-registrations" onValueChange={setActiveTab} className="w-full">
+                <Tabs defaultValue="center-registrations" onValueChange={setActiveTab} className="w-full">
                     <TabsList className="grid w-full grid-cols-2 max-w-[400px] mb-4">
+                        <TabsTrigger value="center-registrations">All Registrations</TabsTrigger>
                         <TabsTrigger value="my-registrations">Registered by Me</TabsTrigger>
-                        <TabsTrigger value="center-registrations">Center Registrations</TabsTrigger>
                     </TabsList>
 
                     <div className="rounded-md border">
