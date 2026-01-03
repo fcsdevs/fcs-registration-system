@@ -106,183 +106,182 @@ export default function EventDetailsPage() {
     };
 
     return (
-        <ProtectedRoute>
-            <div className="min-h-screen bg-gray-50">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    {/* Header */}
-                    <div className="mb-6">
-                        <div className="flex items-center justify-between mb-4">
+        <div className="min-h-screen bg-gray-50">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Header */}
+                <div className="mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <Button
+                            variant="ghost"
+                            onClick={() => router.push("/events")}
+                        >
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            Back to Events
+                        </Button>
+
+                        {isRegistrar ? (
                             <Button
-                                variant="ghost"
-                                onClick={() => router.push("/events")}
+                                onClick={handleRegisterUser}
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
                             >
-                                <ArrowLeft className="h-4 w-4 mr-2" />
-                                Back to Events
+                                <UserPlus className="h-4 w-4 mr-2" />
+                                Register User
                             </Button>
-
-                            {isRegistrar ? (
-                                <Button
-                                    onClick={handleRegisterUser}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                                >
-                                    <UserPlus className="h-4 w-4 mr-2" />
-                                    Register User
-                                </Button>
-                            ) : (
-                                <Button
-                                    variant="outline"
-                                    onClick={() => router.push(`/events/${eventId}/edit`)}
-                                    className="border-blue-200 hover:bg-blue-50 text-blue-700"
-                                >
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Edit Event
-                                </Button>
-                            )}
-                        </div>
-
-                        <div className="bg-white rounded-lg shadow-lg p-8">
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex-1">
-                                    <h1 className="text-4xl font-bold text-gray-900 mb-2">{event.title}</h1>
-                                    <div className="flex items-center gap-2 mt-3">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(event.status)}`}>
-                                            {event.status}
-                                        </span>
-                                        {isRegistrationOpen() && (
-                                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 flex items-center gap-1">
-                                                <CheckCircle2 className="w-3 h-3" />
-                                                Registration Open
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {event.description && (
-                                <p className="text-gray-600 text-lg leading-relaxed mb-6">
-                                    {event.description}
-                                </p>
-                            )}
-
-                            {/* Quick Info */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                                    <Calendar className="h-5 w-5 text-blue-600" />
-                                    <div>
-                                        <p className="text-sm text-gray-600">Event Dates</p>
-                                        <p className="font-semibold text-gray-900">
-                                            {new Date(event.startDate).toLocaleDateString()} - {new Date(event.endDate).toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                                    <Clock className="h-5 w-5 text-blue-600" />
-                                    <div>
-                                        <p className="text-sm text-gray-600">Registration Period</p>
-                                        <p className="font-semibold text-gray-900">
-                                            {new Date(event.registrationStart).toLocaleDateString()} - {new Date(event.registrationEnd).toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {event.maxCapacity && (
-                                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                                        <Users className="h-5 w-5 text-blue-600" />
-                                        <div>
-                                            <p className="text-sm text-gray-600">Capacity</p>
-                                            <p className="font-semibold text-gray-900">{event.maxCapacity} participants</p>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {event.participationMode && (
-                                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                                        <MapPin className="h-5 w-5 text-blue-600" />
-                                        <div>
-                                            <p className="text-sm text-gray-600">Mode</p>
-                                            <p className="font-semibold text-gray-900">{event.participationMode}</p>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Registration Button */}
-                            {isRegistrationOpen() && event.status === 'published' && (
-                                <div className="mt-8 pt-6 border-t border-gray-200">
-                                    <Button
-                                        onClick={handleRegister}
-                                        className="w-full md:w-auto px-8 py-3 text-lg"
-                                        size="lg"
-                                    >
-                                        Register for this Event
-                                    </Button>
-                                    <p className="text-sm text-gray-500 mt-2">
-                                        Registration closes on {new Date(event.registrationEnd).toLocaleDateString()}
-                                    </p>
-                                </div>
-                            )}
-
-                            {!isRegistrationOpen() && (
-                                <div className="mt-8 pt-6 border-t border-gray-200">
-                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                        <p className="text-yellow-800 font-medium">
-                                            Registration is currently closed
-                                        </p>
-                                        <p className="text-yellow-700 text-sm mt-1">
-                                            {new Date() < new Date(event.registrationStart)
-                                                ? `Registration opens on ${new Date(event.registrationStart).toLocaleDateString()}`
-                                                : `Registration closed on ${new Date(event.registrationEnd).toLocaleDateString()}`
-                                            }
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        ) : (
+                            <Button
+                                variant="outline"
+                                onClick={() => router.push(`/events/${eventId}/edit`)}
+                                className="border-blue-200 hover:bg-blue-50 text-blue-700"
+                            >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit Event
+                            </Button>
+                        )}
                     </div>
 
-                    {/* Additional Information */}
-                    <div className="grid gap-6 md:grid-cols-2">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Event Information</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div>
-                                    <label className="text-sm font-medium text-gray-600">Event Type</label>
-                                    <p className="text-gray-900 mt-1">{event.participationMode || 'Not specified'}</p>
+                    <div className="bg-white rounded-lg shadow-lg p-8">
+                        <div className="flex items-start justify-between mb-4">
+                            <div className="flex-1">
+                                <h1 className="text-4xl font-bold text-gray-900 mb-2">{event.title}</h1>
+                                <div className="flex items-center gap-2 mt-3">
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(event.status)}`}>
+                                        {event.status}
+                                    </span>
+                                    {isRegistrationOpen() && (
+                                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 flex items-center gap-1">
+                                            <CheckCircle2 className="w-3 h-3" />
+                                            Registration Open
+                                        </span>
+                                    )}
                                 </div>
-                                {event.unit && (
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-600">Organized By</label>
-                                        <p className="text-gray-900 mt-1">{event.unit.name}</p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Important Dates</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
+                        {event.description && (
+                            <p className="text-gray-600 text-lg leading-relaxed mb-6">
+                                {event.description}
+                            </p>
+                        )}
+
+                        {/* Quick Info */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                                <Calendar className="h-5 w-5 text-blue-600" />
                                 <div>
-                                    <label className="text-sm font-medium text-gray-600">Event Duration</label>
-                                    <p className="text-gray-900 mt-1">
-                                        {Math.ceil((new Date(event.endDate).getTime() - new Date(event.startDate).getTime()) / (1000 * 60 * 60 * 24))} days
+                                    <p className="text-sm text-gray-600">Event Dates</p>
+                                    <p className="font-semibold text-gray-900">
+                                        {new Date(event.startDate).toLocaleDateString()} - {new Date(event.endDate).toLocaleDateString()}
                                     </p>
                                 </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                                <Clock className="h-5 w-5 text-blue-600" />
                                 <div>
-                                    <label className="text-sm font-medium text-gray-600">Registration Window</label>
-                                    <p className="text-gray-900 mt-1">
-                                        {Math.ceil((new Date(event.registrationEnd).getTime() - new Date(event.registrationStart).getTime()) / (1000 * 60 * 60 * 24))} days
+                                    <p className="text-sm text-gray-600">Registration Period</p>
+                                    <p className="font-semibold text-gray-900">
+                                        {new Date(event.registrationStart).toLocaleDateString()} - {new Date(event.registrationEnd).toLocaleDateString()}
                                     </p>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+
+                            {event.maxCapacity && (
+                                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                                    <Users className="h-5 w-5 text-blue-600" />
+                                    <div>
+                                        <p className="text-sm text-gray-600">Capacity</p>
+                                        <p className="font-semibold text-gray-900">{event.maxCapacity} participants</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {event.participationMode && (
+                                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                                    <MapPin className="h-5 w-5 text-blue-600" />
+                                    <div>
+                                        <p className="text-sm text-gray-600">Mode</p>
+                                        <p className="font-semibold text-gray-900">{event.participationMode}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Registration Button */}
+                        {isRegistrationOpen() && event.status === 'published' && (
+                            <div className="mt-8 pt-6 border-t border-gray-200">
+                                <Button
+                                    onClick={handleRegister}
+                                    className="w-full md:w-auto px-8 py-3 text-lg"
+                                    size="lg"
+                                >
+                                    Register for this Event
+                                </Button>
+                                <p className="text-sm text-gray-500 mt-2">
+                                    Registration closes on {new Date(event.registrationEnd).toLocaleDateString()}
+                                </p>
+                            </div>
+                        )}
+
+                        {!isRegistrationOpen() && (
+                            <div className="mt-8 pt-6 border-t border-gray-200">
+                                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                    <p className="text-yellow-800 font-medium">
+                                        Registration is currently closed
+                                    </p>
+                                    <p className="text-yellow-700 text-sm mt-1">
+                                        {new Date() < new Date(event.registrationStart)
+                                            ? `Registration opens on ${new Date(event.registrationStart).toLocaleDateString()}`
+                                            : `Registration closed on ${new Date(event.registrationEnd).toLocaleDateString()}`
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
+
+                {/* Additional Information */}
+                <div className="grid gap-6 md:grid-cols-2">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Event Information</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div>
+                                <label className="text-sm font-medium text-gray-600">Event Type</label>
+                                <p className="text-gray-900 mt-1">{event.participationMode || 'Not specified'}</p>
+                            </div>
+                            {event.unit && (
+                                <div>
+                                    <label className="text-sm font-medium text-gray-600">Organized By</label>
+                                    <p className="text-gray-900 mt-1">{event.unit.name}</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Important Dates</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div>
+                                <label className="text-sm font-medium text-gray-600">Event Duration</label>
+                                <p className="text-gray-900 mt-1">
+                                    {Math.ceil((new Date(event.endDate).getTime() - new Date(event.startDate).getTime()) / (1000 * 60 * 60 * 24))} days
+                                </p>
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium text-gray-600">Registration Window</label>
+                                <p className="text-gray-900 mt-1">
+                                    {Math.ceil((new Date(event.registrationEnd).getTime() - new Date(event.registrationStart).getTime()) / (1000 * 60 * 60 * 24))} days
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
-        </ProtectedRoute>
+        </div>
+
     );
 }
