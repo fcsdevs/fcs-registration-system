@@ -18,7 +18,7 @@ import { authApi } from "@/lib/api/auth";
 
 export default function SignupPage() {
   const router = useRouter();
-  const { signup, isLoading } = useAuth();
+  const { signup, login, isLoading } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
@@ -87,9 +87,13 @@ export default function SignupPage() {
   const onSubmit = async (data: SignupFormData) => {
     try {
       setError(null);
+      // 1. Sign up the user
       await signup(data);
-      // Redirect to login with email prefilled
-      router.push(`/auth/login?email=${encodeURIComponent(data.email)}&registered=true`);
+
+      // 2. Automatically log them in
+      // This will handle token storage and redirect to /dashboard
+      await login(data.email, data.password);
+
     } catch (err: any) {
       setError(err.message || "Sign up failed. Please try again.");
     }
