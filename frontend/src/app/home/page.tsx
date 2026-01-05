@@ -158,7 +158,7 @@ export default function HomePage() {
             <div>
               <h1 className="text-3xl font-bold text-[#0F172A]">Dashboard</h1>
               <p className="text-sm text-[#475569] mt-1">
-                Welcome back, {user?.firstName} {user?.lastName}! 👋
+                Welcome back, {user?.firstName} {user?.lastName}!
               </p>
             </div>
             <div className="flex gap-3">
