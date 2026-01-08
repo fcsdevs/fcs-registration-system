@@ -147,32 +147,64 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
         setLastCheckIn(null);
 
         try {
-            const response = await registrationsApi.list({
+            // 1. Try to find registration in CURRENT event
+            let response = await registrationsApi.list({
                 eventId: selectedEventId,
                 search: code,
                 limit: 1
             });
 
             let matchedReg = null;
-            if (Array.isArray(response.data)) {
-                matchedReg = response.data[0];
-            } else if (response.data && Array.isArray((response.data as any).data)) {
-                matchedReg = (response.data as any).data[0];
-            } else if ((response as any).data && Array.isArray((response as any).data)) {
-                matchedReg = (response as any).data[0];
-            }
 
+            // Helper to extract data safely
+            const extractReg = (res: any) => {
+                if (Array.isArray(res.data)) return res.data[0];
+                if (res.data && Array.isArray(res.data.data)) return res.data.data[0];
+                if ((res as any).data && Array.isArray((res as any).data)) return (res as any).data[0];
+                return null;
+            };
+
+            matchedReg = extractReg(response);
+
+            // 2. Fallback: If not found, look up directly by ID (Bypasses some scope checks if API allows)
             if (!matchedReg) {
-                throw new Error("Registration not found");
+                console.log("Not found in current event, attempting direct lookup...");
+                try {
+                    // This endpoint often bypasses list-view scope filters to fetch specific record details
+                    const directResponse = await registrationsApi.getById(code);
+                    const globalReg = directResponse.data;
+
+                    if (globalReg) {
+                        // Start date formatting for context
+                        const eventDate = globalReg.event?.startDate ?
+                            new Date(globalReg.event.startDate).toLocaleDateString() : 'N/A';
+                        const eventTitle = globalReg.event?.title || "Unknown Event";
+
+                        if (globalReg.eventId === selectedEventId) {
+                            // Weird case: It IS in this event but list didn't find it
+                            matchedReg = globalReg;
+                        } else {
+                            throw new Error(`Badge is for different event: "${eventTitle}" (${eventDate})`);
+                        }
+                    }
+                } catch (lookupErr: any) {
+                    console.warn("Direct lookup failed:", lookupErr.message);
+                    // If verified to be a CUID format but not found, it really doesn't exist.
+                }
+
+                if (!matchedReg) {
+                    throw new Error("Registration not found. Valid token?");
+                }
             }
 
+            // 3. Proceed with Check-in
             if (matchedReg.status === "CHECKED_IN") {
                 setLastCheckIn({ ...matchedReg, alreadyCheckedIn: true });
             } else {
                 await toast.promise(
                     attendanceApi.checkIn({
                         eventId: selectedEventId,
-                        registrationId: matchedReg.id,
+                        registrationId: matchedReg.id, // Use the ID we found
                         checkInMethod: method,
                         centerId: matchedReg.participation?.centerId || undefined
                     }),
@@ -187,14 +219,78 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
         } catch (err: any) {
             console.error(err);
             setErrorMsg(err.message || "Error processing check-in");
+            // Re-throw so the scanner loop knows it failed (if needed) or just let the error state handle it
+            // We set ErrorMsg, so visual feedback is there.
         } finally {
             setProcessing(false);
         }
     };
 
-    const onScanSuccess = (decodedText: string) => {
+    const processingRef = useRef(false);
+    const lastScannedCodeRef = useRef<string | null>(null);
+
+    useEffect(() => {
+        processingRef.current = processing;
+    }, [processing]);
+
+    const onScanSuccess = async (decodedText: string) => {
+        // Strict guard against duplicate processing
+        if (processingRef.current) return;
+        if (lastScannedCodeRef.current === decodedText) return;
+
+        // Smart Filter: Ignore invalid or non-code text patterns (e.g., detected text from UI elements)
+        if (decodedText.length < 3 ||
+            decodedText.includes("New year service") ||
+            decodedText.includes("FCS Registry") ||
+            decodedText.includes("Your Badge")) {
+            return;
+        }
+
         console.log("Scanned:", decodedText);
-        handleCheckIn(decodedText, 'QR');
+
+        try {
+            // 1. Lock processing
+            processingRef.current = true;
+            lastScannedCodeRef.current = decodedText;
+
+            // 2. Visual Feedback: Pause Scanner
+            if (scannerRef.current?.pause) {
+                try {
+                    scannerRef.current.pause(true);
+                } catch (e) {
+                    console.warn("Pause failed:", e);
+                }
+            }
+
+            toast.loading("Verifying...", { id: 'scan-toast', duration: 2000 });
+
+            // 3. Process Check-In
+            await handleCheckIn(decodedText, 'QR');
+
+            toast.dismiss('scan-toast');
+
+        } catch (error) {
+            console.error("Scan processing error:", error);
+            toast.error("Scan failed to process");
+        } finally {
+            // 4. Resume Logic (Wait a bit so user sees the result)
+            setTimeout(() => {
+                if (scannerRef.current?.resume) {
+                    try {
+                        scannerRef.current.resume();
+                    } catch (e) {
+                        console.warn("Resume failed, restarting scanner:", e);
+                        // Fallback: fully restart if resume fails
+                        startScanner();
+                    }
+                }
+
+                // 5. Unlock
+                processingRef.current = false;
+                lastScannedCodeRef.current = null;
+
+            }, 2000); // 2 seconds delay for visual confirmation
+        }
     };
 
     const stopScanner = async () => {
@@ -227,7 +323,12 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
             const html5QrCode = new (window as any).Html5Qrcode("reader");
             await html5QrCode.start(
                 { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
+                {
+                    fps: 20,
+                    qrbox: { width: 300, height: 300 },
+                    aspectRatio: 1.0,
+                    disableFlip: false, // Ensure mirroring is handled if needed
+                },
                 onScanSuccess,
                 (err: any) => { /* ignore frame errors */ }
             );

@@ -115,15 +115,20 @@ export function EventRegistrationWizard({
 
             // Assign group if selected
             if (formData.groupId && response.data?.id) {
-                await api.post(`/registrations/${response.data.id}/assign-group`, {
-                    groupId: formData.groupId,
-                });
+                try {
+                    await api.post(`/registrations/${response.data.id}/assign-group`, {
+                        groupId: formData.groupId,
+                    });
+                } catch (groupError) {
+                    console.warn('Failed to assign group:', groupError);
+                    // continue with success flow even if group assignment fails
+                }
             }
 
             if (onComplete && response.data?.id) {
                 onComplete(response.data.id);
             } else {
-                router.push(`/my-events/${event.id}/registration-success`);
+                router.push(`/my-events/${event.id}/registration-success?registrationId=${response.data?.id}`);
             }
         } catch (error: any) {
             console.error('Registration failed:', error);

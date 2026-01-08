@@ -396,6 +396,9 @@ export interface Registration {
   event?: {
     id: string;
     title: string;
+    startDate?: string;
+    endDate?: string;
+    participationMode?: 'ONLINE' | 'ONSITE' | 'HYBRID';
   };
   center?: {
     id: string;
@@ -405,6 +408,21 @@ export interface Registration {
   group?: {
     id: string;
     name: string;
+  };
+  participation?: {
+    center?: {
+      id: string;
+      centerName: string;
+      address?: string;
+    };
+    participationMode?: string;
+  };
+  groupAssignment?: {
+    group?: {
+      id: string;
+      name: string;
+      type?: string;
+    };
   };
 }
 

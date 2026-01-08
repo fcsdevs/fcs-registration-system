@@ -16,7 +16,7 @@ export function RegistrantsListTab({ eventId }: { eventId: string }) {
 
     useEffect(() => {
         // Fetch current user to know ID for "mine" filter
-        api.get<any>('/auth/profile').then(res => setCurrentUser(res.data)).catch(console.error);
+        api.get<any>('/auth/me').then(res => setCurrentUser(res.data)).catch(console.error);
     }, []);
 
     const fetchRegistrations = async () => {
