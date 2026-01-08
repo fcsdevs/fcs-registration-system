@@ -194,22 +194,22 @@ export default function RegistrationTrayPage() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {/* Card 1: Personal Registrations */}
                 <Card className="relative overflow-hidden border-none shadow-lg bg-gradient-to-br from-blue-600 to-blue-700 text-white">
                     <div className="absolute top-0 right-0 p-4 opacity-10">
-                        <UserPlus className="w-24 h-24 transform translate-x-4 -translate-y-4" />
+                        <UserPlus className="w-20 h-20 sm:w-24 sm:h-24 transform translate-x-4 -translate-y-4" />
                     </div>
-                    <div className="p-6 relative z-10">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                                <UserPlus className="w-5 h-5 text-white" />
+                    <div className="p-4 sm:p-6 relative z-10">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                            <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                                <UserPlus className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                             </div>
-                            <span className="text-sm font-medium text-blue-100 uppercase tracking-wider">Registered by You</span>
+                            <span className="text-xs sm:text-sm font-medium text-blue-100 uppercase tracking-wider">Registered by You</span>
                         </div>
                         <div className="flex items-baseline gap-2">
-                            <h3 className="text-4xl font-bold">{stats?.registeredByMe || 0}</h3>
-                            <span className="text-sm text-blue-200">Total</span>
+                            <h3 className="text-3xl sm:text-4xl font-bold">{stats?.registeredByMe || 0}</h3>
+                            <span className="text-xs sm:text-sm text-blue-200">Total</span>
                         </div>
                     </div>
                 </Card>
@@ -217,34 +217,34 @@ export default function RegistrationTrayPage() {
                 {/* Card 2: Center Total */}
                 <Card className="relative overflow-hidden border-none shadow-sm bg-white hover:shadow-md transition-all duration-300">
                     <div className="absolute top-0 right-0 w-1 h-full bg-emerald-500" />
-                    <div className="p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-emerald-50 rounded-lg">
-                                <Users className="w-5 h-5 text-emerald-600" />
+                    <div className="p-4 sm:p-6">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                            <div className="p-1.5 sm:p-2 bg-emerald-50 rounded-lg">
+                                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
                             </div>
-                            <span className="text-sm font-medium text-gray-600 uppercase tracking-wider">Center Registrations</span>
+                            <span className="text-xs sm:text-sm font-medium text-gray-600 uppercase tracking-wider">Center Registrations</span>
                         </div>
                         <div className="flex items-baseline gap-2">
-                            <h3 className="text-3xl font-bold text-gray-900">{stats?.centerStats?.totalRegistered || 0}</h3>
-                            <span className="text-sm text-gray-500">Members</span>
+                            <h3 className="text-2xl sm:text-3xl font-bold text-gray-900">{stats?.centerStats?.totalRegistered || 0}</h3>
+                            <span className="text-xs sm:text-sm text-gray-500">Members</span>
                         </div>
                         <p className="text-xs text-gray-400 mt-2">Total registered under your center</p>
                     </div>
                 </Card>
 
                 {/* Card 3: Checked In */}
-                <Card className="relative overflow-hidden border-none shadow-sm bg-white hover:shadow-md transition-all duration-300">
+                <Card className="relative overflow-hidden border-none shadow-sm bg-white hover:shadow-md transition-all duration-300 sm:col-span-2 lg:col-span-1">
                     <div className="absolute top-0 right-0 w-1 h-full bg-purple-500" />
-                    <div className="p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-purple-50 rounded-lg">
-                                <UserCheck className="w-5 h-5 text-purple-600" />
+                    <div className="p-4 sm:p-6">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                            <div className="p-1.5 sm:p-2 bg-purple-50 rounded-lg">
+                                <UserCheck className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                             </div>
-                            <span className="text-sm font-medium text-gray-600 uppercase tracking-wider">Confirmed Present</span>
+                            <span className="text-xs sm:text-sm font-medium text-gray-600 uppercase tracking-wider">Confirmed Present</span>
                         </div>
                         <div className="flex items-baseline gap-2">
-                            <h3 className="text-3xl font-bold text-gray-900">{stats?.centerStats?.totalCheckedIn || 0}</h3>
-                            <span className="text-sm text-gray-500">Verified</span>
+                            <h3 className="text-2xl sm:text-3xl font-bold text-gray-900">{stats?.centerStats?.totalCheckedIn || 0}</h3>
+                            <span className="text-xs sm:text-sm text-gray-500">Verified</span>
                         </div>
                         <p className="text-xs text-gray-400 mt-2">Members physically confirmed at center</p>
                     </div>
