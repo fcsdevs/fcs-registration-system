@@ -35,6 +35,8 @@ export default function EventDetailsPage() {
     const isRegistrar = user?.roles?.some((r: any) => r.toLowerCase() === 'registrar') &&
         !user?.roles?.some((r: any) => r.toLowerCase().includes('admin'));
 
+    const isAdmin = user?.roles?.some((r: any) => r.toLowerCase().includes('admin'));
+
     useEffect(() => {
         fetchEventDetails();
     }, [eventId]);
@@ -56,7 +58,11 @@ export default function EventDetailsPage() {
     };
 
     const handleRegister = () => {
-        router.push(`/events/register/${eventId}`);
+        if (user) {
+            router.push(`/my-events/${eventId}/register`);
+        } else {
+            router.push(`/events/register/${eventId}`);
+        }
     };
 
     const handleRegisterUser = () => {
@@ -120,14 +126,16 @@ export default function EventDetailsPage() {
                         </Button>
 
                         {isRegistrar ? (
-                            <Button
-                                onClick={handleRegisterUser}
-                                className="bg-blue-600 hover:bg-blue-700 text-white"
-                            >
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                Register User
-                            </Button>
-                        ) : (
+                            isRegistrationOpen() && (
+                                <Button
+                                    onClick={handleRegisterUser}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                                >
+                                    <UserPlus className="h-4 w-4 mr-2" />
+                                    Register
+                                </Button>
+                            )
+                        ) : isAdmin ? (
                             <Button
                                 variant="outline"
                                 onClick={() => router.push(`/events/${eventId}/edit`)}
@@ -136,6 +144,15 @@ export default function EventDetailsPage() {
                                 <Edit className="h-4 w-4 mr-2" />
                                 Edit Event
                             </Button>
+                        ) : (
+                            isRegistrationOpen() && (
+                                <Button
+                                    onClick={handleRegister}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                                >
+                                    Register
+                                </Button>
+                            )
                         )}
                     </div>
 

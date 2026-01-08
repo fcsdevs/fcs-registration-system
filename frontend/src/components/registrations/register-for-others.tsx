@@ -84,7 +84,7 @@ export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOth
     };
 
     const handleRegistrationComplete = (registrationId: string) => {
-        router.push(`/my-events/${event.id}/registration-success`);
+        router.push(`/my-events/${event.id}/registration-success?registrationId=${registrationId}`);
     };
 
     // Registration Mode
@@ -142,9 +142,13 @@ export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOth
                             <input
                                 type="text"
                                 value={searchCode}
-                                onChange={(e) => setSearchCode(e.target.value)}
+                                onChange={(e) => {
+                                    // Auto-convert to typical FCS format if needed, but here simple upper casing is good UX
+                                    const val = e.target.value.toUpperCase();
+                                    setSearchCode(val);
+                                }}
                                 placeholder="Enter FCS Code (e.g., FCS/123/XYZ)"
-                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all uppercase placeholder:normal-case"
                             />
                         </div>
                         <button

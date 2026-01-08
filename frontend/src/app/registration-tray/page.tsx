@@ -70,17 +70,32 @@ export default function RegistrationTrayPage() {
     const fetchEvents = async () => {
         try {
             setLoading(true);
-            const response = await eventsApi.list({ limit: 100 });
-            if (response.data && response.data.data.length > 0) {
-                setEvents(response.data.data);
+            const response = await eventsApi.list({ limit: 100, isPublished: true });
+
+            let allEvents: any[] = [];
+
+            // Robust data extraction
+            if (Array.isArray(response.data)) {
+                allEvents = response.data;
+            } else if (response.data && Array.isArray(response.data.data)) {
+                allEvents = response.data.data;
+            } else if (Array.isArray(response as any)) {
+                allEvents = response as any;
+            } else if ((response as any).data && Array.isArray((response as any).data)) {
+                allEvents = (response as any).data;
+            }
+
+            if (allEvents.length > 0) {
+                setEvents(allEvents);
                 // Auto select the first event
-                setSelectedEventId(response.data.data[0].id);
+                setSelectedEventId(allEvents[0].id);
             } else {
-                setLoading(false);
+                setEvents([]);
             }
         } catch (error) {
             console.error("Error fetching events:", error);
             toast.error("Failed to load events");
+        } finally {
             setLoading(false);
         }
     };

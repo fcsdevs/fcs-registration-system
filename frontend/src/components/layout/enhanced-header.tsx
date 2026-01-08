@@ -349,22 +349,24 @@ export function EnhancedHeader() {
 
             <div className="max-h-96 overflow-y-auto">
               {/* Quick Actions */}
-              <div className="p-2">
-                <p className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Quick Actions
-                </p>
-                {quickActions.map((action) => (
-                  <Link
-                    key={action.href}
-                    href={action.href}
-                    onClick={() => setShowCommandPalette(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 text-sm"
-                  >
-                    <action.icon className="w-4 h-4 text-gray-500" />
-                    <span>{action.label}</span>
-                  </Link>
-                ))}
-              </div>
+              {isAdmin && (
+                <div className="p-2">
+                  <p className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Quick Actions
+                  </p>
+                  {quickActions.map((action) => (
+                    <Link
+                      key={action.href}
+                      href={action.href}
+                      onClick={() => setShowCommandPalette(false)}
+                      className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 text-sm"
+                    >
+                      <action.icon className="w-4 h-4 text-gray-500" />
+                      <span>{action.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
 
               {/* All Pages */}
               {navigationGroups.map((group) => (
