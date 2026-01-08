@@ -39,57 +39,57 @@ export default function UnitPage() {
       <div className="min-h-screen bg-gray-50">
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
+          <div className="mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Units</h1>
-                <p className="text-gray-600 mt-1">Manage organizational units</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Units</h1>
+                <p className="text-sm sm:text-base text-gray-600 mt-1">Manage organizational units</p>
               </div>
               <Link
                 href="/units/new"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-3 py-2 sm:px-4 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                 Create Unit
               </Link>
             </div>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Units</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">{units.length}</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Total Units</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{units.length}</p>
                 </div>
-                <Building className="w-8 h-8 text-blue-600" />
+                <Building className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Members</p>
-                  <p className="text-3xl font-bold text-green-600 mt-1">
+                  <p className="text-xs sm:text-sm text-gray-600">Total Members</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-green-600 mt-1">
                     {units.reduce((sum, u) => sum + (u.memberCount || 0), 0)}
                   </p>
                 </div>
-                <Users className="w-8 h-8 text-green-600" />
+                <Users className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
               </div>
             </div>
           </div>
 
           {/* Search */}
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 sm:mb-8">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
               <input
                 type="text"
                 placeholder="Search units..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>

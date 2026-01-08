@@ -33,13 +33,16 @@ export default function HomePage() {
 
   useEffect(() => {
     // Redirect non-admin users to member dashboard
-    const isAdmin = user?.roles?.some((r: any) => {
-      const role = r.toLowerCase();
-      return role.includes('admin') || role === 'leader';
-    });
+    if (user) {
+      const isAdmin = user.roles?.some((r: any) => {
+        const role = r.toLowerCase();
+        return role.includes('admin') || role === 'leader';
+      });
 
-    if (user && !isAdmin) {
-      router.push('/dashboard');
+      if (!isAdmin) {
+        router.replace('/dashboard');
+        return;
+      }
     }
   }, [user, router]);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);

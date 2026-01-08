@@ -36,9 +36,15 @@ export function EnhancedHeader() {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [notificationCount] = useState(0); // Reset mock count for now
 
+
   const isAdmin = user?.roles?.some((r: any) => {
     const role = r.toLowerCase();
     return role.includes('admin') || role === 'leader';
+  });
+
+  const isRegistrar = user?.roles?.some((r: any) => {
+    const role = r.toLowerCase();
+    return role === 'registrar';
   });
 
   // Command Palette keyboard shortcut
@@ -93,7 +99,7 @@ export function EnhancedHeader() {
     },
   ];
 
-  const memberNavigationGroups = [
+  const registrarNavigationGroups = [
     {
       label: "Menu",
       items: [
@@ -101,10 +107,36 @@ export function EnhancedHeader() {
         { href: "/events", label: "Events", icon: Calendar },
         { href: "/profile", label: "My Profile", icon: UserCircle },
       ],
+    },
+    {
+      label: "Registrar Portal",
+      items: [
+        { href: "/my-events", label: "My Registrations", icon: CheckSquare },
+        { href: "/registration-tray", label: "Registration Tray", icon: Users },
+        { href: "/attendance", label: "Attendance", icon: Users },
+        { href: "/print-tags", label: "Print Tags", icon: Users },
+        { href: "/extensive-search", label: "Extensive Search", icon: Search },
+      ],
+    },
+  ];
+
+  const memberNavigationGroups = [
+    {
+      label: "Menu",
+      items: [
+        { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
+        { href: "/events", label: "Events", icon: Calendar },
+        { href: "/my-events", label: "My Registrations", icon: CheckSquare },
+        { href: "/profile", label: "My Profile", icon: UserCircle },
+      ],
     }
   ];
 
-  const navigationGroups = isAdmin ? adminNavigationGroups : memberNavigationGroups;
+  const navigationGroups = isAdmin
+    ? adminNavigationGroups
+    : isRegistrar
+      ? registrarNavigationGroups
+      : memberNavigationGroups;
 
   const quickActions = [
     { href: "/members/new", label: "New Member", icon: Users },
