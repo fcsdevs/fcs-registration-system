@@ -9,11 +9,28 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Calendar, Ticket, User, ArrowRight, Loader2, MapPin } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function UserDashboardPage() {
     const { user } = useAuth();
+    const router = useRouter();
     const [events, setEvents] = useState<Event[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    // Redirect admin users to admin dashboard
+    useEffect(() => {
+        if (user) {
+            const isAdmin = user.roles?.some((r: any) => {
+                const role = r.toLowerCase();
+                return role.includes('admin') || role === 'leader';
+            });
+
+            if (isAdmin) {
+                router.replace('/home');
+                return;
+            }
+        }
+    }, [user, router]);
 
     useEffect(() => {
         const fetchEvents = async () => {

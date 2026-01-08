@@ -105,9 +105,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const isAdmin = userData.roles.some((r: string) => r.toLowerCase().includes('admin') || r.toLowerCase() === 'leader');
 
       if (isAdmin) {
-        router.push('/home');
+        router.replace('/home');
       } else {
-        router.push('/dashboard');
+        router.replace('/dashboard');
       }
     } catch (error: any) {
       // Re-throw with the actual error message from backend
