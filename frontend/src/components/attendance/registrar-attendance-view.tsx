@@ -357,18 +357,18 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
             />
 
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col gap-4 mb-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
-                        <Scan className="w-6 h-6 text-blue-600" />
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+                        <Scan className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                         Attendance Kiosk
                     </h2>
-                    <p className="text-gray-500">Scan barcode or enter FCS Code to check in.</p>
+                    <p className="text-sm text-gray-500 mt-1">Scan barcode or enter FCS Code to check in.</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <div className="flex-1 min-w-0">
                         <Select value={selectedEventId} onValueChange={handleEventChange}>
-                            <SelectTrigger className={`w-[280px] h-10 bg-white ${!selectedEventId ? 'border-amber-500 border-2' : ''}`}>
+                            <SelectTrigger className={`w-full h-11 bg-white ${!selectedEventId ? 'border-amber-500 border-2' : ''}`}>
                                 <SelectValue placeholder="📅 Select Event to Begin" />
                             </SelectTrigger>
                             <SelectContent>
@@ -391,7 +391,7 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
                             </SelectContent>
                         </Select>
                     </div>
-                    <Button variant="outline" size="icon" onClick={kioskMode ? exitKioskMode : enterKioskMode} title="Toggle Kiosk Mode">
+                    <Button variant="outline" size="icon" onClick={kioskMode ? exitKioskMode : enterKioskMode} title="Toggle Kiosk Mode" className="shrink-0">
                         {kioskMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                     </Button>
                 </div>
@@ -411,46 +411,46 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
                     </div>
 
                     <TabsContent value="barcode" className="flex-1 mt-0 h-full">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full pb-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 h-full pb-6">
                             {/* Input Section */}
-                            <Card className={`p-8 flex flex-col justify-center items-center gap-6 shadow-md border-t-4 ${!selectedEventId ? 'border-t-amber-500 bg-amber-50/30' : 'border-t-blue-500'}`}>
+                            <Card className={`p-4 sm:p-8 flex flex-col justify-center items-center gap-4 sm:gap-6 shadow-md border-t-4 ${!selectedEventId ? 'border-t-amber-500 bg-amber-50/30' : 'border-t-blue-500'}`}>
                                 {!selectedEventId ? (
                                     <div className="w-full max-w-md text-center space-y-4">
-                                        <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto">
-                                            <Scan className="w-10 h-10 text-amber-600" />
+                                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto">
+                                            <Scan className="w-8 h-8 sm:w-10 sm:h-10 text-amber-600" />
                                         </div>
-                                        <h3 className="text-2xl font-bold text-gray-900">Select an Event First</h3>
-                                        <p className="text-gray-600">
+                                        <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Select an Event First</h3>
+                                        <p className="text-sm sm:text-base text-gray-600">
                                             Please select an event from the dropdown menu above before you can start scanning attendees.
                                         </p>
-                                        <div className="pt-4 flex items-center justify-center gap-2 text-sm text-amber-700 bg-amber-100 rounded-lg p-3">
+                                        <div className="pt-4 flex items-center justify-center gap-2 text-xs sm:text-sm text-amber-700 bg-amber-100 rounded-lg p-3">
                                             <span className="font-bold">Step 1:</span>
                                             <span>Choose event from dropdown ↑</span>
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="w-full max-w-md space-y-4">
-                                        <form onSubmit={processInput} className="flex gap-3 items-center">
+                                        <form onSubmit={processInput} className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
                                             <div className="relative flex-1">
                                                 <Input
                                                     ref={inputRef}
                                                     value={inputValue}
                                                     onChange={(e) => setInputValue(e.target.value)}
-                                                    className="h-16 text-2xl pl-12 shadow-sm border-2 focus:border-blue-500 transition-all font-mono tracking-wider"
+                                                    className="h-14 sm:h-16 text-lg sm:text-2xl pl-10 sm:pl-12 shadow-sm border-2 focus:border-blue-500 transition-all font-mono tracking-wider"
                                                     placeholder="Enter FCS Code"
                                                     disabled={processing}
                                                     autoComplete="off"
                                                 />
-                                                <Scan className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
+                                                <Scan className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
                                                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                                                    {processing && <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />}
+                                                    {processing && <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 animate-spin" />}
                                                 </div>
                                             </div>
-                                            <Button type="submit" size="lg" className="h-16 px-8 text-lg font-semibold bg-blue-600 hover:bg-blue-700 shadow-sm" disabled={processing}>
+                                            <Button type="submit" size="lg" className="h-14 sm:h-16 px-6 sm:px-8 text-base sm:text-lg font-semibold bg-blue-600 hover:bg-blue-700 shadow-sm" disabled={processing}>
                                                 Check In
                                             </Button>
                                         </form>
-                                        <p className="text-center text-sm text-gray-400">
+                                        <p className="text-center text-xs sm:text-sm text-gray-400">
                                             Press <span className="font-mono bg-gray-100 px-1 rounded">Enter</span> to confirm
                                         </p>
                                     </div>
@@ -458,59 +458,59 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
 
                                 {/* Status Feedback Area */}
                                 {selectedEventId && (
-                                    <div className="w-full max-w-md min-h-[150px] flex items-center justify-center">
+                                    <div className="w-full max-w-md min-h-[120px] sm:min-h-[150px] flex items-center justify-center">
                                         {processing ? (
-                                            <div className="text-center text-gray-500 animate-pulse">
+                                            <div className="text-center text-sm sm:text-base text-gray-500 animate-pulse">
                                                 Checking records...
                                             </div>
                                         ) : errorMsg ? (
                                             errorMsg.toLowerCase().includes('already checked in') ? (
                                                 <div className="text-center animate-in zoom-in duration-300">
-                                                    <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                                        <RefreshCw className="w-8 h-8 text-amber-600" />
+                                                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                        <RefreshCw className="w-6 h-6 sm:w-8 sm:h-8 text-amber-600" />
                                                     </div>
-                                                    <h3 className="text-xl font-bold text-amber-600 mb-1">Already Checked In</h3>
-                                                    <p className="text-amber-500">{errorMsg}</p>
+                                                    <h3 className="text-lg sm:text-xl font-bold text-amber-600 mb-1">Already Checked In</h3>
+                                                    <p className="text-sm sm:text-base text-amber-500">{errorMsg}</p>
                                                 </div>
                                             ) : (
                                                 <div className="text-center animate-in zoom-in duration-300">
-                                                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                                        <XCircle className="w-8 h-8 text-red-600" />
+                                                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                        <XCircle className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
                                                     </div>
-                                                    <h3 className="text-xl font-bold text-red-600 mb-1">Not Found / Error</h3>
-                                                    <p className="text-red-500">{errorMsg}</p>
+                                                    <h3 className="text-lg sm:text-xl font-bold text-red-600 mb-1">Not Found / Error</h3>
+                                                    <p className="text-sm sm:text-base text-red-500">{errorMsg}</p>
                                                 </div>
                                             )
                                         ) : lastCheckIn ? (
                                             <div className="text-center animate-in zoom-in duration-300 w-full">
-                                                <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 ${lastCheckIn.alreadyCheckedIn ? 'bg-amber-100' : 'bg-green-100'
+                                                <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-4 ${lastCheckIn.alreadyCheckedIn ? 'bg-amber-100' : 'bg-green-100'
                                                     }`}>
                                                     {lastCheckIn.alreadyCheckedIn ? (
-                                                        <RefreshCw className="w-10 h-10 text-amber-600" />
+                                                        <RefreshCw className="w-8 h-8 sm:w-10 sm:h-10 text-amber-600" />
                                                     ) : (
-                                                        <CheckCircle2 className="w-10 h-10 text-green-600" />
+                                                        <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10 text-green-600" />
                                                     )}
                                                 </div>
-                                                <h3 className={`text-2xl font-bold mb-2 ${lastCheckIn.alreadyCheckedIn ? 'text-amber-700' : 'text-green-700'
+                                                <h3 className={`text-xl sm:text-2xl font-bold mb-2 ${lastCheckIn.alreadyCheckedIn ? 'text-amber-700' : 'text-green-700'
                                                     }`}>
                                                     {lastCheckIn.alreadyCheckedIn ? 'Already Checked In' : 'Check-In Successful!'}
                                                 </h3>
 
-                                                <div className="bg-gray-50 rounded-xl p-4 mt-4 text-left border border-gray-100 shadow-sm">
-                                                    <div className="flex items-start gap-3">
-                                                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 text-blue-700 font-bold">
+                                                <div className="bg-gray-50 rounded-xl p-3 sm:p-4 mt-4 text-left border border-gray-100 shadow-sm">
+                                                    <div className="flex items-start gap-2 sm:gap-3">
+                                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 text-blue-700 font-bold text-sm sm:text-base">
                                                             {lastCheckIn.member?.firstName?.[0]}
                                                         </div>
-                                                        <div>
-                                                            <p className="font-bold text-lg text-gray-900">
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="font-bold text-base sm:text-lg text-gray-900 break-words">
                                                                 {lastCheckIn.member?.firstName} {lastCheckIn.member?.lastName}
                                                             </p>
-                                                            <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                                                            <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-500 mt-1">
                                                                 <Badge variant="outline" className="font-mono text-xs">
                                                                     {lastCheckIn.member?.fcsCode}
                                                                 </Badge>
                                                                 <span>•</span>
-                                                                <span>{lastCheckIn.participation?.center?.centerName || 'No Center Assigned'}</span>
+                                                                <span className="break-all">{lastCheckIn.participation?.center?.centerName || 'No Center Assigned'}</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -518,8 +518,8 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
                                             </div>
                                         ) : (
                                             <div className="text-center text-gray-400">
-                                                <Database className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                                                <p>Waiting for scan...</p>
+                                                <Database className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 opacity-20" />
+                                                <p className="text-sm sm:text-base">Waiting for scan...</p>
                                             </div>
                                         )}
                                     </div>
@@ -528,12 +528,12 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
 
                             {/* Recent Scans / Instructions */}
                             <div className="space-y-6">
-                                <Card className="p-6 h-full border-dashed shadow-sm bg-gray-50/50">
-                                    <h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                                <Card className="p-4 sm:p-6 h-full border-dashed shadow-sm bg-gray-50/50">
+                                    <h3 className="font-semibold text-sm sm:text-base text-gray-700 mb-4 flex items-center gap-2">
                                         <Hash className="w-4 h-4" />
                                         Instructions
                                     </h3>
-                                    <ul className="space-y-3 text-sm text-gray-600">
+                                    <ul className="space-y-3 text-xs sm:text-sm text-gray-600">
                                         <li className="flex items-start gap-2">
                                             <span className="bg-blue-100 text-blue-700 w-5 h-5 rounded-full flex items-center justify-center text-xs flex-shrink-0 mt-0.5">1</span>
                                             <span>Select the correct event from the dropdown menu at the top.</span>
@@ -552,9 +552,9 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
                                         </li>
                                     </ul>
 
-                                    <div className="mt-8 p-4 bg-blue-50 rounded-lg text-blue-800 text-sm">
+                                    <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-blue-50 rounded-lg text-blue-800 text-xs sm:text-sm">
                                         <strong>Pro Tip:</strong> Toggle
-                                        <Button variant="link" className="h-auto p-0 px-1 text-blue-800 underline" onClick={kioskMode ? exitKioskMode : enterKioskMode}>
+                                        <Button variant="link" className="h-auto p-0 px-1 text-blue-800 underline text-xs sm:text-sm" onClick={kioskMode ? exitKioskMode : enterKioskMode}>
                                             Full Screen Mode
                                         </Button>
                                         for distraction-free scanning at entrance points.
