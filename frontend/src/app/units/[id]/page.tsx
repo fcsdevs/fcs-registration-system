@@ -12,10 +12,12 @@ import {
     CheckCircle,
     XCircle,
     Edit,
-    Trash2,
     Network,
     FileText,
-    TrendingUp
+    TrendingUp,
+    MapPin,
+    Mail,
+    Phone
 } from "lucide-react";
 import Link from "next/link";
 import { Unit } from "@/types/api";
@@ -50,8 +52,11 @@ export default function UnitDetailPage() {
     if (loading) {
         return (
             <ProtectedRoute>
-                <div className="flex items-center justify-center min-h-screen">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600 font-medium">Loading unit details...</p>
+                    </div>
                 </div>
             </ProtectedRoute>
         );
@@ -60,18 +65,18 @@ export default function UnitDetailPage() {
     if (error || !unit) {
         return (
             <ProtectedRoute>
-                <div className="min-h-screen bg-gray-50 pb-12">
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pb-12">
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                         <Link
                             href="/units"
-                            className="inline-flex items-center text-gray-500 hover:text-gray-900 mb-6 transition-colors"
+                            className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors font-medium"
                         >
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             Back to Units
                         </Link>
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                            <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-12 text-center">
+                            <XCircle className="w-20 h-20 text-red-500 mx-auto mb-4" />
+                            <h2 className="text-2xl font-bold text-gray-900 mb-2">
                                 Unit Not Found
                             </h2>
                             <p className="text-gray-600 mb-6">
@@ -79,7 +84,7 @@ export default function UnitDetailPage() {
                             </p>
                             <Link
                                 href="/units"
-                                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                             >
                                 Return to Units
                             </Link>
@@ -92,53 +97,52 @@ export default function UnitDetailPage() {
 
     return (
         <ProtectedRoute>
-            <div className="min-h-screen bg-gray-50 pb-12">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pb-12">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Back Button */}
                     <Link
                         href="/units"
-                        className="inline-flex items-center text-gray-500 hover:text-gray-900 mb-6 transition-colors"
+                        className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors font-medium group"
                     >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
                         Back to Units
                     </Link>
 
                     {/* Header Card */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
-                        <div className="px-6 py-8">
+                    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden mb-8">
+                        <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6">
                             <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-6">
                                     {/* Icon */}
-                                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white">
-                                        <Building className="w-10 h-10" />
+                                    <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-white shadow-lg">
+                                        <Building className="w-12 h-12" />
                                     </div>
                                     {/* Name & Status */}
-                                    <div>
-                                        <h1 className="text-3xl font-bold text-gray-900 mb-1">
+                                    <div className="text-white">
+                                        <h1 className="text-4xl font-bold mb-2">
                                             {unit.name}
                                         </h1>
-                                        <div className="flex items-center gap-3">
-                                            <p className="text-gray-600 font-mono text-sm">
+                                        <div className="flex items-center gap-3 flex-wrap">
+                                            <p className="font-mono text-lg bg-white/20 backdrop-blur-sm px-3 py-1 rounded-lg">
                                                 {unit.code}
                                             </p>
-                                            <span className="text-gray-400">•</span>
-                                            <span className="text-sm text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full">
+                                            <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-lg font-medium">
                                                 {unit.type}
                                             </span>
                                             <span
-                                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${unit.isActive
-                                                    ? "bg-green-100 text-green-800"
-                                                    : "bg-gray-100 text-gray-800"
+                                                className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium ${unit.isActive
+                                                        ? "bg-green-500 text-white"
+                                                        : "bg-gray-500 text-white"
                                                     }`}
                                             >
                                                 {unit.isActive ? (
                                                     <>
-                                                        <CheckCircle className="w-3 h-3 mr-1" />
+                                                        <CheckCircle className="w-4 h-4 mr-1" />
                                                         Active
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <XCircle className="w-3 h-3 mr-1" />
+                                                        <XCircle className="w-4 h-4 mr-1" />
                                                         Inactive
                                                     </>
                                                 )}
@@ -147,205 +151,223 @@ export default function UnitDetailPage() {
                                     </div>
                                 </div>
 
-                                {/* Action Buttons */}
-                                <div className="flex gap-2">
-                                    <Link
-                                        href={`/units/${unit.id}/edit`}
-                                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                    >
-                                        <Edit className="w-4 h-4" />
-                                        Edit Unit
-                                    </Link>
-                                </div>
+                                {/* Action Button */}
+                                <Link
+                                    href={`/units/${unit.id}/edit`}
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-white text-blue-600 rounded-xl hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium"
+                                >
+                                    <Edit className="w-5 h-5" />
+                                    Edit Unit
+                                </Link>
                             </div>
                         </div>
+
+                        {/* Description */}
+                        {unit.description && (
+                            <div className="px-8 py-6 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200">
+                                <p className="text-gray-700 leading-relaxed">{unit.description}</p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all transform hover:-translate-y-1">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-gray-600">Members</p>
-                                    <p className="text-3xl font-bold text-gray-900 mt-1">
+                                    <p className="text-sm font-medium text-gray-600 mb-1">Total Members</p>
+                                    <p className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                                         {unit.memberCount || 0}
                                     </p>
                                 </div>
-                                <Users className="w-8 h-8 text-blue-600" />
+                                <div className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg">
+                                    <Users className="w-8 h-8 text-white" />
+                                </div>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all transform hover:-translate-y-1">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-gray-600">Events</p>
-                                    <p className="text-3xl font-bold text-gray-900 mt-1">
+                                    <p className="text-sm font-medium text-gray-600 mb-1">Total Events</p>
+                                    <p className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                                         {unit.eventCount || 0}
                                     </p>
                                 </div>
-                                <Calendar className="w-8 h-8 text-green-600" />
+                                <div className="p-4 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg">
+                                    <Calendar className="w-8 h-8 text-white" />
+                                </div>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all transform hover:-translate-y-1">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-gray-600">Child Units</p>
-                                    <p className="text-3xl font-bold text-gray-900 mt-1">
+                                    <p className="text-sm font-medium text-gray-600 mb-1">Child Units</p>
+                                    <p className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                                         {unit.childUnitCount || 0}
                                     </p>
                                 </div>
-                                <Network className="w-8 h-8 text-purple-600" />
+                                <div className="p-4 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg">
+                                    <Network className="w-8 h-8 text-white" />
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Details Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Basic Information */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                <FileText className="w-5 h-5 text-blue-600" />
+                        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow">
+                            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                                <div className="p-2 bg-blue-100 rounded-lg">
+                                    <FileText className="w-6 h-6 text-blue-600" />
+                                </div>
                                 Basic Information
                             </h2>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            <div className="space-y-5">
+                                <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">
                                         Unit Name
                                     </label>
-                                    <p className="text-gray-900 mt-1">{unit.name}</p>
+                                    <p className="text-gray-900 font-medium text-lg">{unit.name}</p>
                                 </div>
-                                <div>
-                                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">
                                         Unit Code
                                     </label>
-                                    <p className="text-gray-900 mt-1 font-mono">{unit.code}</p>
+                                    <p className="text-gray-900 font-mono font-medium text-lg">{unit.code}</p>
                                 </div>
-                                <div>
-                                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">
                                         Unit Type
                                     </label>
-                                    <p className="text-gray-900 mt-1">{unit.type}</p>
+                                    <p className="text-gray-900 font-medium text-lg">{unit.type}</p>
                                 </div>
-                                {unit.description && (
-                                    <div>
-                                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                                            Description
-                                        </label>
-                                        <p className="text-gray-900 mt-1">{unit.description}</p>
-                                    </div>
-                                )}
                             </div>
                         </div>
 
                         {/* Hierarchy Information */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                <Network className="w-5 h-5 text-blue-600" />
+                        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow">
+                            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                                <div className="p-2 bg-purple-100 rounded-lg">
+                                    <Network className="w-6 h-6 text-purple-600" />
+                                </div>
                                 Hierarchy
                             </h2>
-                            <div className="space-y-4">
-                                {unit.parentUnit ? (
-                                    <div>
-                                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                                            Parent Unit
-                                        </label>
+                            <div className="space-y-5">
+                                <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">
+                                        Parent Unit
+                                    </label>
+                                    {unit.parentUnit ? (
                                         <Link
                                             href={`/units/${unit.parentUnit.id}`}
-                                            className="text-blue-600 hover:text-blue-700 mt-1 block"
+                                            className="text-blue-600 hover:text-blue-700 font-medium text-lg flex items-center gap-2 group"
                                         >
                                             {unit.parentUnit.name}
+                                            <ArrowLeft className="w-4 h-4 rotate-180 group-hover:translate-x-1 transition-transform" />
                                         </Link>
-                                    </div>
-                                ) : (
-                                    <div>
-                                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                                            Parent Unit
-                                        </label>
-                                        <p className="text-gray-500 italic mt-1">No parent unit</p>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <p className="text-gray-500 italic">No parent unit</p>
+                                    )}
+                                </div>
 
                                 {unit.childUnits && unit.childUnits.length > 0 ? (
-                                    <div>
-                                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
+                                    <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-3">
                                             Child Units ({unit.childUnits.length})
                                         </label>
-                                        <div className="space-y-2">
+                                        <div className="space-y-2 max-h-48 overflow-y-auto">
                                             {unit.childUnits.map((child) => (
                                                 <Link
                                                     key={child.id}
                                                     href={`/units/${child.id}`}
-                                                    className="block text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
+                                                    className="block text-blue-600 hover:text-blue-700 hover:bg-white px-4 py-3 rounded-lg transition-all font-medium group"
                                                 >
-                                                    {child.name}
+                                                    <span className="flex items-center justify-between">
+                                                        {child.name}
+                                                        <ArrowLeft className="w-4 h-4 rotate-180 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                                                    </span>
                                                 </Link>
                                             ))}
                                         </div>
                                     </div>
                                 ) : (
-                                    <div>
-                                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                    <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">
                                             Child Units
                                         </label>
-                                        <p className="text-gray-500 italic mt-1">No child units</p>
+                                        <p className="text-gray-500 italic">No child units</p>
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         {/* Leadership Information */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                <Users className="w-5 h-5 text-blue-600" />
+                        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow">
+                            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                                <div className="p-2 bg-green-100 rounded-lg">
+                                    <Users className="w-6 h-6 text-green-600" />
+                                </div>
                                 Leadership
                             </h2>
-                            <div className="space-y-4">
+                            <div className="space-y-5">
                                 {unit.leader ? (
                                     <>
-                                        <div>
-                                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                        <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">
                                                 Unit Leader
                                             </label>
-                                            <p className="text-gray-900 mt-1">{unit.leader.name}</p>
+                                            <p className="text-gray-900 font-medium text-lg">{unit.leader.name}</p>
                                         </div>
                                         {unit.leader.email && (
-                                            <div>
-                                                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                            <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">
                                                     Email
                                                 </label>
-                                                <p className="text-gray-900 mt-1">{unit.leader.email}</p>
+                                                <a
+                                                    href={`mailto:${unit.leader.email}`}
+                                                    className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2"
+                                                >
+                                                    <Mail className="w-4 h-4" />
+                                                    {unit.leader.email}
+                                                </a>
                                             </div>
                                         )}
                                     </>
                                 ) : (
-                                    <p className="text-gray-500 italic">No leader assigned</p>
+                                    <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                                        <p className="text-gray-500 italic">No leader assigned</p>
+                                    </div>
                                 )}
                             </div>
                         </div>
 
                         {/* Statistics */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                <TrendingUp className="w-5 h-5 text-blue-600" />
+                        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow">
+                            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                                <div className="p-2 bg-orange-100 rounded-lg">
+                                    <TrendingUp className="w-6 h-6 text-orange-600" />
+                                </div>
                                 Statistics
                             </h2>
                             <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-600">Total Members</span>
-                                    <span className="text-lg font-semibold text-gray-900">
+                                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                                    <span className="text-gray-700 font-medium">Total Members</span>
+                                    <span className="text-2xl font-bold text-blue-600">
                                         {unit.memberCount || 0}
                                     </span>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-600">Total Events</span>
-                                    <span className="text-lg font-semibold text-gray-900">
+                                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                                    <span className="text-gray-700 font-medium">Total Events</span>
+                                    <span className="text-2xl font-bold text-green-600">
                                         {unit.eventCount || 0}
                                     </span>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-600">Child Units</span>
-                                    <span className="text-lg font-semibold text-gray-900">
+                                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                                    <span className="text-gray-700 font-medium">Child Units</span>
+                                    <span className="text-2xl font-bold text-purple-600">
                                         {unit.childUnitCount || 0}
                                     </span>
                                 </div>
@@ -354,16 +376,16 @@ export default function UnitDetailPage() {
                     </div>
 
                     {/* Metadata */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mt-6 hover:shadow-xl transition-shadow">
+                        <h2 className="text-xl font-bold text-gray-900 mb-6">
                             System Information
                         </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">
                                     Created
                                 </label>
-                                <p className="text-gray-900 mt-1">
+                                <p className="text-gray-900 font-medium">
                                     {new Date(unit.createdAt).toLocaleDateString("en-US", {
                                         year: "numeric",
                                         month: "long",
@@ -371,11 +393,11 @@ export default function UnitDetailPage() {
                                     })}
                                 </p>
                             </div>
-                            <div>
-                                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">
                                     Last Updated
                                 </label>
-                                <p className="text-gray-900 mt-1">
+                                <p className="text-gray-900 font-medium">
                                     {new Date(unit.updatedAt).toLocaleDateString("en-US", {
                                         year: "numeric",
                                         month: "long",
@@ -383,11 +405,11 @@ export default function UnitDetailPage() {
                                     })}
                                 </p>
                             </div>
-                            <div>
-                                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">
                                     Unit ID
                                 </label>
-                                <p className="text-gray-900 mt-1 font-mono text-xs">
+                                <p className="text-gray-900 font-mono text-sm break-all">
                                     {unit.id}
                                 </p>
                             </div>

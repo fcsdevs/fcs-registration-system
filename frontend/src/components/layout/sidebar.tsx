@@ -67,10 +67,10 @@ export function Sidebar() {
       items: [
         { href: "/units", label: "Units", icon: Building2 },
         { href: "/centers", label: "Centers", icon: MapPin },
-        { href: "/admin/users", label: "Manage Admins", icon: Shield },
-        { href: "/admin/registrars", label: "Manage Registrars", icon: UsersRound },
         { href: "/groups", label: "Groups", icon: UsersRound },
         { href: "/attendance", label: "Attendance", icon: CheckSquare },
+        { href: "/admin/users", label: "Manage Admins", icon: Shield },
+        { href: "/admin/registrars", label: "Manage Registrars", icon: UsersRound },
       ],
     },
     {

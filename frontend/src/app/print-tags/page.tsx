@@ -6,7 +6,7 @@ import { registrationsApi } from "@/lib/api/registrations";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Printer, Download, Loader2, RefreshCcw, FileText } from "lucide-react";
+import { Search, Printer, Download, Loader2, RefreshCcw, FileText, User, Calendar, MapPin, Tag, ArrowRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Table,
@@ -43,14 +43,12 @@ export default function PrintTagsPage() {
             const params: any = {
                 page: pagination.page,
                 limit: pagination.limit,
-                search: search,
+                search: search.toUpperCase(), // Normalize search to uppercase for FCS Codes
                 include: 'member,event,participation'
             };
 
             if (activeTab === "my-registrations") {
                 params.registeredBy = user.id;
-            } else if (activeTab === "center-registrations") {
-                // Rely on backend scoping
             }
 
             const response = await registrationsApi.list(params);
@@ -92,125 +90,153 @@ export default function PrintTagsPage() {
 
     const handlePrint = async (registration: any) => {
         try {
-            toast.loading("Generating Tag...", { id: "print-toast" });
+            toast.loading("Preparing Badge...", { id: "print-toast" });
             const blob = await registrationsApi.downloadTag(registration.id);
             const url = window.URL.createObjectURL(blob);
-            // Open in new tab which usually triggers browser PDF viewer with print option
+
             const win = window.open(url, '_blank');
             if (win) {
                 win.focus();
             } else {
-                // Fallback for popup blockers
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `Tag-${registration.member?.firstName}.pdf`;
+                a.download = `FCS-Badge-${registration.member?.firstName}.pdf`;
                 a.click();
             }
-            toast.success("Tag Generated!", { id: "print-toast" });
+            toast.success("Badge Ready!", { id: "print-toast" });
         } catch (error) {
             console.error(error);
-            toast.error("Failed to generate tag", { id: "print-toast" });
+            toast.error("Print Generation Failed", { id: "print-toast" });
         }
     };
 
-    const handleExport = async () => {
-        toast("Exporting data...", { icon: "📥" });
-        // Implement export logic here if API supports it
-    };
-
     return (
-        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Print Tags</h1>
+        <div className="min-h-screen bg-[#F8FAFC] pb-24">
+            {/* Glossy Header Area */}
+            <div className="bg-white border-b border-[#E2E8F0] sticky top-0 z-30 backdrop-blur-md bg-white/80">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div className="animate-fade-in">
+                            <div className="flex items-center gap-2 text-[#060CCD] mb-1">
+                                <Tag size={14} className="animate-pulse" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Credential Management</span>
+                            </div>
+                            <h1 className="text-3xl font-black text-[#0F172A] leading-none">Print Tags & Badges</h1>
+                            <p className="text-sm text-[#64748B] mt-2 font-medium">Verify credentials and generate identification for attendees.</p>
+                        </div>
 
-            <Card className="p-4 sm:p-6">
-                <div className="flex flex-col gap-4 mb-4 sm:mb-6">
-                    <div className="relative flex-1 w-full">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                        <Input
-                            placeholder="Search by FCS Code (e.g. FCS-123...)"
-                            className="pl-9"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        <Button variant="outline" onClick={() => fetchRegistrations()} className="flex-1 sm:flex-none">
-                            <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                        </Button>
-                        <Button onClick={handleExport} className="flex-1 sm:flex-none">
-                            <Download className="mr-2 h-4 w-4" /> Export Bulk
-                        </Button>
+                        <div className="flex items-center gap-3 animate-fade-in animation-delay-200">
+                            <Button onClick={fetchRegistrations} variant="outline" className="h-12 w-12 rounded-2xl border-[#E2E8F0] p-0 group">
+                                <RefreshCcw className={`h-5 w-5 text-[#475569] group-hover:text-[#060CCD] transition-colors ${loading ? 'animate-spin' : ''}`} />
+                            </Button>
+                            <Button className="h-12 px-8 rounded-2xl bg-[#0F172A] hover:bg-black text-white font-black text-sm uppercase tracking-wider shadow-xl shadow-slate-200 gap-2">
+                                <Download size={18} />
+                                Multi Export
+                            </Button>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <Tabs defaultValue="center-registrations" onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 max-w-full sm:max-w-[400px] mb-4">
-                        <TabsTrigger value="center-registrations">All Registrations</TabsTrigger>
-                        <TabsTrigger value="my-registrations">Registered by Me</TabsTrigger>
-                    </TabsList>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+                {/* Search Bar - Modernized */}
+                <div className="relative max-w-2xl animate-slide-up">
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8]" />
+                    <Input
+                        placeholder="Scan or Search by FCS Code (e.g. FCS/24/1001)..."
+                        className="h-16 pl-14 pr-6 bg-white border-[#E2E8F0] rounded-[24px] shadow-sm text-lg font-medium placeholder:text-[#94A3B8] focus:ring-[#060CCD] transition-all"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                    {search && (
+                        <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                            <Badge className="bg-[#E8F5F1] text-[#10B981] border-none font-black text-[10px] py-1 px-3 rounded-full">READY</Badge>
+                        </div>
+                    )}
+                </div>
 
-                    <div className="rounded-md border overflow-hidden">
-                        <div className="overflow-x-auto">
+                <Tabs defaultValue="center-registrations" onValueChange={setActiveTab} className="w-full animate-slide-up animation-delay-200">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-8">
+                        <TabsList className="bg-[#F1F5F9] p-1.5 rounded-2xl h-auto">
+                            <TabsTrigger value="center-registrations" className="rounded-xl px-6 py-3 font-bold text-sm data-[state=active]:bg-white data-[state=active]:text-[#060CCD] data-[state=active]:shadow-sm">Center Registry</TabsTrigger>
+                            <TabsTrigger value="my-registrations" className="rounded-xl px-6 py-3 font-bold text-sm data-[state=active]:bg-white data-[state=active]:text-[#060CCD] data-[state=active]:shadow-sm">Handled by Me</TabsTrigger>
+                        </TabsList>
+
+                        <div className="text-xs font-black text-[#94A3B8] uppercase tracking-widest bg-white border border-[#F1F5F9] px-4 py-2 rounded-full shadow-sm">
+                            {pagination.total} Records Found
+                        </div>
+                    </div>
+
+                    <Card className="border-[#E2E8F0] shadow-2xl rounded-[32px] overflow-hidden bg-white">
+                        <div className="hidden md:block overflow-x-auto">
                             <Table>
-                                <TableHeader className="bg-gray-50">
-                                    <TableRow>
-                                        <TableHead className="min-w-[150px]">Member</TableHead>
-                                        <TableHead className="min-w-[100px]">FCS Code</TableHead>
-                                        <TableHead className="min-w-[120px]">Event</TableHead>
-                                        <TableHead className="min-w-[80px]">Status</TableHead>
-                                        <TableHead className="text-right min-w-[120px]">Actions</TableHead>
+                                <TableHeader className="bg-[#F8FAFC]">
+                                    <TableRow className="border-none">
+                                        <TableHead className="py-6 px-8 font-black text-[#1E293B] uppercase text-[11px] tracking-widest">Registrant Detail</TableHead>
+                                        <TableHead className="font-black text-[#1E293B] uppercase text-[11px] tracking-widest">FCS Identity</TableHead>
+                                        <TableHead className="font-black text-[#1E293B] uppercase text-[11px] tracking-widest">Attendance Mode</TableHead>
+                                        <TableHead className="font-black text-[#1E293B] uppercase text-[11px] tracking-widest">System Status</TableHead>
+                                        <TableHead className="text-right px-8 font-black text-[#1E293B] uppercase text-[11px] tracking-widest">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {loading && registrations.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={5} className="h-24 text-center">
-                                                <Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-400" />
-                                            </TableCell>
-                                        </TableRow>
+                                        Array.from({ length: 5 }).map((_, i) => (
+                                            <TableRow key={i} className="border-none">
+                                                <TableCell className="px-8 py-6"><div className="h-10 w-48 bg-[#F1F5F9] rounded-2xl animate-pulse" /></TableCell>
+                                                <TableCell><div className="h-6 w-24 bg-[#F1F5F9] rounded-xl animate-pulse" /></TableCell>
+                                                <TableCell><div className="h-6 w-32 bg-[#F1F5F9] rounded-xl animate-pulse" /></TableCell>
+                                                <TableCell><div className="h-8 w-24 bg-[#F1F5F9] rounded-full animate-pulse" /></TableCell>
+                                                <TableCell className="px-8"><div className="h-10 w-32 bg-[#F1F5F9] rounded-xl animate-pulse ml-auto" /></TableCell>
+                                            </TableRow>
+                                        ))
                                     ) : registrations.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={5} className="h-32 text-center">
-                                                <div className="flex flex-col items-center justify-center text-gray-500">
-                                                    <Printer className="h-8 w-8 mb-2 opacity-50" />
-                                                    <p>No registrations found matching your criteria.</p>
-                                                </div>
+                                            <TableCell colSpan={5} className="py-32 text-center text-slate-400">
+                                                <Printer size={48} className="mx-auto mb-4 opacity-10" />
+                                                <p className="font-bold uppercase text-xs tracking-widest">No matching records</p>
                                             </TableCell>
                                         </TableRow>
                                     ) : (
                                         registrations.map((reg) => (
-                                            <TableRow key={reg.id}>
-                                                <TableCell>
-                                                    <div className="font-medium">
-                                                        {reg.member?.firstName} {reg.member?.lastName}
+                                            <TableRow key={reg.id} className="hover:bg-[#F8FAFC]/50 transition-colors border-none group">
+                                                <TableCell className="px-8 py-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-[#060CCD] to-[#3B82F6] flex items-center justify-center font-black text-white shadow-lg">
+                                                            {reg.member?.firstName?.[0]}{reg.member?.lastName?.[0]}
+                                                        </div>
+                                                        <div>
+                                                            <div className="font-black text-[#0F172A] group-hover:text-[#060CCD] transition-colors">{reg.member?.firstName} {reg.member?.lastName}</div>
+                                                            <div className="text-xs font-medium text-[#64748B]">{reg.member?.email}</div>
+                                                        </div>
                                                     </div>
-                                                    <div className="text-xs text-gray-500">{reg.member?.email}</div>
-                                                    <div className="text-xs text-gray-400">{reg.member?.phoneNumber}</div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Badge variant="outline" className="font-mono text-xs">
-                                                        {reg.member?.fcsCode || 'N/A'}
+                                                    <Badge variant="outline" className="font-mono font-black text-[11px] px-3 py-1.5 border-[#E2E8F0] bg-[#F1F5F9] text-[#475569] rounded-xl">
+                                                        {reg.member?.fcsCode || 'PENDING'}
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div className="text-sm">{reg.event?.title || 'Unknown Event'}</div>
-                                                    <div className="text-xs text-gray-500">
-                                                        {reg.registrationDate ? format(new Date(reg.registrationDate), 'MMM d, yyyy') : '-'}
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="text-xs font-bold text-[#475569] flex items-center gap-1.5">
+                                                            <MapPin size={12} className="text-[#060CCD]" />
+                                                            {reg.participation?.participationMode || 'ONSITE'}
+                                                        </div>
+                                                        <div className="text-[10px] font-medium text-[#94A3B8]">{reg.event?.title}</div>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Badge className={
-                                                        reg.status === 'CONFIRMED' ? 'bg-green-100 text-green-800 hover:bg-green-100' :
-                                                            reg.status === 'CHECKED_IN' ? 'bg-purple-100 text-purple-800 hover:bg-purple-100' :
-                                                                'bg-gray-100 text-gray-800 hover:bg-gray-100'
-                                                    }>
+                                                    <Badge className={`rounded-full px-4 py-1 text-[10px] font-black border-none uppercase tracking-widest ${reg.status === 'CONFIRMED' ? 'bg-[#E8F5F1] text-[#10B981]' :
+                                                            reg.status === 'CHECKED_IN' ? 'bg-[#F5F3FF] text-[#8B5CF6]' :
+                                                                'bg-[#F1F5F9] text-[#64748B]'
+                                                        }`}>
                                                         {reg.status}
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell className="text-right">
-                                                    <Button size="sm" variant="secondary" onClick={() => handlePrint(reg)}>
-                                                        <Printer className="h-4 w-4 mr-2" />
-                                                        Print Tag
+                                                <TableCell className="text-right px-8">
+                                                    <Button onClick={() => handlePrint(reg)} className="rounded-2xl bg-[#F1F5F9] text-[#0F172A] hover:bg-[#060CCD] hover:text-white transition-all font-black text-xs px-6 py-5 gap-2 border-none shadow-none">
+                                                        <Printer size={16} />
+                                                        GENERATE BADGE
                                                     </Button>
                                                 </TableCell>
                                             </TableRow>
@@ -220,33 +246,72 @@ export default function PrintTagsPage() {
                             </Table>
                         </div>
 
-                        {/* Simple Pagination */}
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 py-4 px-2">
-                            <div className="text-xs text-gray-500">
-                                Page {pagination.page} of {pagination.pages || 1}
+                        {/* Mobile View - Card based list */}
+                        <div className="md:hidden space-y-px bg-[#F1F5F9]">
+                            {registrations.length === 0 && !loading ? (
+                                <div className="bg-white p-24 text-center text-slate-400">
+                                    <Printer size={40} className="mx-auto mb-4 opacity-10" />
+                                    <p className="font-bold uppercase text-[10px] tracking-widest">No matching records</p>
+                                </div>
+                            ) : registrations.map((reg) => (
+                                <div key={reg.id} className="bg-white p-6 active:bg-[#F8FAFC] transition-colors">
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#060CCD] to-[#3B82F6] flex items-center justify-center font-black text-white text-xs">
+                                                {reg.member?.firstName?.[0]}{reg.member?.lastName?.[0]}
+                                            </div>
+                                            <div>
+                                                <h4 className="font-black text-[#0F172A] uppercase text-xs">{reg.member?.firstName} {reg.member?.lastName}</h4>
+                                                <p className="text-[10px] font-mono text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded mt-1 w-fit">{reg.member?.fcsCode}</p>
+                                            </div>
+                                        </div>
+                                        <Badge className={`rounded-full px-3 py-1 text-[9px] font-black uppercase border-none ${reg.status === 'CONFIRMED' ? 'bg-[#E8F5F1] text-[#10B981]' :
+                                                reg.status === 'CHECKED_IN' ? 'bg-[#F5F3FF] text-[#8B5CF6]' :
+                                                    'bg-[#F1F5F9] text-[#64748B]'
+                                            }`}>
+                                            {reg.status}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex items-center justify-between pt-4 border-t border-[#F8FAFC]">
+                                        <div className="text-[10px] font-bold text-[#64748B] uppercase flex items-center gap-1">
+                                            <MapPin size={10} />
+                                            {reg.participation?.participationMode || 'ONSITE'}
+                                        </div>
+                                        <Button onClick={() => handlePrint(reg)} size="sm" className="bg-[#060CCD] text-white rounded-xl font-bold text-[10px] px-4">
+                                            PRINT BADGE
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Pagination - Modernized */}
+                        <div className="p-8 border-t border-[#F1F5F9] flex flex-col sm:flex-row items-center justify-between gap-6 bg-[#F8FAFC]/50">
+                            <div className="text-xs font-black text-[#94A3B8] uppercase tracking-widest">
+                                Showing Page <span className="text-[#060CCD]">{pagination.page}</span> of {pagination.pages || 1}
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex items-center gap-3">
                                 <Button
                                     variant="outline"
-                                    size="sm"
+                                    className="h-12 px-6 rounded-2xl border-[#E2E8F0] bg-white font-bold text-xs"
                                     onClick={() => setPagination(p => ({ ...p, page: p.page - 1 }))}
                                     disabled={pagination.page <= 1}
                                 >
-                                    Previous
+                                    BACK
                                 </Button>
                                 <Button
                                     variant="outline"
-                                    size="sm"
+                                    className="h-12 px-6 rounded-2xl border-[#E2E8F0] bg-white font-bold text-xs"
                                     onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))}
                                     disabled={pagination.page >= pagination.pages}
                                 >
-                                    Next
+                                    NEXT
                                 </Button>
                             </div>
                         </div>
-                    </div>
+                    </Card>
                 </Tabs>
-            </Card>
+            </div>
         </div>
     );
 }

@@ -2,15 +2,33 @@
 
 import { useState, useEffect } from "react";
 import { ProtectedRoute } from "@/components/common/route-guards";
-import { Header } from "@/components/layout/header";
 import { api } from "@/lib/api/client";
-import { ClipboardList, Search, Filter, Users, Calendar, CheckCircle, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
-import Link from "next/link";
+import {
+  ClipboardList,
+  Search,
+  Filter,
+  CheckCircle,
+  XCircle,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  User,
+  Clock,
+  Sparkles,
+  LayoutGrid,
+  Users,
+  ArrowUpDown
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function RegistrationPage() {
   const [registrations, setRegistrations] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEvent, setSelectedEvent] = useState<string>("all");
   const [page, setPage] = useState(1);
@@ -21,6 +39,7 @@ export default function RegistrationPage() {
     total: 0,
     confirmed: 0,
     pending: 0,
+    checkedIn: 0
   });
 
   useEffect(() => {
@@ -44,30 +63,38 @@ export default function RegistrationPage() {
 
   const fetchStats = async () => {
     try {
-      // Fetch all registrations to get accurate stats (without pagination)
+      setStatsLoading(true);
       const params = new URLSearchParams();
       if (selectedEvent !== "all") {
         params.append("eventId", selectedEvent);
       }
 
-      // Fetch without pagination to get all data for stats
-      const response = await api.get<any>(`/registrations?${params.toString()}`);
+      // Request a large limit to get counts for all (not just first page)
+      // Ideally backend would provide a dedicated stats endpoint for all events
+      params.append("limit", "1000");
 
+      const response = await api.get<any>(`/registrations?${params.toString()}`);
       let allRegistrations = [];
+
       if (response.data && Array.isArray(response.data)) {
         allRegistrations = response.data;
       } else if (Array.isArray(response)) {
         allRegistrations = response;
       }
 
-      // Calculate stats from all registrations
+      // If paginated, use the pagination total for the overall count
+      const totalCount = response.pagination?.total || allRegistrations.length;
+
       setStats({
-        total: allRegistrations.length,
+        total: totalCount,
         confirmed: allRegistrations.filter((r: any) => r.status?.toUpperCase() === "CONFIRMED").length,
         pending: allRegistrations.filter((r: any) => r.status?.toUpperCase() === "PENDING").length,
+        checkedIn: allRegistrations.filter((r: any) => r.status?.toUpperCase() === "CHECKED_IN").length,
       });
     } catch (error) {
       console.error("Failed to fetch stats:", error);
+    } finally {
+      setStatsLoading(false);
     }
   };
 
@@ -82,9 +109,12 @@ export default function RegistrationPage() {
         params.append("eventId", selectedEvent);
       }
 
+      if (searchQuery) {
+        params.append("search", searchQuery);
+      }
+
       const response = await api.get<any>(`/registrations?${params.toString()}`);
 
-      // Handle both paginated and non-paginated responses
       if (response.data) {
         setRegistrations(Array.isArray(response.data) ? response.data : []);
         if (response.pagination) {
@@ -104,213 +134,313 @@ export default function RegistrationPage() {
     }
   };
 
-  const filteredRegistrations = Array.isArray(registrations) ? registrations.filter((reg) =>
-    reg.member?.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    reg.member?.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    reg.event?.title?.toLowerCase().includes(searchQuery.toLowerCase())
-  ) : [];
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1);
+    fetchRegistrations();
+  };
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Event Registrations</h1>
-            <p className="text-gray-600 mt-1">Manage event registrations and attendance</p>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Registrations</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">{stats.total}</p>
-                </div>
-                <ClipboardList className="w-8 h-8 text-blue-600" />
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Confirmed</p>
-                  <p className="text-3xl font-bold text-green-600 mt-1">{stats.confirmed}</p>
-                </div>
-                <CheckCircle className="w-8 h-8 text-green-600" />
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Pending</p>
-                  <p className="text-3xl font-bold text-yellow-600 mt-1">{stats.pending}</p>
-                </div>
-                <XCircle className="w-8 h-8 text-yellow-600" />
-              </div>
-            </div>
-          </div>
-
-          {/* Search & Filter */}
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search by member name or event..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <select
-                  value={selectedEvent}
-                  onChange={(e) => {
-                    setSelectedEvent(e.target.value);
-                    setPage(1); // Reset to first page
-                  }}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
-                >
-                  <option value="all">All Events</option>
-                  {events.map((event) => (
-                    <option key={event.id} value={event.id}>
-                      {event.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Registrations List */}
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-          ) : filteredRegistrations.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-12 text-center">
-              <ClipboardList className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No registrations found</h3>
-              <p className="text-gray-600">
-                {selectedEvent !== "all" ? "No registrations for this event" : "Registrations will appear here"}
+          {/* Header */}
+          <div className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                Event Registrations
+              </h1>
+              <p className="text-gray-500 mt-2 flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Monitor and manage participant registrations across all events
               </p>
             </div>
-          ) : (
-            <>
-              <div className="bg-white rounded-lg shadow overflow-hidden overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Member
+            <div className="flex items-center gap-3">
+              <Badge variant="outline" className="px-4 py-1.5 border-blue-200 bg-blue-50 text-blue-700 text-sm font-medium">
+                <Clock className="w-4 h-4 mr-2" />
+                Live Updates
+              </Badge>
+            </div>
+          </div>
+
+          {/* Stats Dashboard */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 bg-white overflow-hidden group">
+              <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Registrations</p>
+                    <h3 className="text-3xl font-bold text-gray-900 mt-2">
+                      {statsLoading ? "..." : stats.total.toLocaleString()}
+                    </h3>
+                  </div>
+                  <div className="p-4 bg-blue-50 rounded-2xl group-hover:bg-blue-100 transition-colors">
+                    <ClipboardList className="w-8 h-8 text-blue-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 bg-white overflow-hidden group">
+              <div className="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Confirmed</p>
+                    <h3 className="text-3xl font-bold text-green-600 mt-2">
+                      {statsLoading ? "..." : stats.confirmed.toLocaleString()}
+                    </h3>
+                  </div>
+                  <div className="p-4 bg-green-50 rounded-2xl group-hover:bg-green-100 transition-colors">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 bg-white overflow-hidden group">
+              <div className="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Pending</p>
+                    <h3 className="text-3xl font-bold text-amber-600 mt-2">
+                      {statsLoading ? "..." : stats.pending.toLocaleString()}
+                    </h3>
+                  </div>
+                  <div className="p-4 bg-amber-50 rounded-2xl group-hover:bg-amber-100 transition-colors">
+                    <Clock className="w-8 h-8 text-amber-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 bg-white overflow-hidden group">
+              <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Checked In</p>
+                    <h3 className="text-3xl font-bold text-purple-600 mt-2">
+                      {statsLoading ? "..." : stats.checkedIn.toLocaleString()}
+                    </h3>
+                  </div>
+                  <div className="p-4 bg-purple-50 rounded-2xl group-hover:bg-purple-100 transition-colors">
+                    <LayoutGrid className="w-8 h-8 text-purple-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Search & Filter Toolbar */}
+          <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm mb-8">
+            <CardContent className="p-6">
+              <form onSubmit={handleSearch} className="flex flex-col lg:flex-row gap-4 items-end">
+                <div className="flex-1 w-full space-y-2">
+                  <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                    <Search className="w-4 h-4 text-blue-600" />
+                    Search Registrants
+                  </label>
+                  <div className="relative">
+                    <Input
+                      placeholder="Search by name, email, phone or FCS code..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="h-12 pl-4 pr-10 border-gray-200 focus:ring-blue-500 focus:border-blue-500 rounded-xl"
+                    />
+                    <Button
+                      type="submit"
+                      size="sm"
+                      variant="ghost"
+                      className="absolute right-1 top-1 h-10 w-10 p-0 hover:bg-blue-50 text-blue-600 rounded-lg"
+                    >
+                      <Search className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="w-full lg:w-72 space-y-2">
+                  <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-blue-600" />
+                    Filter by Event
+                  </label>
+                  <select
+                    value={selectedEvent}
+                    onChange={(e) => {
+                      setSelectedEvent(e.target.value);
+                      setPage(1);
+                    }}
+                    className="w-full h-12 px-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-700 shadow-sm appearance-none cursor-pointer"
+                  >
+                    <option value="all">All Events</option>
+                    {events.map((event) => (
+                      <option key={event.id} value={event.id}>
+                        {event.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Button
+                  onClick={fetchRegistrations}
+                  variant="outline"
+                  className="h-12 px-6 border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl font-semibold"
+                >
+                  Apply Filters
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Results Table */}
+          <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-24 text-gray-400">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mb-4"></div>
+                <p className="text-lg font-medium animate-pulse">Loading registrations...</p>
+              </div>
+            ) : registrations.length === 0 ? (
+              <div className="py-24 text-center">
+                <div className="inline-flex p-6 bg-gray-50 rounded-full mb-6">
+                  <ClipboardList className="w-16 h-16 text-gray-300" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">No registrations found</h3>
+                <p className="text-gray-500 max-w-sm mx-auto">
+                  {searchQuery || selectedEvent !== 'all'
+                    ? "No registrations match your current search or filter criteria. Try adjusting them."
+                    : "Registrations will appear here once participants start registering for events."}
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+                      <th className="px-8 py-5 text-sm font-bold text-gray-600 uppercase tracking-wider">
+                        <div className="flex items-center gap-2">
+                          Member Details
+                          <ArrowUpDown className="w-3 h-3 text-gray-400" />
+                        </div>
                       </th>
-                      <th className="px-4 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Event
+                      <th className="px-8 py-5 text-sm font-bold text-gray-600 uppercase tracking-wider">
+                        Event Information
                       </th>
-                      <th className="px-4 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
+                      <th className="px-8 py-5 text-sm font-bold text-gray-600 uppercase tracking-wider">
+                        Registration Status
                       </th>
-                      <th className="hidden sm:table-cell px-4 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date
+                      <th className="px-8 py-5 text-sm font-bold text-gray-600 uppercase tracking-wider">
+                        Registration Date
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredRegistrations.map((reg) => (
-                      <tr key={reg.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-4 sm:px-6">
-                          <div className="text-sm font-medium text-gray-900">
-                            {reg.member?.firstName} {reg.member?.lastName}
+                  <tbody className="divide-y divide-gray-50">
+                    {registrations.map((reg) => (
+                      <tr key={reg.id} className="hover:bg-blue-50/30 transition-colors group">
+                        <td className="px-8 py-6">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-100">
+                              {reg.member?.firstName?.[0]}{reg.member?.lastName?.[0]}
+                            </div>
+                            <div>
+                              <div className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                {reg.member?.firstName} {reg.member?.lastName}
+                              </div>
+                              <div className="text-sm font-mono text-gray-500 mt-1 flex items-center gap-1">
+                                <LayoutGrid className="w-3 h-3" />
+                                {reg.member?.fcsCode}
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-sm text-gray-500">{reg.member?.fcsCode}</div>
                         </td>
-                        <td className="px-4 py-4 sm:px-6">
-                          <div className="text-sm text-gray-900 line-clamp-2">{reg.event?.title}</div>
+                        <td className="px-8 py-6">
+                          <div className="max-w-xs">
+                            <div className="text-sm font-bold text-gray-800 line-clamp-2">{reg.event?.title}</div>
+                            <div className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                              <Sparkles className="w-3 h-3 text-amber-500" />
+                              {reg.event?.participationMode || 'Standard'}
+                            </div>
+                          </div>
                         </td>
-                        <td className="px-4 py-4 sm:px-6 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full uppercase ${reg.status?.toLowerCase() === "confirmed" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+                        <td className="px-8 py-6">
+                          <Badge className={`px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm ${reg.status?.toUpperCase() === "CONFIRMED"
+                              ? "bg-green-100 text-green-700 border-green-200"
+                              : reg.status?.toUpperCase() === "CHECKED_IN"
+                                ? "bg-purple-100 text-purple-700 border-purple-200"
+                                : "bg-amber-100 text-amber-700 border-amber-200"
                             }`}>
                             {reg.status}
-                          </span>
+                          </Badge>
                         </td>
-                        <td className="hidden sm:table-cell px-4 py-4 sm:px-6 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(reg.createdAt).toLocaleDateString()}
+                        <td className="px-8 py-6">
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Clock className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm font-medium">
+                              {new Date(reg.createdAt).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric"
+                              })}
+                            </span>
+                          </div>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+            )}
 
-              {/* Pagination */}
-              <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4 rounded-lg shadow">
-                <div className="flex-1 flex justify-between sm:hidden">
-                  <button
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={page >= totalPages}
-                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
+            {/* Pagination */}
+            {!loading && registrations.length > 0 && (
+              <div className="px-8 py-6 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-100">
+                <div className="text-sm font-medium text-gray-500">
+                  Showing <span className="text-gray-900">{(page - 1) * limit + 1}</span> to{" "}
+                  <span className="text-gray-900">{Math.min(page * limit, total)}</span> of{" "}
+                  <span className="text-gray-900 font-bold">{total}</span> registrations
                 </div>
-                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm text-gray-700">
-                      Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
-                      <span className="font-medium">{Math.min(page * limit, total)}</span> of{" "}
-                      <span className="font-medium">{total}</span> results
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 mr-4">
+                    <p className="text-xs font-bold text-gray-500 uppercase">Rows:</p>
                     <select
                       value={limit}
                       onChange={(e) => {
                         setLimit(Number(e.target.value));
                         setPage(1);
                       }}
-                      className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+                      className="bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none"
                     >
-                      <option value="10">10 per page</option>
-                      <option value="20">20 per page</option>
-                      <option value="50">50 per page</option>
-                      <option value="100">100 per page</option>
+                      <option value="10">10</option>
+                      <option value="20">20</option>
+                      <option value="50">50</option>
                     </select>
-                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                      <button
-                        onClick={() => setPage(p => Math.max(1, p - 1))}
-                        disabled={page === 1}
-                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <ChevronLeft className="h-5 w-5" />
-                      </button>
-                      <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                        Page {page} of {totalPages}
-                      </span>
-                      <button
-                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                        disabled={page >= totalPages}
-                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <ChevronRight className="h-5 w-5" />
-                      </button>
-                    </nav>
                   </div>
+                  <nav className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      className="h-10 w-10 p-0 rounded-xl border-gray-200 hover:bg-blue-50 hover:text-blue-600 disabled:opacity-40"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                    <div className="h-10 px-4 flex items-center bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700">
+                      {page} / {totalPages}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                      disabled={page >= totalPages}
+                      className="h-10 w-10 p-0 rounded-xl border-gray-200 hover:bg-blue-50 hover:text-blue-600 disabled:opacity-40"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </Button>
+                  </nav>
                 </div>
               </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </ProtectedRoute>

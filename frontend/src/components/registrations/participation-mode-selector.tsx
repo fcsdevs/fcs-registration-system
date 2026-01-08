@@ -6,7 +6,9 @@
 "use client";
 
 import React from 'react';
-import { Monitor, MapPin, AlertCircle } from 'lucide-react';
+import { Monitor, MapPin, AlertCircle, Sparkles, CheckCircle2, Radio } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface ParticipationModeSelectorProps {
     participationModes: ('ONLINE' | 'ONSITE' | 'HYBRID')[];
@@ -24,13 +26,13 @@ export function ParticipationModeSelector({
     // If event is ONLINE only, auto-select and return minimal UI
     if (participationModes.length === 1 && participationModes[0] === 'ONLINE') {
         return (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-center gap-3">
-                    <Monitor className="w-6 h-6 text-blue-600" />
-                    <div>
-                        <h4 className="font-semibold text-blue-900">Online Event</h4>
-                        <p className="text-sm text-blue-700">This event is online only</p>
-                    </div>
+            <div className="bg-blue-50/50 border border-blue-100 rounded-[24px] p-6 flex items-center gap-4">
+                <div className="h-12 w-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                    <Monitor size={20} />
+                </div>
+                <div>
+                    <h4 className="font-black text-[#0F172A] uppercase tracking-tight text-sm">Online Exclusive</h4>
+                    <p className="text-xs font-medium text-blue-600 uppercase tracking-widest mt-0.5">Virtual Session Access Only</p>
                 </div>
             </div>
         );
@@ -39,13 +41,13 @@ export function ParticipationModeSelector({
     // If event is ONSITE only, auto-select and return minimal UI
     if (participationModes.length === 1 && participationModes[0] === 'ONSITE') {
         return (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                <div className="flex items-center gap-3">
-                    <MapPin className="w-6 h-6 text-amber-600" />
-                    <div>
-                        <h4 className="font-semibold text-amber-900">On-Site Event</h4>
-                        <p className="text-sm text-amber-700">This event requires physical attendance</p>
-                    </div>
+            <div className="bg-amber-50/50 border border-amber-100 rounded-[24px] p-6 flex items-center gap-4">
+                <div className="h-12 w-12 bg-amber-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-amber-200">
+                    <MapPin size={20} />
+                </div>
+                <div>
+                    <h4 className="font-black text-[#0F172A] uppercase tracking-tight text-sm">On-Site Exclusive</h4>
+                    <p className="text-xs font-medium text-amber-600 uppercase tracking-widest mt-0.5">Physical Attendance Required</p>
                 </div>
             </div>
         );
@@ -53,41 +55,53 @@ export function ParticipationModeSelector({
 
     // HYBRID event - show selection
     return (
-        <div className="space-y-4">
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                    How will you participate? <span className="text-red-500">*</span>
+        <div className="space-y-6">
+            <div className="flex flex-col gap-2">
+                <label className="text-[11px] font-black text-[#0F172A] uppercase tracking-[0.2em] flex items-center gap-2">
+                    <Radio size={14} className="text-[#060CCD]" /> Select Engagement Protocol <span className="text-red-500 font-bold">*</span>
                 </label>
-                <p className="text-sm text-gray-600 mb-4">
-                    This event supports both online and on-site participation
-                </p>
+                <div className="h-1 w-20 bg-gradient-to-r from-[#060CCD] to-transparent rounded-full" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Online Option */}
                 <button
                     type="button"
                     onClick={() => onSelect('ONLINE')}
-                    className={`p-6 rounded-lg border-2 transition-all text-left ${selectedMode === 'ONLINE'
-                            ? 'border-blue-600 bg-blue-50'
-                            : 'border-gray-200 hover:border-blue-300 bg-white'
-                        }`}
+                    className="group relative text-left outline-none"
                 >
-                    <div className="flex items-start gap-4">
-                        <div className={`p-3 rounded-lg ${selectedMode === 'ONLINE' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-600'
+                    <div className={`p-8 rounded-[36px] border-2 transition-all duration-300 relative overflow-hidden h-full flex flex-col ${selectedMode === 'ONLINE'
+                            ? 'border-[#060CCD] bg-white shadow-[0_20px_50px_-12px_rgba(6,12,205,0.15)] scale-[1.02]'
+                            : 'border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-200 hover:shadow-xl'
+                        }`}>
+                        {selectedMode === 'ONLINE' && (
+                            <div className="absolute top-6 right-6">
+                                <CheckCircle2 size={24} className="text-[#060CCD] fill-[#060CCD]/10" />
+                            </div>
+                        )}
+
+                        <div className={`h-14 w-14 rounded-2xl flex flex-shrink-0 items-center justify-center mb-6 transition-transform group-hover:scale-110 duration-500 ${selectedMode === 'ONLINE' ? 'bg-[#060CCD] text-white shadow-lg' : 'bg-white text-slate-400 shadow-sm'
                             }`}>
-                            <Monitor className="w-6 h-6" />
+                            <Monitor size={28} />
                         </div>
+
                         <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 mb-1">Online</h4>
-                            <p className="text-sm text-gray-600">
-                                Join remotely via live stream or video conference
+                            <Badge className={`mb-3 h-6 px-3 bg-blue-50 text-blue-600 border-none font-black uppercase text-[9px] tracking-widest ${selectedMode === 'ONLINE' ? 'bg-blue-600 text-white' : ''
+                                }`}>
+                                Digital Cloud
+                            </Badge>
+                            <h4 className="text-xl font-black text-[#0F172A] mb-3 leading-tight tracking-tight">Virtual Attendance</h4>
+                            <p className="text-sm font-medium text-slate-500 leading-relaxed mb-6">
+                                Join our secure live stream. Optimized for global remote participants.
                             </p>
-                            <ul className="mt-3 space-y-1 text-xs text-gray-500">
-                                <li>• No physical attendance required</li>
-                                <li>• Access from anywhere</li>
-                                <li>• Participate virtually</li>
-                            </ul>
+
+                            <div className="space-y-2">
+                                {['End-to-End Encrypted Stream', 'HD Video & Global Audio', 'Real-time Interaction'].map((feat, i) => (
+                                    <div key={i} className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        <div className="h-1 w-1 bg-[#060CCD] rounded-full" /> {feat}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </button>
@@ -96,34 +110,48 @@ export function ParticipationModeSelector({
                 <button
                     type="button"
                     onClick={() => onSelect('ONSITE')}
-                    className={`p-6 rounded-lg border-2 transition-all text-left ${selectedMode === 'ONSITE'
-                            ? 'border-amber-600 bg-amber-50'
-                            : 'border-gray-200 hover:border-amber-300 bg-white'
-                        }`}
+                    className="group relative text-left outline-none"
                 >
-                    <div className="flex items-start gap-4">
-                        <div className={`p-3 rounded-lg ${selectedMode === 'ONSITE' ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-600'
+                    <div className={`p-8 rounded-[36px] border-2 transition-all duration-300 relative overflow-hidden h-full flex flex-col ${selectedMode === 'ONSITE'
+                            ? 'border-emerald-500 bg-white shadow-[0_20px_50px_-12px_rgba(16,185,129,0.15)] scale-[1.02]'
+                            : 'border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-200 hover:shadow-xl'
+                        }`}>
+                        {selectedMode === 'ONSITE' && (
+                            <div className="absolute top-6 right-6">
+                                <CheckCircle2 size={24} className="text-emerald-500 fill-emerald-500/10" />
+                            </div>
+                        )}
+
+                        <div className={`h-14 w-14 rounded-2xl flex flex-shrink-0 items-center justify-center mb-6 transition-transform group-hover:scale-110 duration-500 ${selectedMode === 'ONSITE' ? 'bg-emerald-500 text-white shadow-lg' : 'bg-white text-slate-400 shadow-sm'
                             }`}>
-                            <MapPin className="w-6 h-6" />
+                            <MapPin size={28} />
                         </div>
+
                         <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 mb-1">On-Site</h4>
-                            <p className="text-sm text-gray-600">
-                                Attend physically at an event center
+                            <Badge className={`mb-3 h-6 px-3 bg-emerald-50 text-emerald-600 border-none font-black uppercase text-[9px] tracking-widest ${selectedMode === 'ONSITE' ? 'bg-emerald-500 text-white' : ''
+                                }`}>
+                                Physical Presence
+                            </Badge>
+                            <h4 className="text-xl font-black text-[#0F172A] mb-3 leading-tight tracking-tight">On-Site Engagement</h4>
+                            <p className="text-sm font-medium text-slate-500 leading-relaxed mb-6">
+                                Experience the event live at one of our global centers.
                             </p>
-                            <ul className="mt-3 space-y-1 text-xs text-gray-500">
-                                <li>• In-person attendance</li>
-                                <li>• Select your preferred center</li>
-                                <li>• Check-in at venue</li>
-                            </ul>
+
+                            <div className="space-y-2">
+                                {['In-Person Networking', 'Exclusive Local Sessions', 'Full Immersive Access'].map((feat, i) => (
+                                    <div key={i} className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        <div className="h-1 w-1 bg-emerald-500 rounded-full" /> {feat}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </button>
             </div>
 
             {error && (
-                <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg">
-                    <AlertCircle className="w-4 h-4" />
+                <div className="flex items-center gap-3 text-red-600 text-xs font-bold bg-red-50 p-4 rounded-2xl border border-red-100 uppercase tracking-widest animate-in fade-in slide-in-from-top-1">
+                    <AlertCircle size={16} />
                     <span>{error}</span>
                 </div>
             )}
