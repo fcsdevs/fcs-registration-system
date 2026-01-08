@@ -6,11 +6,12 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Users, AlertCircle, BookOpen, Search } from 'lucide-react';
+import { Users, AlertCircle, BookOpen, Search, CheckCircle2, Trophy, Target } from 'lucide-react';
 import { groupsApi } from '@/lib/api/groups';
-
 import { EventGroup } from '@/types/api';
 import { CapacityIndicator } from '../ui/capacity-indicator';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface GroupSelectorProps {
     eventId: string;
@@ -33,22 +34,14 @@ export function GroupSelector({ eventId, selectedGroupId, onSelect, error, requi
         try {
             setLoading(true);
             const response = await groupsApi.listByEvent(eventId, { isActive: true });
-
             let fetchedGroups: EventGroup[] = [];
-
-            // Handle { data: { groups: [...] } }
             if (response.data && (response.data as any).groups && Array.isArray((response.data as any).groups)) {
                 fetchedGroups = (response.data as any).groups;
-            }
-            // Handle { data: [...] } - direct array
-            else if (Array.isArray(response.data)) {
+            } else if (Array.isArray(response.data)) {
                 fetchedGroups = response.data;
-            }
-            // Handle possible wrapper { data: { data: [...] } }
-            else if (response.data && (response.data as any).data && Array.isArray((response.data as any).data)) {
+            } else if (response.data && (response.data as any).data && Array.isArray((response.data as any).data)) {
                 fetchedGroups = (response.data as any).data;
             }
-
             setGroups(fetchedGroups || []);
         } catch (error) {
             console.error('Failed to fetch groups:', error);
@@ -63,14 +56,15 @@ export function GroupSelector({ eventId, selectedGroupId, onSelect, error, requi
         return (group.memberCount || 0) >= group.capacity;
     };
 
-    const getGroupIcon = (type: string) => {
+    const getGroupIcon = (type: string, isSelected: boolean) => {
+        const iconClass = isSelected ? 'text-white' : 'text-[#1F7A63]';
         switch (type) {
             case 'BIBLE_STUDY':
-                return <BookOpen className="w-5 h-5" />;
+                return <BookOpen size={20} className={iconClass} />;
             case 'WORKSHOP':
-                return <Users className="w-5 h-5" />;
+                return <Target size={20} className={iconClass} />;
             default:
-                return <Users className="w-5 h-5" />;
+                return <Users size={20} className={iconClass} />;
         }
     };
 
@@ -81,40 +75,40 @@ export function GroupSelector({ eventId, selectedGroupId, onSelect, error, requi
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="h-10 w-10 border-4 border-[#1F7A63]/20 border-t-[#1F7A63] rounded-full animate-spin mb-4" />
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Compiling Neural Units</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-4">
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Bible Study Group {required && <span className="text-red-500">*</span>}
+        <div className="space-y-6">
+            <div className="flex flex-col gap-2">
+                <label className="text-[11px] font-black text-[#0F172A] uppercase tracking-[0.2em] flex items-center gap-2">
+                    <Trophy size={14} className="text-[#1F7A63]" /> Assignment Group {required && <span className="text-red-500 font-bold">*</span>}
                 </label>
-                <p className="text-sm text-gray-600 mb-4">
-                    Groups are shared across all centers for teaching and reporting purposes
-                </p>
-
-                {/* Search Bar */}
-                <div className="relative mb-4">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <input
-                        type="text"
-                        placeholder="Search groups..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    />
-                </div>
+                <div className="h-1 w-20 bg-gradient-to-r from-[#1F7A63] to-transparent rounded-full" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1">
+            {/* Premium Search Hub */}
+            <div className="relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1F7A63] transition-colors duration-300" size={18} />
+                <input
+                    type="text"
+                    placeholder="Search Unit Registry..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full h-14 pl-12 pr-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm focus:ring-4 focus:ring-[#1F7A63]/5 focus:border-[#1F7A63] outline-none transition-all"
+                />
+            </div>
+
+            {/* Units Registry Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                 {filteredGroups.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500 col-span-full">
-                        <Users className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                        <p>{searchQuery ? 'No groups match your search' : 'No groups available'}</p>
+                    <div className="col-span-2 py-16 bg-slate-50 rounded-[32px] border-2 border-dashed border-slate-200 text-center">
+                        <Users className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">No matching units found</p>
                     </div>
                 ) : (
                     filteredGroups.map(group => {
@@ -127,41 +121,58 @@ export function GroupSelector({ eventId, selectedGroupId, onSelect, error, requi
                                 type="button"
                                 onClick={() => !isFull && onSelect(group.id, group.name)}
                                 disabled={isFull}
-                                className={`w-full text-left p-3 rounded-lg border transition-all ${isSelected
-                                    ? 'border-[#1F7A63] bg-[#E8F5F1] shadow-sm'
-                                    : isFull
-                                        ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-                                        : 'border-gray-200 hover:border-[#1F7A63] hover:bg-gray-50 bg-white'
-                                    }`}
+                                className="group text-left outline-none"
                             >
-                                <div className="flex items-start gap-3">
-                                    <div className={`p-2 rounded-lg shrink-0 ${isSelected ? 'bg-[#1F7A63] text-white' : 'bg-gray-100 text-gray-600'
-                                        }`}>
-                                        {getGroupIcon(group.type)}
+                                <div className={`p-6 rounded-[32px] border-2 transition-all duration-300 relative overflow-hidden h-full flex flex-col ${isSelected
+                                        ? 'border-[#1F7A63] bg-[#E8F5F1]/50 shadow-[0_20px_40px_-12px_rgba(31,122,99,0.15)] scale-[1.02]'
+                                        : isFull
+                                            ? 'border-slate-100 bg-slate-50 opacity-40 cursor-not-allowed'
+                                            : 'border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-200 hover:shadow-lg'
+                                    }`}>
+                                    {isSelected && (
+                                        <div className="absolute top-4 right-4 animate-in fade-in zoom-in duration-300">
+                                            <CheckCircle2 size={20} className="text-[#1F7A63] fill-[#1F7A63]/10" />
+                                        </div>
+                                    )}
+
+                                    <div className="flex-1">
+                                        <div className="flex flex-col gap-3">
+                                            <div className={`h-11 w-11 rounded-xl flex items-center justify-center transition-all ${isSelected ? 'bg-[#1F7A63] shadow-lg shadow-[#1F7A63]/20' : 'bg-white text-slate-400 group-hover:text-[#1F7A63]'
+                                                }`}>
+                                                {getGroupIcon(group.type, isSelected)}
+                                            </div>
+
+                                            <div>
+                                                <h4 className="font-black text-[#0F172A] leading-tight tracking-tight mb-1 truncate">{group.name}</h4>
+                                                <Badge className={`bg-transparent p-0 border-none font-black text-[9px] uppercase tracking-widest ${isSelected ? 'text-[#1F7A63]' : 'text-slate-400'
+                                                    }`}>
+                                                    {group.type.replace('_', ' ')}
+                                                </Badge>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-start justify-between mb-1">
-                                            <h4 className="font-semibold text-gray-900 truncate pr-2">{group.name}</h4>
-                                            {isFull && (
-                                                <span className="bg-red-100 text-red-700 text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0">
-                                                    Full
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-                                            {group.type.replace('_', ' ')}
-                                        </p>
-
-                                        {group.capacity && (
+                                    {group.capacity && (
+                                        <div className="mt-6 pt-4 border-t border-slate-100/50">
+                                            <div className="flex justify-between items-center mb-2 px-1">
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Unit Capacity</span>
+                                                <span className="text-[9px] font-black text-slate-500">{group.memberCount || 0}/{group.capacity}</span>
+                                            </div>
                                             <CapacityIndicator
                                                 current={group.memberCount || 0}
                                                 max={group.capacity}
                                                 size="sm"
                                             />
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
+
+                                    {isFull && (
+                                        <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center p-4">
+                                            <Badge className="bg-red-500 text-white border-none font-black uppercase text-[10px] tracking-widest py-1.5 px-4 shadow-lg shadow-red-200">
+                                                Unit Maxed
+                                            </Badge>
+                                        </div>
+                                    )}
                                 </div>
                             </button>
                         );
@@ -170,8 +181,8 @@ export function GroupSelector({ eventId, selectedGroupId, onSelect, error, requi
             </div>
 
             {error && (
-                <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg">
-                    <AlertCircle className="w-4 h-4" />
+                <div className="flex items-center gap-3 text-red-600 text-xs font-bold bg-red-50 p-4 rounded-2xl border border-red-100 uppercase tracking-widest animate-in fade-in slide-in-from-top-1">
+                    <AlertCircle size={16} />
                     <span>{error}</span>
                 </div>
             )}

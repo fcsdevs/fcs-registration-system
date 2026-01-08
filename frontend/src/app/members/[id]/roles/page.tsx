@@ -80,47 +80,59 @@ export default function MemberRolesPage() {
     const fetchData = async () => {
         try {
             setLoading(true);
+            setMessage(null);
 
             // 1. Get Member Details to find AuthUser ID
-            const memberRes = await api.get<any>(`/members/${memberId}`);
-            const memberData = memberRes.data || memberRes;
-            setMember(memberData);
-
-            if (!memberData.authUserId) {
-                // If member has no auth user, they can't have roles usually.
-                // We might need to create an auth user for them first?
-                // For now, just show error or handle gracefully.
-                setMessage({ type: 'error', text: "This member does not have a linked user account. They cannot be assigned admin roles." });
+            let memberData;
+            try {
+                const memberRes = await api.get<any>(`/members/${memberId}`);
+                memberData = memberRes.data || memberRes;
+                setMember(memberData);
+            } catch (err) {
+                console.error("Failed to fetch member:", err);
+                setMessage({ type: 'error', text: "Failed to load member profile. Please try again." });
                 setLoading(false);
                 return;
             }
 
-            // 2. Get Current Roles
-            try {
-                const rolesRes = await api.get<any>(`/roles/users/${memberData.authUserId}`);
-                setRoles(rolesRes.roles || []);
-            } catch (err) {
-                console.warn("Failed to fetch roles", err);
-                // Likely 404 if no roles or user not found in auth system?
+            if (!memberData?.authUserId) {
+                // If member has no auth user, they can't have roles usually.
+                setMessage({ type: 'error', text: "This member does not have a linked user account. They cannot be assigned admin roles until they sign up." });
+                setLoading(false);
+                return;
             }
 
-            // 3. Get Available Roles & Units
-            const [allRolesRes, allUnitsRes] = await Promise.all([
-                api.get<any>('/roles'),
-                api.get<any>('/units')
-            ]);
+            // 2. Get Current Roles & Available Data
+            try {
+                const [rolesRes, allRolesRes, allUnitsRes] = await Promise.all([
+                    api.get<any>(`/roles/users/${memberData.authUserId}`),
+                    api.get<any>('/roles'),
+                    api.get<any>('/units')
+                ]);
 
-            const rolesList = allRolesRes.data || allRolesRes;
-            // It might be paginated { data: [] }
-            setAvailableRoles(Array.isArray(rolesList) ? rolesList : (rolesList.data || []));
+                // Extract roles assigned to user
+                // Backend usually returns { data: { roles: [...] } } or { roles: [...] }
+                const userRolesData = rolesRes.data || rolesRes;
+                setRoles(userRolesData.roles || (Array.isArray(userRolesData) ? userRolesData : []));
 
-            const unitsList = allUnitsRes.data || allUnitsRes;
-            // It might be paginated
-            setAvailableUnits(Array.isArray(unitsList) ? unitsList : (unitsList.data || []));
+                // Extract all available roles
+                const rolesList = allRolesRes.data || allRolesRes;
+                setAvailableRoles(Array.isArray(rolesList) ? rolesList : (rolesList.data || []));
+
+                // Extract all units
+                const unitsList = allUnitsRes.data || allUnitsRes;
+                setAvailableUnits(Array.isArray(unitsList) ? unitsList : (unitsList.data || []));
+
+            } catch (err) {
+                console.error("Failed to fetch roles or units:", err);
+                // Non-critical if member itself loaded? 
+                // Actually if roles fail to load, we can't manage them.
+                setMessage({ type: 'error', text: "Failed to load roles or organizational units." });
+            }
 
         } catch (error) {
-            console.error("Failed to load data:", error);
-            setMessage({ type: 'error', text: "Failed to load member data." });
+            console.error("General error loading data:", error);
+            setMessage({ type: 'error', text: "An unexpected error occurred while loading data." });
         } finally {
             setLoading(false);
         }
@@ -151,7 +163,8 @@ export default function MemberRolesPage() {
 
             // Refresh list
             const rolesRes = await api.get<any>(`/roles/users/${member.authUserId}`);
-            setRoles(rolesRes.roles || []);
+            const userRolesData = rolesRes.data || rolesRes;
+            setRoles(userRolesData.roles || (Array.isArray(userRolesData) ? userRolesData : []));
 
             // Reset form
             setSelectedRoleId("");
@@ -176,7 +189,8 @@ export default function MemberRolesPage() {
             setMessage({ type: 'success', text: "Role revoked successfully!" });
             // Refresh list
             const rolesRes = await api.get<any>(`/roles/users/${member.authUserId}`);
-            setRoles(rolesRes.roles || []);
+            const userRolesData = rolesRes.data || rolesRes;
+            setRoles(userRolesData.roles || (Array.isArray(userRolesData) ? userRolesData : []));
         } catch (error: any) {
             console.error("Failed to revoke role:", error);
             setMessage({ type: 'error', text: error.message || "Failed to revoke role" });
