@@ -5,7 +5,9 @@
 
 import { ApiResponse, PaginatedResponse } from "@/types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://fcs-registration-backend.onrender.com/api";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === 'development' ? "http://localhost:3005/api" : "https://fcs-registration-backend.onrender.com/api");
 
 export interface ApiClientConfig {
   timeout?: number;

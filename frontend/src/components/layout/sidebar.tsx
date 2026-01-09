@@ -81,7 +81,7 @@ export function Sidebar() {
     {
       label: "System",
       items: [
-        { href: "/notifications", label: "Notifications", icon: Bell, badge: 3 },
+        { href: "/notifications", label: "Notifications", icon: Bell },
         { href: "/settings", label: "Settings", icon: Settings },
         { href: "/admin", label: "Admin Panel", icon: Shield },
       ],

@@ -60,9 +60,10 @@ const passwordRequirements: PasswordRequirement[] = [
 
 export default function SignupPage() {
   const router = useRouter();
-  const { signup, login, isLoading } = useAuth();
+  const [otpValue, setOtpValue] = useState("");
+  const { signup, login, isLoading, sendOTP } = useAuth();
   const [error, setError] = useState<string | null>(null);
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(1); // 1: Details, 2: OTP, 3: Branch
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
@@ -101,7 +102,7 @@ export default function SignupPage() {
       if (name === "confirmPassword" && value.confirmPassword) {
         setConfirmPasswordValue(value.confirmPassword);
 
-        // Check if passwords match
+        // Check if passwordValue exists
         if (passwordValue) {
           setPasswordsMatch(passwordValue === value.confirmPassword);
         }
@@ -140,13 +141,44 @@ export default function SignupPage() {
           return;
         }
 
+        // Send OTP
+        await sendOTP(email || phone, 'REGISTRATION');
         setStep(2);
-      } catch (error) {
-        console.error("Failed to check user existence", error);
-        setStep(2);
+      } catch (error: any) {
+        console.error("Failed to check user existence or send OTP", error);
+        setError(error.message || "Failed to proceed to next step");
       } finally {
         setIsChecking(false);
       }
+    }
+  };
+
+  const verifyAndGoToStep3 = async () => {
+    if (!otpValue || otpValue.length < 6) {
+      setError("Please enter a valid 6-digit OTP");
+      return;
+    }
+
+    try {
+      setIsChecking(true);
+      setError(null);
+      const email = watch("email");
+      const phone = watch("phone");
+
+      const response = await authApi.verifyOTP({
+        ...(email ? { email } : { phoneNumber: phone }),
+        code: otpValue
+      });
+
+      if (response.data?.verified) {
+        setStep(3);
+      } else {
+        setError("Invalid or expired OTP");
+      }
+    } catch (err: any) {
+      setError(err.message || "OTP verification failed");
+    } finally {
+      setIsChecking(false);
     }
   };
 
@@ -154,7 +186,8 @@ export default function SignupPage() {
     try {
       setError(null);
       await signup(data);
-      await login(data.email, data.password);
+      // Backend automatically registers the user
+      router.push("/auth/login?registered=true&email=" + encodeURIComponent(data.email));
     } catch (err: any) {
       setError(err.message || "Sign up failed. Please try again.");
     }
@@ -199,7 +232,7 @@ export default function SignupPage() {
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
           <p className="text-gray-600">
-            {step === 1 ? "Personal Details" : "Branch Selection"}
+            {step === 1 ? "Personal Details" : step === 2 ? "Verify OTP" : "Branch Selection"}
           </p>
         </div>
 
@@ -210,7 +243,11 @@ export default function SignupPage() {
               }`}
           />
           <div
-            className={`h-2 w-12 rounded-full transition-all duration-300 ${step === 2 ? "bg-primary scale-110" : "bg-gray-200"
+            className={`h-2 w-12 rounded-full transition-all duration-300 ${step === 2 ? "bg-primary scale-110" : "bg-primary/30"
+              }`}
+          />
+          <div
+            className={`h-2 w-12 rounded-full transition-all duration-300 ${step === 3 ? "bg-primary scale-110" : "bg-gray-200"
               }`}
           />
         </div>
@@ -465,6 +502,51 @@ export default function SignupPage() {
           )}
 
           {step === 2 && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <ShieldCheck className="w-12 h-12 text-primary mx-auto mb-3" />
+                <h3 className="text-xl font-bold text-gray-900">Verify Your Identity</h3>
+                <p className="text-gray-600 text-sm">
+                  We've sent a 6-digit code to {watch("email") || watch("phone")}.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Enter 6-digit OTP
+                </label>
+                <input
+                  type="text"
+                  value={otpValue}
+                  onChange={(e) => setOtpValue(e.target.value)}
+                  maxLength={6}
+                  placeholder="000000"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent tracking-[0.5em] font-mono text-center text-xl"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="w-1/3 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all font-medium"
+                >
+                  Edit details
+                </button>
+                <button
+                  type="button"
+                  onClick={verifyAndGoToStep3}
+                  disabled={isChecking || otpValue.length < 6}
+                  className="flex-1 bg-primary text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md"
+                >
+                  {isChecking && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Verify Code
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
             <>
               {/* State Selection */}
               <div>
@@ -546,7 +628,7 @@ export default function SignupPage() {
               <div className="pt-4 flex gap-4">
                 <button
                   type="button"
-                  onClick={() => setStep(1)}
+                  onClick={() => setStep(2)}
                   className="w-1/3 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all disabled:opacity-50 shadow-sm hover:shadow"
                   disabled={isLoading}
                 >

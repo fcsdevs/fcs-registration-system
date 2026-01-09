@@ -63,8 +63,9 @@ export interface LoginResponse {
 }
 
 export interface SendOTPRequest {
-  phoneNumber: string;
-  purpose: 'EMAIL_VERIFICATION' | 'PHONE_VERIFICATION' | 'PASSWORD_RESET';
+  phoneNumber?: string;
+  email?: string;
+  purpose: 'EMAIL_VERIFICATION' | 'PHONE_VERIFICATION' | 'PASSWORD_RESET' | 'REGISTRATION';
 }
 
 export interface ForgotPasswordRequest {
@@ -72,13 +73,16 @@ export interface ForgotPasswordRequest {
 }
 
 export interface ResetPasswordRequest {
-  identifier: string;
-  otp: string;
-  password: string;
+  email?: string;
+  phoneNumber?: string;
+  code: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
 export interface VerifyOTPRequest {
-  phoneNumber: string;
+  phoneNumber?: string;
+  email?: string;
   code: string;
 }
 

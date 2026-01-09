@@ -20,6 +20,7 @@ interface AuthContextType {
   refreshToken: () => Promise<void>;
   forgotPassword: (emailOrCode: string) => Promise<void>;
   resetPassword: (emailOrCode: string, otp: string, password: string) => Promise<void>;
+  sendOTP: (emailOrPhone: string, purpose?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -195,7 +196,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const forgotPassword = async (emailOrCode: string) => {
     setIsLoading(true);
     try {
-      await api.post("/auth/forgot-password", { identifier: emailOrCode });
+      // Determine if it's email or phone (simplified)
+      const isEmail = emailOrCode.includes('@');
+      const payload = isEmail
+        ? { email: emailOrCode, purpose: 'PASSWORD_RESET' }
+        : { phoneNumber: emailOrCode, purpose: 'PASSWORD_RESET' };
+
+      await api.post("/auth/send-otp", payload);
     } catch (error: any) {
       throw new Error(error.message || "Failed to send reset instructions");
     } finally {
@@ -206,13 +213,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resetPassword = async (emailOrCode: string, otp: string, password: string) => {
     setIsLoading(true);
     try {
-      await api.post("/auth/reset-password", {
-        identifier: emailOrCode,
-        otp,
-        password
-      });
+      const isEmail = emailOrCode.includes('@');
+      const payload = {
+        ...(isEmail ? { email: emailOrCode } : { phoneNumber: emailOrCode }),
+        code: otp,
+        newPassword: password,
+        confirmPassword: password
+      };
+
+      await api.post("/auth/reset-password", payload);
     } catch (error: any) {
       throw new Error(error.message || "Failed to reset password");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const sendOTP = async (emailOrPhone: string, purpose: string = 'REGISTRATION') => {
+    setIsLoading(true);
+    try {
+      const isEmail = emailOrPhone.includes('@');
+      const payload = isEmail
+        ? { email: emailOrPhone, purpose }
+        : { phoneNumber: emailOrPhone, purpose };
+
+      await api.post("/auth/send-otp", payload);
+    } catch (error: any) {
+      throw new Error(error.message || "Failed to send OTP");
     } finally {
       setIsLoading(false);
     }
@@ -230,6 +257,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         refreshToken,
         forgotPassword,
         resetPassword,
+        sendOTP,
       }}
     >
       {children}
