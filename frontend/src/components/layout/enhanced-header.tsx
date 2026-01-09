@@ -33,7 +33,6 @@ export function EnhancedHeader() {
   const pathname = usePathname();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [notificationCount] = useState(0); // Reset mock count for now
 
 
@@ -47,21 +46,7 @@ export function EnhancedHeader() {
     return role === 'registrar';
   });
 
-  // Command Palette keyboard shortcut
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setShowCommandPalette(true);
-      }
-      if (e.key === "Escape") {
-        setShowCommandPalette(false);
-      }
-    };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -86,6 +71,8 @@ export function EnhancedHeader() {
         { href: "/centers", label: "Centers", icon: MapPin },
         { href: "/groups", label: "Groups", icon: UsersRound },
         { href: "/attendance", label: "Attendance", icon: CheckSquare },
+        { href: "/admin/users", label: "Manage Admins", icon: Shield },
+        { href: "/admin/registrars", label: "Manage Registrars", icon: UsersRound },
       ],
     },
     {
@@ -168,17 +155,7 @@ export function EnhancedHeader() {
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-3">
-              {/* Command Palette Trigger */}
-              <button
-                onClick={() => setShowCommandPalette(true)}
-                className="hidden md:flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                <Search className="w-4 h-4" />
-                <span className="hidden lg:inline">Quick search</span>
-                <kbd className="hidden lg:inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-mono bg-white border border-gray-300 rounded">
-                  ⌘K
-                </kbd>
-              </button>
+
 
               {/* Notifications */}
               <Link
@@ -246,14 +223,6 @@ export function EnhancedHeader() {
                             >
                               <Shield className="w-4 h-4" />
                               Admin Panel
-                            </Link>
-                            <Link
-                              href="/command"
-                              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              onClick={() => setShowUserMenu(false)}
-                            >
-                              <Command className="w-4 h-4" />
-                              Command Center
                             </Link>
                           </>
                         )}
@@ -355,79 +324,7 @@ export function EnhancedHeader() {
         )}
       </header>
 
-      {/* Command Palette Modal */}
-      {showCommandPalette && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4">
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setShowCommandPalette(false)}
-          />
-          <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-2xl overflow-hidden">
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200">
-              <Search className="w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search pages, actions, or navigate..."
-                className="flex-1 outline-none text-sm"
-                autoFocus
-              />
-              <button
-                onClick={() => setShowCommandPalette(false)}
-                className="p-1 hover:bg-gray-100 rounded"
-              >
-                <X className="w-4 h-4 text-gray-500" />
-              </button>
-            </div>
 
-            <div className="max-h-96 overflow-y-auto">
-              {/* Quick Actions */}
-              {isAdmin && (
-                <div className="p-2">
-                  <p className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Quick Actions
-                  </p>
-                  {quickActions.map((action) => (
-                    <Link
-                      key={action.href}
-                      href={action.href}
-                      onClick={() => setShowCommandPalette(false)}
-                      className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 text-sm"
-                    >
-                      <action.icon className="w-4 h-4 text-gray-500" />
-                      <span>{action.label}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-
-              {/* All Pages */}
-              {navigationGroups.map((group) => (
-                <div key={group.label} className="p-2 border-t border-gray-100">
-                  <p className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    {group.label}
-                  </p>
-                  {group.items.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setShowCommandPalette(false)}
-                      className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 text-sm"
-                    >
-                      <item.icon className="w-4 h-4 text-gray-500" />
-                      <span>{item.label}</span>
-                      <span className="ml-auto text-xs text-gray-400">{item.href}</span>
-                    </Link>
-                  ))}
-                </div>
-              ))}
-            </div>
-
-            <div className="px-4 py-2 border-t border-gray-200 bg-gray-50 text-xs text-gray-500">
-              <span>Navigate with ↑↓ • Select with ↵ • Close with ESC</span>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

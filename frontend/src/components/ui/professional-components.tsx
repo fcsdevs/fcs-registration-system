@@ -67,6 +67,7 @@ export function StatCard({
 interface EventCardProps {
   title: string;
   date: string;
+  endDate?: string;
   location: string;
   registrations: number;
   capacity: number;
@@ -77,6 +78,7 @@ interface EventCardProps {
 export function EventCard({
   title,
   date,
+  endDate,
   location,
   registrations,
   capacity,
@@ -100,14 +102,25 @@ export function EventCard({
   const capacityPercent = (registrations / capacity) * 100;
 
   return (
-    <div className="bg-white rounded-lg border border-[#CBD5E1] shadow-sm p-6 space-y-4">
+    <div className="bg-white rounded-lg border border-[#CBD5E1] shadow-sm p-6 space-y-4 hover:shadow-md transition-shadow">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-[#0F172A] mb-1">{title}</h3>
-          <p className="text-sm text-[#475569]">{date}</p>
+          <h3 className="text-lg font-semibold text-[#0F172A] mb-1 leading-tight">{title}</h3>
+          <div className="flex items-center gap-2 text-sm text-[#475569]">
+            <Calendar className="w-4 h-4" />
+            <span>
+              {date}
+              {endDate && endDate !== date && (
+                <>
+                  <span className="mx-1.5 text-[#94A3B8]">—</span>
+                  {endDate}
+                </>
+              )}
+            </span>
+          </div>
         </div>
-        <div className={`px-3 py-1 rounded-full text-xs font-medium ${statusClasses[status]}`}>
+        <div className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 ${statusClasses[status]}`}>
           {status.charAt(0).toUpperCase() + status.slice(1)}
         </div>
       </div>
@@ -136,9 +149,8 @@ export function EventCard({
         </div>
         <div className="w-full bg-[#E2E8F0] rounded-full h-2">
           <div
-            className={`h-2 rounded-full transition-all ${
-              capacityPercent > 90 ? "bg-[#B91C1C]" : capacityPercent > 70 ? "bg-[#D97706]" : "bg-[#1F7A63]"
-            }`}
+            className={`h-2 rounded-full transition-all ${capacityPercent > 90 ? "bg-[#B91C1C]" : capacityPercent > 70 ? "bg-[#D97706]" : "bg-[#1F7A63]"
+              }`}
             style={{ width: `${Math.min(capacityPercent, 100)}%` }}
           />
         </div>

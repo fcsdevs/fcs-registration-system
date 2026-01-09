@@ -42,9 +42,12 @@ export default function AttendancePage() {
   const [selectedEventData, setSelectedEventData] = useState<any>(null);
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
 
+  const [registrationCount, setRegistrationCount] = useState(0);
+
   useEffect(() => {
     if (selectedEventId && viewMode === 'dashboard') {
       fetchAttendance();
+      fetchEventStats();
     }
   }, [selectedEventId, viewMode]);
 
@@ -52,13 +55,25 @@ export default function AttendancePage() {
     try {
       setLoading(true);
       const response = await api.get<any>(`/attendance?eventId=${selectedEventId}`);
-      const data = response.data || response || [];
+      const data = (response as any).data?.data || (response as any).data || response || [];
       setAttendance(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to fetch attendance:", error);
       setAttendance([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchEventStats = async () => {
+    try {
+      // Fetch registrations count for this event to show proper "Total"
+      const response = await api.get<any>(`/registrations/stats/summary?eventId=${selectedEventId}`);
+      if (response && response.data) {
+        setRegistrationCount(response.data.total || 0);
+      }
+    } catch (error) {
+      console.error("Failed to fetch event stats:", error);
     }
   };
 
@@ -69,11 +84,11 @@ export default function AttendancePage() {
   };
 
   const stats = {
-    total: Array.isArray(attendance) ? attendance.length : 0,
-    present: Array.isArray(attendance) ? attendance.filter(a => a.status === "present").length : 0,
-    absent: Array.isArray(attendance) ? attendance.filter(a => a.status === "absent").length : 0,
-    rate: Array.isArray(attendance) && attendance.length > 0
-      ? Math.round((attendance.filter(a => a.status === "present").length / attendance.length) * 100)
+    total: registrationCount,
+    present: Array.isArray(attendance) ? attendance.length : 0,
+    absent: Math.max(0, registrationCount - (Array.isArray(attendance) ? attendance.length : 0)),
+    rate: registrationCount > 0
+      ? Math.round(((Array.isArray(attendance) ? attendance.length : 0) / registrationCount) * 100)
       : 0,
   };
 
@@ -300,11 +315,8 @@ export default function AttendancePage() {
                               {record.checkInTime ? new Date(record.checkInTime).toLocaleString() : "-"}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${record.status === "present"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                                }`}>
-                                {record.status}
+                              <span className="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Checked In
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
