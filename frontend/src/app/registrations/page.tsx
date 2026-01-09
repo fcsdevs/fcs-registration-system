@@ -69,28 +69,16 @@ export default function RegistrationPage() {
         params.append("eventId", selectedEvent);
       }
 
-      // Request a large limit to get counts for all (not just first page)
-      // Ideally backend would provide a dedicated stats endpoint for all events
-      params.append("limit", "1000");
+      const response = await api.get<any>(`/registrations/stats/summary?${params.toString()}`);
 
-      const response = await api.get<any>(`/registrations?${params.toString()}`);
-      let allRegistrations = [];
-
-      if (response.data && Array.isArray(response.data)) {
-        allRegistrations = response.data;
-      } else if (Array.isArray(response)) {
-        allRegistrations = response;
+      if (response && response.data) {
+        setStats({
+          total: response.data.total || 0,
+          confirmed: response.data.confirmed || 0,
+          pending: response.data.pending || 0,
+          checkedIn: response.data.checkedIn || 0,
+        });
       }
-
-      // If paginated, use the pagination total for the overall count
-      const totalCount = response.pagination?.total || allRegistrations.length;
-
-      setStats({
-        total: totalCount,
-        confirmed: allRegistrations.filter((r: any) => r.status?.toUpperCase() === "CONFIRMED").length,
-        pending: allRegistrations.filter((r: any) => r.status?.toUpperCase() === "PENDING").length,
-        checkedIn: allRegistrations.filter((r: any) => r.status?.toUpperCase() === "CHECKED_IN").length,
-      });
     } catch (error) {
       console.error("Failed to fetch stats:", error);
     } finally {
@@ -363,10 +351,10 @@ export default function RegistrationPage() {
                         </td>
                         <td className="px-8 py-6">
                           <Badge className={`px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm ${reg.status?.toUpperCase() === "CONFIRMED"
-                              ? "bg-green-100 text-green-700 border-green-200"
-                              : reg.status?.toUpperCase() === "CHECKED_IN"
-                                ? "bg-purple-100 text-purple-700 border-purple-200"
-                                : "bg-amber-100 text-amber-700 border-amber-200"
+                            ? "bg-green-100 text-green-700 border-green-200"
+                            : reg.status?.toUpperCase() === "CHECKED_IN"
+                              ? "bg-purple-100 text-purple-700 border-purple-200"
+                              : "bg-amber-100 text-amber-700 border-amber-200"
                             }`}>
                             {reg.status}
                           </Badge>

@@ -14,8 +14,6 @@ import {
   Bell,
   Settings,
   Shield,
-  Command,
-  Route,
   FileText,
   ChevronRight,
   Home,
@@ -86,8 +84,6 @@ export function Sidebar() {
         { href: "/notifications", label: "Notifications", icon: Bell, badge: 3 },
         { href: "/settings", label: "Settings", icon: Settings },
         { href: "/admin", label: "Admin Panel", icon: Shield },
-        { href: "/command", label: "Command Center", icon: Command },
-        { href: "/routes", label: "Routes", icon: Route },
       ],
     },
   ];
