@@ -89,4 +89,12 @@ export const authApi = {
   resetPassword: async (data: ResetPasswordRequest): Promise<ApiResponse<{ message: string }>> => {
     return api.post('/auth/reset-password', data);
   },
+
+  /**
+   * POST /api/auth/change-password
+   * Change password (authenticated)
+   */
+  changePassword: async (data: { currentPassword: string; newPassword: string; confirmPassword: string }): Promise<ApiResponse<{ message: string }>> => {
+    return api.post('/auth/change-password', data);
+  },
 };

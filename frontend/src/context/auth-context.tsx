@@ -21,6 +21,7 @@ interface AuthContextType {
   forgotPassword: (emailOrCode: string) => Promise<void>;
   resetPassword: (emailOrCode: string, otp: string, password: string) => Promise<void>;
   sendOTP: (emailOrPhone: string, purpose?: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -245,6 +246,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    setIsLoading(true);
+    try {
+      await api.post("/auth/change-password", {
+        currentPassword,
+        newPassword,
+        confirmPassword: newPassword
+      });
+    } catch (error: any) {
+      throw new Error(error.message || "Failed to change password");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
   return (
     <AuthContext.Provider
       value={{
@@ -258,6 +275,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         forgotPassword,
         resetPassword,
         sendOTP,
+        changePassword,
       }}
     >
       {children}
