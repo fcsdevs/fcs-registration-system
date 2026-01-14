@@ -44,7 +44,7 @@ export const authApi = {
 
   /**
    * POST /api/auth/send-otp
-   * Send OTP to phone number
+   * Send OTP to phone number or email
    */
   sendOTP: async (data: SendOTPRequest): Promise<ApiResponse<{ message: string; expiresIn: number }>> => {
     return api.post('/auth/send-otp', data);
@@ -54,7 +54,7 @@ export const authApi = {
    * POST /api/auth/verify-otp
    * Verify OTP code
    */
-  verifyOTP: async (data: VerifyOTPRequest): Promise<ApiResponse<{ verified: boolean; token?: string }>> => {
+  verifyOTP: async (data: VerifyOTPRequest): Promise<ApiResponse<{ verified: boolean; token?: string; user?: any }>> => {
     return api.post('/auth/verify-otp', data);
   },
 
@@ -83,18 +83,18 @@ export const authApi = {
   },
 
   /**
-   * POST /api/auth/forgot-password
-   * Request password reset OTP
-   */
-  forgotPassword: async (data: ForgotPasswordRequest): Promise<ApiResponse<{ message: string }>> => {
-    return api.post('/auth/forgot-password', data);
-  },
-
-  /**
    * POST /api/auth/reset-password
    * Reset password with OTP
    */
   resetPassword: async (data: ResetPasswordRequest): Promise<ApiResponse<{ message: string }>> => {
     return api.post('/auth/reset-password', data);
+  },
+
+  /**
+   * POST /api/auth/change-password
+   * Change password (authenticated)
+   */
+  changePassword: async (data: { currentPassword: string; newPassword: string; confirmPassword: string }): Promise<ApiResponse<{ message: string }>> => {
+    return api.post('/auth/change-password', data);
   },
 };

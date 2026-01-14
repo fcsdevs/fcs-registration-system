@@ -12,7 +12,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signupSchema, type SignupFormData } from "@/lib/validations/schemas";
 import Link from "next/link";
-import { Loader2, Eye, EyeOff, Check, X, AlertCircle } from "lucide-react";
+import {
+  Loader2, Eye, EyeOff, Check, X, AlertCircle, ShieldCheck,
+  User, GraduationCap, Briefcase, MapPin, Phone, MessageSquare,
+  Heart, ChevronRight, ChevronLeft, Building2
+} from "lucide-react";
 import { NIGERIAN_STATES } from "@/lib/constants/states";
 import { authApi } from "@/lib/api/auth";
 
@@ -60,9 +64,10 @@ const passwordRequirements: PasswordRequirement[] = [
 
 export default function SignupPage() {
   const router = useRouter();
-  const { signup, login, isLoading } = useAuth();
+  const [otpValue, setOtpValue] = useState("");
+  const { signup, login, isLoading, sendOTP } = useAuth();
   const [error, setError] = useState<string | null>(null);
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(1); // 1: Acc/Security, 2: OTP, 3: Profile, 4: Membership, 5: Church/Legal
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
@@ -83,7 +88,37 @@ export default function SignupPage() {
     setError: setFormError,
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+      membershipCategory: "PRIMARY",
+      institutionType: "PRIMARY",
+      gender: "MALE",
+      maritalStatus: "SINGLE",
+      privacyPolicyAccepted: false,
+      termsAccepted: false,
+      state: "",
+      zone: "",
+      branch: "",
+    }
   });
+
+  // Watch fields
+  const membershipCategory = watch("membershipCategory");
+  const dateOfBirth = watch("dateOfBirth");
+  const email = watch("email");
+  const phone = watch("phone");
+
+  // Determine if minor
+  const isMinor = React.useMemo(() => {
+    if (!dateOfBirth) return false;
+    const dob = new Date(dateOfBirth);
+    const age = new Date().getFullYear() - dob.getFullYear();
+    return age < 18;
+  }, [dateOfBirth]);
 
   // Real-time password validation
   useEffect(() => {
@@ -101,7 +136,7 @@ export default function SignupPage() {
       if (name === "confirmPassword" && value.confirmPassword) {
         setConfirmPasswordValue(value.confirmPassword);
 
-        // Check if passwords match
+        // Check if passwordValue exists
         if (passwordValue) {
           setPasswordsMatch(passwordValue === value.confirmPassword);
         }
@@ -112,41 +147,81 @@ export default function SignupPage() {
   }, [watch, passwordValue, confirmPasswordValue]);
 
   const onNextStep = async () => {
-    const isValid = await trigger([
-      "firstName",
-      "lastName",
-      "email",
-      "phone",
-      "password",
-      "confirmPassword",
-    ]);
+    let fieldsToValidate: any[] = [];
+
+    if (step === 1) {
+      fieldsToValidate = ["firstName", "lastName", "phone", "password", "confirmPassword"];
+    } else if (step === 3) {
+      fieldsToValidate = ["gender", "maritalStatus", "dateOfBirth", "membershipCategory"];
+    } else if (step === 4) {
+      if (membershipCategory === "ASSOCIATE") {
+        fieldsToValidate = ["occupation", "placeOfWork"];
+      } else {
+        fieldsToValidate = ["institutionName", "institutionType", "level"];
+        if (membershipCategory === "TERTIARY") fieldsToValidate.push("course");
+      }
+    }
+
+    const isValid = fieldsToValidate.length > 0 ? await trigger(fieldsToValidate as any[]) : true;
 
     if (isValid) {
-      setIsChecking(true);
-      try {
-        const email = watch("email");
-        const phone = watch("phone");
+      if (step === 1) {
+        setIsChecking(true);
+        try {
+          const response = await authApi.checkExistence({ email, phoneNumber: phone });
 
-        const response = await authApi.checkExistence({ email, phoneNumber: phone });
-
-        if (response.data && response.data.exists) {
-          const { field, message } = response.data;
-          if (field === 'email') {
-            setFormError("email", { type: "manual", message });
-          } else if (field === 'phoneNumber') {
-            setFormError("phone", { type: "manual", message });
+          if (response.data && response.data.exists) {
+            const { field, message } = response.data;
+            if (field === 'email') {
+              setFormError("email", { type: "manual", message });
+            } else if (field === 'phoneNumber') {
+              setFormError("phone", { type: "manual", message });
+            }
+            setIsChecking(false);
+            return;
           }
-          setIsChecking(false);
-          return;
-        }
 
-        setStep(2);
-      } catch (error) {
-        console.error("Failed to check user existence", error);
-        setStep(2);
-      } finally {
-        setIsChecking(false);
+          // Send OTP
+          await sendOTP(email || phone, 'REGISTRATION');
+          setStep(2);
+        } catch (error: any) {
+          console.error("Failed to check user existence or send OTP", error);
+          setError(error.message || "Failed to proceed to next step");
+        } finally {
+          setIsChecking(false);
+        }
+      } else {
+        setStep(prev => prev + 1);
       }
+    }
+  };
+
+  const verifyAndGoToStep3 = async () => {
+    if (!otpValue || otpValue.length < 6) {
+      setError("Please enter a valid 6-digit OTP");
+      return;
+    }
+
+    try {
+      setIsChecking(true);
+      setError(null);
+
+      const response = await authApi.verifyOTP({
+        phoneNumber: phone,
+        email: email || undefined,
+        code: otpValue,
+        purpose: 'REGISTRATION'
+      });
+
+      if (response.data?.verified) {
+        setStep(3);
+      } else {
+        setError("Invalid or expired OTP");
+      }
+    } catch (err: any) {
+      setError(err.message || "OTP verification failed");
+    } finally {
+      setIsChecking(false);
     }
   };
 
@@ -154,7 +229,7 @@ export default function SignupPage() {
     try {
       setError(null);
       await signup(data);
-      await login(data.email, data.password);
+      router.push("/auth/login?registered=true&email=" + encodeURIComponent(data.email || ""));
     } catch (err: any) {
       setError(err.message || "Sign up failed. Please try again.");
     }
@@ -199,24 +274,27 @@ export default function SignupPage() {
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
           <p className="text-gray-600">
-            {step === 1 ? "Personal Details" : "Branch Selection"}
+            {step === 1 && "Account Identity"}
+            {step === 2 && "Verification"}
+            {step === 3 && "Personal Profile"}
+            {step === 4 && "Membership Details"}
+            {step === 5 && "Church & Consent"}
           </p>
         </div>
 
         {/* Steps Indicator */}
-        <div className="flex justify-center mb-6 space-x-2">
-          <div
-            className={`h-2 w-12 rounded-full transition-all duration-300 ${step === 1 ? "bg-primary scale-110" : "bg-primary/30"
-              }`}
-          />
-          <div
-            className={`h-2 w-12 rounded-full transition-all duration-300 ${step === 2 ? "bg-primary scale-110" : "bg-gray-200"
-              }`}
-          />
+        <div className="flex justify-center mb-6 space-x-1.5">
+          {[1, 2, 3, 4, 5].map((s) => (
+            <div
+              key={s}
+              className={`h-1.5 rounded-full transition-all duration-300 ${step === s ? "w-10 bg-primary" : step > s ? "w-4 bg-primary/40" : "w-4 bg-gray-200"
+                }`}
+            />
+          ))}
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-xl shadow-lg p-6 space-y-4 border border-gray-100">
+        <form onSubmit={handleSubmit(onSubmit as any)} className="bg-white rounded-xl shadow-lg p-6 space-y-4 border border-gray-100">
           {error && (
             <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm flex items-start gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -226,42 +304,72 @@ export default function SignupPage() {
 
           {step === 1 && (
             <>
-              {/* First Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  First Name
-                </label>
-                <input
-                  {...register("firstName")}
-                  type="text"
-                  placeholder="John"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                />
-                {errors.firstName && (
-                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                    <X className="w-3 h-3" />
-                    {errors.firstName.message}
-                  </p>
-                )}
+              <div className="grid grid-cols-2 gap-4">
+                {/* First Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    First Name
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      {...register("firstName")}
+                      type="text"
+                      placeholder="John"
+                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    />
+                  </div>
+                  {errors.firstName && (
+                    <p className="text-red-500 text-xs mt-1">{errors.firstName.message}</p>
+                  )}
+                </div>
+
+                {/* Last Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Last Name
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      {...register("lastName")}
+                      type="text"
+                      placeholder="Doe"
+                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    />
+                  </div>
+                  {errors.lastName && (
+                    <p className="text-red-500 text-xs mt-1">{errors.lastName.message}</p>
+                  )}
+                </div>
               </div>
 
-              {/* Last Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Last Name
-                </label>
-                <input
-                  {...register("lastName")}
-                  type="text"
-                  placeholder="Doe"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                />
-                {errors.lastName && (
-                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                    <X className="w-3 h-3" />
-                    {errors.lastName.message}
-                  </p>
-                )}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Other Names */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Other Names <span className="text-gray-400 font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    {...register("otherNames")}
+                    type="text"
+                    placeholder="Middle Name"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  />
+                </div>
+
+                {/* Preferred Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nick / Preferred
+                  </label>
+                  <input
+                    {...register("preferredName")}
+                    type="text"
+                    placeholder="Johnny"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  />
+                </div>
               </div>
 
               {/* Email */}
@@ -269,36 +377,36 @@ export default function SignupPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email Address
                 </label>
-                <input
-                  {...register("email")}
-                  type="email"
-                  placeholder="your@email.com"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                />
+                <div className="relative">
+                  <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    {...register("email")}
+                    type="email"
+                    placeholder="your@email.com"
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  />
+                </div>
                 {errors.email && (
-                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                    <X className="w-3 h-3" />
-                    {errors.email.message}
-                  </p>
+                  <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
                 )}
               </div>
 
               {/* Phone */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone Number
+                  Phone Number <span className="text-xs text-primary">(Used for Login)</span>
                 </label>
-                <input
-                  {...register("phone")}
-                  type="tel"
-                  placeholder="08135711111"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                />
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    {...register("phone")}
+                    type="tel"
+                    placeholder="08135711111"
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  />
+                </div>
                 {errors.phone && (
-                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                    <X className="w-3 h-3" />
-                    {errors.phone.message}
-                  </p>
+                  <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
                 )}
               </div>
 
@@ -465,103 +573,358 @@ export default function SignupPage() {
           )}
 
           {step === 2 && (
-            <>
-              {/* State Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  State
-                </label>
-                <select
-                  {...register("state")}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white transition-all"
-                >
-                  <option value="">Select State</option>
-                  {NIGERIAN_STATES.map((state) => (
-                    <option key={state} value={state}>
-                      {state}
-                    </option>
-                  ))}
-                </select>
-                {errors.state && (
-                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                    <X className="w-3 h-3" />
-                    {errors.state.message}
-                  </p>
-                )}
+            <div className="space-y-6">
+              <div className="text-center">
+                <ShieldCheck className="w-12 h-12 text-primary mx-auto mb-3" />
+                <h3 className="text-xl font-bold text-gray-900">Verify Your Identity</h3>
+                <p className="text-gray-600 text-sm">
+                  We've sent a 6-digit code to {watch("email") || watch("phone")}.
+                </p>
               </div>
 
-              {/* Zone Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Zone / Area
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Enter 6-digit OTP
                 </label>
                 <input
-                  {...register("zone")}
                   type="text"
-                  placeholder="Enter Zone or Area"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  value={otpValue}
+                  onChange={(e) => setOtpValue(e.target.value)}
+                  maxLength={6}
+                  placeholder="000000"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent tracking-[0.5em] font-mono text-center text-xl"
                 />
-                {errors.zone && (
-                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                    <X className="w-3 h-3" />
-                    {errors.zone.message}
-                  </p>
-                )}
               </div>
 
-              {/* Branch Input (Optional) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Branch (Optional)
-                </label>
-                <input
-                  {...register("branch")}
-                  type="text"
-                  placeholder="Enter Branch Name (Optional)"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                />
-                {errors.branch && (
-                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                    <X className="w-3 h-3" />
-                    {errors.branch.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Terms */}
-              <label className="flex items-start text-sm mt-4 cursor-pointer group">
-                <input type="checkbox" className="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary transition-all" required />
-                <span className="ml-2 text-gray-600 group-hover:text-gray-900 transition-colors">
-                  I agree to the{" "}
-                  <Link href="#" className="text-primary hover:underline font-medium">
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                  <Link href="#" className="text-primary hover:underline font-medium">
-                    Privacy Policy
-                  </Link>
-                </span>
-              </label>
-
-              <div className="pt-4 flex gap-4">
+              <div className="flex gap-4">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="w-1/3 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all disabled:opacity-50 shadow-sm hover:shadow"
-                  disabled={isLoading}
+                  className="w-1/3 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all font-medium"
+                >
+                  Edit details
+                </button>
+                <button
+                  type="button"
+                  onClick={verifyAndGoToStep3}
+                  disabled={isChecking || otpValue.length < 6}
+                  className="flex-1 bg-primary text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md"
+                >
+                  {isChecking && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Verify Code
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Gender */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-2">
+                    <User className="w-4 h-4 text-blue-500" />
+                    Gender
+                  </label>
+                  <select
+                    {...register("gender")}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white transition-all shadow-sm"
+                  >
+                    <option value="MALE">Male</option>
+                    <option value="FEMALE">Female</option>
+                  </select>
+                </div>
+
+                {/* Marital Status */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-2">
+                    <Heart className="w-4 h-4 text-pink-500" />
+                    Marital Status
+                  </label>
+                  <select
+                    {...register("maritalStatus")}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white transition-all shadow-sm"
+                  >
+                    <option value="SINGLE">Single</option>
+                    <option value="MARRIED">Married</option>
+                    <option value="DIVORCED">Divorced</option>
+                    <option value="WIDOWED">Widowed</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Date of Birth */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-2">
+                  <ChevronRight className="w-4 h-4 text-emerald-500" />
+                  Date of Birth
+                </label>
+                <input
+                  {...register("dateOfBirth")}
+                  type="date"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                />
+              </div>
+
+              {/* Membership Category */}
+              <div className="pt-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
+                  Membership Category
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {["PRIMARY", "SECONDARY", "TERTIARY", "ASSOCIATE"].map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setValue("membershipCategory", cat as any)}
+                      className={`px-3 py-2.5 border rounded-lg text-xs font-bold transition-all ${membershipCategory === cat
+                        ? "bg-primary text-white border-primary shadow-md scale-[1.02]"
+                        : "bg-gray-50 text-gray-600 border-gray-200 hover:border-primary/50"
+                        }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+                {errors.membershipCategory && (
+                  <p className="text-red-500 text-xs mt-1">{errors.membershipCategory.message}</p>
+                )}
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="w-1/3 bg-gray-50 text-gray-600 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all border border-gray-200"
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={onNextStep}
+                  className="flex-1 bg-primary text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-all shadow-md flex items-center justify-center gap-2 transform active:scale-95"
+                >
+                  Next Details
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
+              {membershipCategory === "ASSOCIATE" ? (
+                <div className="space-y-5">
+                  <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100/50">
+                    <p className="text-blue-800 text-[10px] font-bold uppercase tracking-wider mb-1">Associate / Senior Friend</p>
+                    <p className="text-blue-600 text-xs">Please provide your professional background.</p>
+                  </div>
+                  {/* Occupation */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-blue-500" />
+                      Occupation
+                    </label>
+                    <input
+                      {...register("occupation")}
+                      type="text"
+                      placeholder="e.g. Software Engineer"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                    />
+                  </div>
+                  {/* Place of Work */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-blue-500" />
+                      Place of Work
+                    </label>
+                    <input
+                      {...register("placeOfWork")}
+                      type="text"
+                      placeholder="e.g. Google Nigeria"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  <div className="p-4 bg-purple-50/50 rounded-xl border border-purple-100/50">
+                    <p className="text-purple-800 text-[10px] font-bold uppercase tracking-wider mb-1">Academic Profile</p>
+                    <p className="text-purple-600 text-xs">Tell us about your current institution.</p>
+                  </div>
+
+                  {/* Institution Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-2">
+                      <GraduationCap className="w-4 h-4 text-purple-600" />
+                      Institution Name
+                    </label>
+                    <input
+                      {...register("institutionName")}
+                      type="text"
+                      placeholder="e.g. University of Lagos"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Institution Type */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Inst. Type</label>
+                      <select
+                        {...register("institutionType")}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white shadow-sm"
+                      >
+                        <option value="PRIMARY">Primary</option>
+                        <option value="SECONDARY">Secondary</option>
+                        <option value="TERTIARY">Tertiary</option>
+                      </select>
+                    </div>
+                    {/* Level */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Class / Level</label>
+                      <input
+                        {...register("level")}
+                        type="text"
+                        placeholder="e.g. 300L / SS3"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {membershipCategory === "TERTIARY" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Course of Study</label>
+                      <input
+                        {...register("course")}
+                        type="text"
+                        placeholder="e.g. Computer Science"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setStep(3)}
+                  className="w-1/3 bg-gray-50 text-gray-600 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all border border-gray-200"
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={onNextStep}
+                  className="flex-1 bg-primary text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-all shadow-md flex items-center justify-center gap-2 transform active:scale-95"
+                >
+                  Last Step
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 5 && (
+            <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
+              <div className="space-y-4 p-5 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                  <MapPin className="w-3.5 h-3.5" />
+                  FCS Placement
+                </p>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">State</label>
+                    <select
+                      {...register("state")}
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="">Select State</option>
+                      {NIGERIAN_STATES.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Zone / Area</label>
+                    <input
+                      {...register("zone")}
+                      placeholder="Zone 1"
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">FCS Branch</label>
+                  <input
+                    {...register("branch")}
+                    placeholder="e.g. UNILAG Branch"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+
+              {isMinor && (
+                <div className="space-y-4 p-5 bg-amber-50 rounded-2xl border border-amber-100 shadow-sm animate-in zoom-in-95 duration-300">
+                  <div className="flex items-center gap-2 mb-1">
+                    <ShieldCheck className="w-4 h-4 text-amber-600" />
+                    <p className="text-amber-800 text-[10px] font-bold uppercase tracking-wider">Guardian (Minor Profile)</p>
+                  </div>
+                  <input
+                    {...register("guardianName")}
+                    placeholder="Guardian Full Name"
+                    className="w-full px-3 py-2.5 border border-amber-200 rounded-xl text-sm bg-white/80 focus:ring-2 focus:ring-amber-500/20"
+                  />
+                  <input
+                    {...register("guardianPhone")}
+                    placeholder="Guardian Phone"
+                    className="w-full px-3 py-2.5 border border-amber-200 rounded-xl text-sm bg-white/80 focus:ring-2 focus:ring-amber-500/20"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-3 pt-2">
+                <div className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer group">
+                  <input
+                    {...register("privacyPolicyAccepted")}
+                    type="checkbox"
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <p className="text-[11px] text-gray-500 leading-normal group-hover:text-gray-700">
+                    I agree to the <Link href="/privacy" className="text-primary hover:underline font-semibold">Privacy Policy</Link> and data processing terms.
+                  </p>
+                </div>
+                <div className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer group">
+                  <input
+                    {...register("termsAccepted")}
+                    type="checkbox"
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <p className="text-[11px] text-gray-500 leading-normal group-hover:text-gray-700">
+                    I accept the <Link href="/terms" className="text-primary hover:underline font-semibold">Terms of Service</Link> and code of conduct.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setStep(4)}
+                  className="w-1/3 bg-gray-50 text-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-all border border-gray-200"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-2/3 bg-primary text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-xl font-bold hover:brightness-110 transition-all shadow-xl shadow-blue-200/50 flex items-center justify-center gap-2 transform active:scale-95"
                 >
-                  {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Create Account
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Finish Signup"}
                 </button>
               </div>
-            </>
+            </div>
           )}
         </form>
 

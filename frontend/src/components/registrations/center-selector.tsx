@@ -8,9 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Search, Users, AlertCircle, Filter, CheckCircle2, Navigation } from 'lucide-react';
 import { EventCenter } from '@/types/api';
-import { CapacityIndicator } from '../ui/capacity-indicator';
 import { centersApi } from '@/lib/api/centers';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 interface CenterSelectorProps {
@@ -73,10 +71,7 @@ export function CenterSelector({ eventId, selectedCenterId, onSelect, error }: C
         return matchesSearch && matchesState && center.isActive;
     });
 
-    const isCenterFull = (center: EventCenter) => {
-        if (!center.capacity) return false;
-        return false;
-    };
+
 
     if (loading) {
         return (
@@ -134,22 +129,18 @@ export function CenterSelector({ eventId, selectedCenterId, onSelect, error }: C
                 ) : (
                     filteredCenters.map(center => {
                         const isSelected = selectedCenterId === center.id;
-                        const isFull = isCenterFull(center);
                         const currentRegistrations = 0;
 
                         return (
                             <button
                                 key={center.id}
                                 type="button"
-                                onClick={() => !isFull && onSelect(center.id, center.centerName)}
-                                disabled={isFull}
+                                onClick={() => onSelect(center.id, center.centerName)}
                                 className="group text-left outline-none"
                             >
                                 <div className={`p-6 rounded-[32px] border-2 transition-all duration-300 relative overflow-hidden h-full flex flex-col ${isSelected
-                                        ? 'border-[#060CCD] bg-white shadow-[0_20px_40px_-10px_rgba(6,12,205,0.1)] scale-[1.01]'
-                                        : isFull
-                                            ? 'border-slate-100 bg-slate-50 opacity-40 cursor-not-allowed'
-                                            : 'border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-200 hover:shadow-lg'
+                                    ? 'border-[#060CCD] bg-white shadow-[0_20px_40px_-10px_rgba(6,12,205,0.1)] scale-[1.01]'
+                                    : 'border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-200 hover:shadow-lg'
                                     }`}>
                                     {isSelected && (
                                         <div className="absolute top-4 right-4">
@@ -176,29 +167,7 @@ export function CenterSelector({ eventId, selectedCenterId, onSelect, error }: C
                                         </p>
                                     </div>
 
-                                    {center.capacity && (
-                                        <div className="mt-6 pt-4 border-t border-slate-100/50">
-                                            <div className="flex justify-between items-center mb-2 px-1">
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                                                    <Users size={10} /> Network Capacity
-                                                </span>
-                                                <span className="text-[9px] font-black text-slate-500">{currentRegistrations}/{center.capacity}</span>
-                                            </div>
-                                            <CapacityIndicator
-                                                current={currentRegistrations}
-                                                max={center.capacity}
-                                                size="sm"
-                                            />
-                                        </div>
-                                    )}
 
-                                    {isFull && (
-                                        <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center p-4">
-                                            <Badge className="bg-red-500 text-white border-none font-black uppercase text-[10px] tracking-widest py-1.5 px-4 shadow-lg shadow-red-200">
-                                                Precinct Full
-                                            </Badge>
-                                        </div>
-                                    )}
                                 </div>
                             </button>
                         );

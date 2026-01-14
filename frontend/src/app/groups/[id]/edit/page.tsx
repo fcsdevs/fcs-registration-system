@@ -26,7 +26,6 @@ export default function EditGroupPage() {
         name: "",
         type: "BIBLE_STUDY" as string,
         description: "",
-        capacity: "",
         eventName: "",
     });
 
@@ -40,7 +39,6 @@ export default function EditGroupPage() {
                         name: group.name || "",
                         type: group.type || "BIBLE_STUDY",
                         description: group.description || "",
-                        capacity: group.capacity ? group.capacity.toString() : "",
                         eventName: group.event?.title || "Unknown Event",
                     });
                 }
@@ -63,7 +61,6 @@ export default function EditGroupPage() {
             await api.put(`/groups/${groupId}`, {
                 name: formData.name,
                 description: formData.description || undefined,
-                capacity: formData.capacity ? parseInt(formData.capacity) : undefined,
             });
             router.push(`/groups/${groupId}`);
         } catch (err: any) {
@@ -131,7 +128,7 @@ export default function EditGroupPage() {
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 gap-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Group Type (Cannot be changed)
@@ -147,20 +144,6 @@ export default function EditGroupPage() {
                                         </option>
                                     ))}
                                 </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Capacity
-                                </label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={formData.capacity}
-                                    onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="Maximum members"
-                                />
                             </div>
                         </div>
 

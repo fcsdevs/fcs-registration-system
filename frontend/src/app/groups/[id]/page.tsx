@@ -32,7 +32,7 @@ interface GroupDetails {
     name: string;
     description: string;
     type: string;
-    capacity?: number;
+
     memberCount: number;
     event: {
         id: string;
@@ -189,32 +189,7 @@ export default function GroupDetailsPage() {
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-lg shadow p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-600">Capacity</p>
-                                    <p className="text-3xl font-bold text-gray-900 mt-1">
-                                        {group.capacity ? group.capacity : '∞'}
-                                    </p>
-                                </div>
-                                <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
-                                    <span className="text-xs font-bold text-gray-600">%</span>
-                                </div>
-                            </div>
-                            {group.capacity && (
-                                <div className="mt-4">
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
-                                        <div
-                                            className={`h-2 rounded-full ${members.length >= group.capacity ? 'bg-red-500' : 'bg-green-500'}`}
-                                            style={{ width: `${Math.min((members.length / group.capacity) * 100, 100)}%` }}
-                                        ></div>
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        {Math.round((members.length / group.capacity) * 100)}% Full
-                                    </p>
-                                </div>
-                            )}
-                        </div>
+
 
                         {/* Can add more stats here */}
                     </div>

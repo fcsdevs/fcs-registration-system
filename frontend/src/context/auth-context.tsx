@@ -20,6 +20,8 @@ interface AuthContextType {
   refreshToken: () => Promise<void>;
   forgotPassword: (emailOrCode: string) => Promise<void>;
   resetPassword: (emailOrCode: string, otp: string, password: string) => Promise<void>;
+  sendOTP: (emailOrPhone: string, purpose?: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -137,11 +139,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Map frontend form fields to backend API fields
       const payload = {
         phoneNumber,
-        email: data.email,
+        email: data.email || null,
         password: data.password,
         confirmPassword: data.confirmPassword,
         firstName: data.firstName,
         lastName: data.lastName,
+        otherNames: data.otherNames,
+        preferredName: data.preferredName,
+        whatsappNumber: data.whatsappNumber,
+        gender: data.gender,
+        dateOfBirth: data.dateOfBirth,
+        maritalStatus: data.maritalStatus,
+        occupation: data.occupation,
+        placeOfWork: data.placeOfWork,
+        institutionName: data.institutionName,
+        institutionType: data.institutionType,
+        level: data.level,
+        course: data.course,
+        graduationYear: data.graduationYear,
+        membershipCategory: data.membershipCategory,
+        yearJoined: data.yearJoined,
+        state: data.state,
+        zone: data.zone,
+        branch: data.branch,
+        branchId: data.branchId,
+        preferredContactMethod: data.preferredContactMethod,
+        emergencyContactName: data.emergencyContactName,
+        emergencyContactPhone: data.emergencyContactPhone,
+        ageBracket: data.ageBracket,
+        guardianName: data.guardianName,
+        guardianPhone: data.guardianPhone,
+        guardianEmail: data.guardianEmail,
+        guardianRelationship: data.guardianRelationship,
+        privacyPolicyAccepted: data.privacyPolicyAccepted,
+        termsAccepted: data.termsAccepted,
       };
 
       await api.post<any>("/auth/register", payload);
@@ -195,7 +226,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const forgotPassword = async (emailOrCode: string) => {
     setIsLoading(true);
     try {
-      await api.post("/auth/forgot-password", { identifier: emailOrCode });
+      // Determine if it's email or phone (simplified)
+      const isEmail = emailOrCode.includes('@');
+      const payload = isEmail
+        ? { email: emailOrCode, purpose: 'PASSWORD_RESET' }
+        : { phoneNumber: emailOrCode, purpose: 'PASSWORD_RESET' };
+
+      await api.post("/auth/send-otp", payload);
     } catch (error: any) {
       throw new Error(error.message || "Failed to send reset instructions");
     } finally {
@@ -206,17 +243,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resetPassword = async (emailOrCode: string, otp: string, password: string) => {
     setIsLoading(true);
     try {
-      await api.post("/auth/reset-password", {
-        identifier: emailOrCode,
-        otp,
-        password
-      });
+      const isEmail = emailOrCode.includes('@');
+      const payload = {
+        ...(isEmail ? { email: emailOrCode } : { phoneNumber: emailOrCode }),
+        code: otp,
+        newPassword: password,
+        confirmPassword: password
+      };
+
+      await api.post("/auth/reset-password", payload);
     } catch (error: any) {
       throw new Error(error.message || "Failed to reset password");
     } finally {
       setIsLoading(false);
     }
   };
+
+  const sendOTP = async (emailOrPhone: string, purpose: string = 'REGISTRATION') => {
+    setIsLoading(true);
+    try {
+      const isEmail = emailOrPhone.includes('@');
+      const payload = isEmail
+        ? { email: emailOrPhone, purpose }
+        : { phoneNumber: emailOrPhone, purpose };
+
+      await api.post("/auth/send-otp", payload);
+    } catch (error: any) {
+      throw new Error(error.message || "Failed to send OTP");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    setIsLoading(true);
+    try {
+      await api.post("/auth/change-password", {
+        currentPassword,
+        newPassword,
+        confirmPassword: newPassword
+      });
+    } catch (error: any) {
+      throw new Error(error.message || "Failed to change password");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <AuthContext.Provider
@@ -230,6 +303,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         refreshToken,
         forgotPassword,
         resetPassword,
+        sendOTP,
+        changePassword,
       }}
     >
       {children}

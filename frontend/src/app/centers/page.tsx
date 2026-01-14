@@ -116,17 +116,7 @@ export default function CentersPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Capacity</p>
-                  <p className="text-3xl font-bold text-purple-600 mt-1">
-                    {centers.reduce((sum, c) => sum + (c.capacity || 0), 0)}
-                  </p>
-                </div>
-                <Users className="w-8 h-8 text-purple-600" />
-              </div>
-            </div>
+
           </div>
 
           {/* Search */}
@@ -188,12 +178,7 @@ export default function CentersPage() {
                               {typeof center.state === 'object' ? center.state?.name : (center.state || "Unknown")}
                             </span>
                           </div>
-                          {center.capacity && (
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <Users className="w-4 h-4" />
-                              <span>Capacity: {center.capacity}</span>
-                            </div>
-                          )}
+
                         </div>
 
                         <div className="flex items-center gap-3 pt-4 border-t border-gray-100">

@@ -5,7 +5,9 @@
 
 import { ApiResponse, PaginatedResponse } from "@/types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://fcs-registration-backend.onrender.com/api";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === 'development' ? "http://localhost:3005/api" : "https://fcs-registration-backend.onrender.com/api");
 
 export interface ApiClientConfig {
   timeout?: number;
@@ -48,7 +50,16 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    const headers = this.getHeaders();
+    const defaultHeaders = this.getHeaders();
+    const mergedHeaders: Record<string, string> = {
+      ...defaultHeaders,
+      ...(options.headers as Record<string, string>),
+    };
+
+    // If Content-Type is empty string, it's a marker to let the browser set it (for FormData)
+    if (mergedHeaders["Content-Type"] === "") {
+      delete mergedHeaders["Content-Type"];
+    }
 
     let lastError: Error | null = null;
 
@@ -62,10 +73,7 @@ class ApiClient {
 
         const response = await fetch(url, {
           ...options,
-          headers: {
-            ...headers,
-            ...options.headers,
-          },
+          headers: mergedHeaders,
           signal: controller.signal,
         });
 
@@ -145,23 +153,29 @@ class ApiClient {
   }
 
   async post<T>(endpoint: string, data?: any): Promise<T> {
+    const isFormData = data instanceof FormData;
     return this.request<T>(endpoint, {
       method: "POST",
-      body: data ? JSON.stringify(data) : undefined,
+      body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
+      headers: isFormData ? { "Content-Type": "" } : undefined, // Marker to remove
     });
   }
 
   async put<T>(endpoint: string, data?: any): Promise<T> {
+    const isFormData = data instanceof FormData;
     return this.request<T>(endpoint, {
       method: "PUT",
-      body: data ? JSON.stringify(data) : undefined,
+      body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
+      headers: isFormData ? { "Content-Type": "" } : undefined, // Marker to remove
     });
   }
 
   async patch<T>(endpoint: string, data?: any): Promise<T> {
+    const isFormData = data instanceof FormData;
     return this.request<T>(endpoint, {
       method: "PATCH",
-      body: data ? JSON.stringify(data) : undefined,
+      body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
+      headers: isFormData ? { "Content-Type": "" } : undefined, // Marker to remove
     });
   }
 

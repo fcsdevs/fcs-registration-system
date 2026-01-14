@@ -151,8 +151,6 @@ export default function PublicEventRegistrationPage() {
 
             if (error.status === 409 || error.message?.toLowerCase().includes('already registered') || error.message?.toLowerCase().includes('conflict')) {
                 userMessage = 'Identity Match Detected: Our secure registry indicates you are already enrolled for this event. Please retrieve your existing digital credentials from your inbox.';
-            } else if (error.status === 400 && error.message?.toLowerCase().includes('capacity')) {
-                userMessage = 'Logistical Limit Reached: This specific precinct has reached its maximum physical capacity. Please consider selecting an alternate center or Virtual Engagement.';
             }
 
             setErrors({ submit: userMessage });
@@ -187,7 +185,7 @@ export default function PublicEventRegistrationPage() {
                         <Scan className="h-10 w-10" />
                     </div>
                     <h2 className="text-2xl font-black text-[#0F172A] mb-2 uppercase tracking-tight">Session Expired</h2>
-                    <p className="text-slate-500 font-medium text-sm mb-8">This registration link is no longer active or the event has reached its maximum capacity.</p>
+                    <p className="text-slate-500 font-medium text-sm mb-8">This registration link is no longer active.</p>
                     <Button asChild className="w-full h-14 rounded-2xl bg-[#060CCD] hover:bg-[#010030] font-bold">
                         <Link href="/events">Explore Other Events</Link>
                     </Button>

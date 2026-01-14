@@ -38,11 +38,40 @@ export interface PaginationParams {
 
 export interface RegisterRequest {
   phoneNumber: string;
-  email?: string;
+  email?: string | null;
   password: string;
   confirmPassword: string;
   firstName: string;
   lastName: string;
+  otherNames?: string | null;
+  preferredName?: string | null;
+  whatsappNumber?: string | null;
+  gender?: string | null;
+  dateOfBirth?: string | null;
+  maritalStatus?: string | null;
+  occupation?: string | null;
+  placeOfWork?: string | null;
+  institutionName?: string | null;
+  institutionType?: string | null;
+  level?: string | null;
+  course?: string | null;
+  graduationYear?: string | number | null;
+  membershipCategory: string;
+  yearJoined?: string | number | null;
+  state?: string | null;
+  zone?: string | null;
+  branch?: string | null;
+  branchId?: string | null;
+  preferredContactMethod?: string | null;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  ageBracket?: string | null;
+  guardianName?: string | null;
+  guardianPhone?: string | null;
+  guardianEmail?: string | null;
+  guardianRelationship?: string | null;
+  privacyPolicyAccepted: boolean;
+  termsAccepted: boolean;
 }
 
 export interface LoginRequest {
@@ -63,8 +92,9 @@ export interface LoginResponse {
 }
 
 export interface SendOTPRequest {
-  phoneNumber: string;
-  purpose: 'EMAIL_VERIFICATION' | 'PHONE_VERIFICATION' | 'PASSWORD_RESET';
+  phoneNumber?: string;
+  email?: string;
+  purpose: 'EMAIL_VERIFICATION' | 'PHONE_VERIFICATION' | 'PASSWORD_RESET' | 'REGISTRATION';
 }
 
 export interface ForgotPasswordRequest {
@@ -72,14 +102,18 @@ export interface ForgotPasswordRequest {
 }
 
 export interface ResetPasswordRequest {
-  identifier: string;
-  otp: string;
-  password: string;
+  email?: string;
+  phoneNumber?: string;
+  code: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
 export interface VerifyOTPRequest {
-  phoneNumber: string;
+  phoneNumber?: string;
+  email?: string;
   code: string;
+  purpose?: string;
 }
 
 export interface CurrentUser {
@@ -134,13 +168,35 @@ export interface CreateMemberRequest {
 export interface UpdateMemberRequest {
   firstName?: string;
   lastName?: string;
+  otherNames?: string | null;
+  preferredName?: string | null;
   email?: string;
   phoneNumber?: string;
+  whatsappNumber?: string | null;
   dateOfBirth?: string;
   gender?: 'MALE' | 'FEMALE' | 'OTHER';
   maritalStatus?: 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED';
-  occupation?: string;
-  state?: string;
+  occupation?: string | null;
+  placeOfWork?: string | null;
+  institutionName?: string | null;
+  institutionType?: 'PRIMARY' | 'SECONDARY' | 'TERTIARY' | null;
+  level?: string | null;
+  course?: string | null;
+  graduationYear?: number | null;
+  membershipCategory?: 'PRIMARY' | 'SECONDARY' | 'TERTIARY' | 'ASSOCIATE';
+  yearJoined?: number | null;
+  state?: string | null;
+  zone?: string | null;
+  branch?: string | null;
+  branchId?: string | null;
+  preferredContactMethod?: 'SMS' | 'EMAIL' | 'WHATSAPP' | null;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  ageBracket?: string | null;
+  guardianName?: string | null;
+  guardianPhone?: string | null;
+  guardianEmail?: string | null;
+  guardianRelationship?: string | null;
   profilePhotoUrl?: string;
 }
 
@@ -194,7 +250,7 @@ export interface Event {
   registrationEnd: string;
   participationMode: 'ONLINE' | 'ONSITE' | 'HYBRID';
   isPublished: boolean;
-  capacity?: number;
+  imageUrl?: string;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
@@ -215,7 +271,7 @@ export interface CreateEventRequest {
   registrationStart: string;
   registrationEnd: string;
   participationMode: 'ONLINE' | 'ONSITE' | 'HYBRID';
-  capacity?: number;
+  imageUrl?: string;
 }
 
 export interface UpdateEventRequest {
@@ -226,7 +282,7 @@ export interface UpdateEventRequest {
   registrationStart?: string;
   registrationEnd?: string;
   participationMode?: 'ONLINE' | 'ONSITE' | 'HYBRID';
-  capacity?: number;
+  imageUrl?: string;
 }
 
 export interface EventSettings {
@@ -270,10 +326,8 @@ export interface EventStatistics {
     centerId: string;
     name: string;
     state: string;
-    capacity: number;
     registrations: number;
     attendance: number;
-    utilizationRate: number;
   }>;
 }
 
@@ -299,7 +353,6 @@ export interface EventCenter {
     name: string;
   };
   address: string;
-  capacity?: number;
   isActive: boolean;
   createdBy: string;
   createdAt: string;
@@ -321,13 +374,11 @@ export interface CreateCenterRequest {
   country?: string;
   stateId?: string;
   address: string;
-  capacity?: number;
 }
 
 export interface UpdateCenterRequest {
   centerName?: string;
   address?: string;
-  capacity?: number;
 }
 
 export interface CenterStatistics {
@@ -335,7 +386,6 @@ export interface CenterStatistics {
     id: string;
     name: string;
     state: string;
-    capacity: number;
   };
   event: {
     id: string;
@@ -345,8 +395,6 @@ export interface CenterStatistics {
     totalRegistrations: number;
     totalAttendance: number;
     attendanceRate: number;
-    capacityUtilization: number;
-    spotsAvailable: number;
   };
   registrationsByMode: Array<{
     mode: string;
@@ -565,12 +613,10 @@ export interface EventGroup {
   name: string;
   type: 'BIBLE_STUDY' | 'WORKSHOP' | 'BREAKOUT';
   description?: string;
-  capacity?: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
   memberCount?: number;
-  spotsAvailable?: number;
 }
 
 export interface CreateGroupRequest {
@@ -578,13 +624,11 @@ export interface CreateGroupRequest {
   name: string;
   type: 'BIBLE_STUDY' | 'WORKSHOP' | 'BREAKOUT';
   description?: string;
-  capacity?: number;
 }
 
 export interface UpdateGroupRequest {
   name?: string;
   description?: string;
-  capacity?: number;
 }
 
 export interface GroupMember {
@@ -631,7 +675,6 @@ export interface GroupStatistics {
     totalMembers: number;
     totalAttendance: number;
     attendanceRate: number;
-    capacityUtilization: number;
   };
   attendanceByMode: Array<{
     mode: string;

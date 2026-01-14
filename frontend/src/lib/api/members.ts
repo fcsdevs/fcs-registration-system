@@ -20,7 +20,7 @@ export const membersApi = {
    * POST /api/members
    * Create a new member
    */
-  create: async (data: CreateMemberRequest): Promise<ApiResponse<Member>> => {
+  create: async (data: CreateMemberRequest | FormData): Promise<ApiResponse<Member>> => {
     return api.post('/members', data);
   },
 
@@ -74,7 +74,7 @@ export const membersApi = {
    * PUT /api/members/profile
    * Update own profile
    */
-  updateProfile: async (data: UpdateMemberRequest): Promise<ApiResponse<Member>> => {
+  updateProfile: async (data: UpdateMemberRequest | FormData): Promise<ApiResponse<Member>> => {
     return api.put('/members/profile', data);
   },
 
@@ -82,7 +82,7 @@ export const membersApi = {
    * PUT /api/members/:id
    * Update member
    */
-  update: async (id: string, data: UpdateMemberRequest): Promise<ApiResponse<Member>> => {
+  update: async (id: string, data: UpdateMemberRequest | FormData): Promise<ApiResponse<Member>> => {
     return api.put(`/members/${id}`, data);
   },
 

@@ -131,9 +131,9 @@ export default function HomePage() {
       endDate: event.endDate ? new Date(event.endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : undefined,
       location: event.location || 'Location TBD',
       registrations: event._count?.registrations || 0,
-      capacity: event.capacity || 0,
       participationMode: event.participationMode || 'HYBRID' as const,
       status: isPast ? 'completed' as const : (event.isPublished ? 'active' as const : 'draft' as const),
+      imageUrl: event.imageUrl,
     };
   });
 
@@ -251,17 +251,7 @@ export default function HomePage() {
 
               {/* Quick Stats */}
               <div className="space-y-4">
-                <div className="card">
-                  <p className="text-sm mb-1" style={{ color: "var(--color-text-tertiary)" }}>
-                    Total Capacity
-                  </p>
-                  <p className="text-3xl font-bold" style={{ color: "var(--color-text-primary)" }}>
-                    {recentSession.capacity?.toLocaleString() || "N/A"}
-                  </p>
-                  <p className="text-xs mt-2" style={{ color: "var(--color-text-secondary)" }}>
-                    Available across all centers
-                  </p>
-                </div>
+
 
                 <div className="card">
                   <p className="text-sm mb-1" style={{ color: "var(--color-text-tertiary)" }}>
