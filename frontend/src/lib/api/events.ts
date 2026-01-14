@@ -20,7 +20,7 @@ export const eventsApi = {
    * POST /api/events
    * Create a new event
    */
-  create: async (data: CreateEventRequest): Promise<ApiResponse<Event>> => {
+  create: async (data: CreateEventRequest | FormData): Promise<ApiResponse<Event>> => {
     return api.post('/events', data);
   },
 
@@ -53,7 +53,7 @@ export const eventsApi = {
    * PUT /api/events/:id
    * Update event
    */
-  update: async (id: string, data: UpdateEventRequest): Promise<ApiResponse<Event>> => {
+  update: async (id: string, data: UpdateEventRequest | FormData): Promise<ApiResponse<Event>> => {
     return api.put(`/events/${id}`, data);
   },
 

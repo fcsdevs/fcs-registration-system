@@ -70,9 +70,9 @@ interface EventCardProps {
   endDate?: string;
   location: string;
   registrations: number;
-  capacity: number;
   participationMode: "ONLINE" | "ON_SITE" | "HYBRID";
   status: "draft" | "published" | "active" | "completed";
+  imageUrl?: string;
 }
 
 export function EventCard({
@@ -81,9 +81,9 @@ export function EventCard({
   endDate,
   location,
   registrations,
-  capacity,
   participationMode,
   status,
+  imageUrl,
 }: EventCardProps) {
   // FCS Design System v2.1 - Participation Mode Colors
   const modeClasses = {
@@ -99,60 +99,70 @@ export function EventCard({
     completed: "bg-[#F1F5F9] text-[#334155]",
   };
 
-  const capacityPercent = (registrations / capacity) * 100;
+
 
   return (
-    <div className="bg-white rounded-lg border border-[#CBD5E1] shadow-sm p-6 space-y-4 hover:shadow-md transition-shadow">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-[#0F172A] mb-1 leading-tight">{title}</h3>
-          <div className="flex items-center gap-2 text-sm text-[#475569]">
-            <Calendar className="w-4 h-4" />
-            <span>
-              {date}
-              {endDate && endDate !== date && (
-                <>
-                  <span className="mx-1.5 text-[#94A3B8]">—</span>
-                  {endDate}
-                </>
-              )}
+    <div className="bg-white rounded-lg border border-[#CBD5E1] shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+      {/* Event Image */}
+      <div className="h-48 w-full bg-[#F1F5F9] relative overflow-hidden">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={title}
+            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-[#94A3B8]">
+            <Calendar size={48} className="mb-2 opacity-20" />
+            <span className="text-xs font-bold uppercase tracking-widest opacity-40">No Image Preview</span>
+          </div>
+        )}
+        <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest shadow-lg ${statusClasses[status]}`}>
+          {status}
+        </div>
+      </div>
+
+      <div className="p-6 space-y-4">
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-[#0F172A] mb-1 leading-tight group-hover:text-[#060CCD] transition-colors">{title}</h3>
+            <div className="flex items-center gap-2 text-xs font-medium text-[#64748B]">
+              <Calendar className="w-4 h-4 text-[#060CCD]" />
+              <span>
+                {date}
+                {endDate && endDate !== date && (
+                  <>
+                    <span className="mx-1.5 text-[#CBD5E1]">—</span>
+                    {endDate}
+                  </>
+                )}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Details */}
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-[#475569]">Location</p>
+            <p className="font-medium text-[#0F172A]">{location}</p>
+          </div>
+          <div>
+            <p className="text-[#475569]">Mode</p>
+            <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${modeClasses[participationMode]}`}>
+              {participationMode === "ONLINE" ? "Online" : participationMode === "ON_SITE" ? "On-Site" : "Hybrid"}
             </span>
           </div>
         </div>
-        <div className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 ${statusClasses[status]}`}>
-          {status.charAt(0).toUpperCase() + status.slice(1)}
-        </div>
-      </div>
 
-      {/* Details */}
-      <div className="grid grid-cols-2 gap-4 text-sm">
-        <div>
-          <p className="text-[#475569]">Location</p>
-          <p className="font-medium text-[#0F172A]">{location}</p>
-        </div>
-        <div>
-          <p className="text-[#475569]">Mode</p>
-          <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${modeClasses[participationMode]}`}>
-            {participationMode === "ONLINE" ? "Online" : participationMode === "ON_SITE" ? "On-Site" : "Hybrid"}
-          </span>
-        </div>
-      </div>
-
-      {/* Capacity Bar */}
-      <div>
-        <div className="flex justify-between items-center mb-2">
-          <p className="text-sm font-medium text-[#334155]">Registrations</p>
-          <p className="text-sm text-[#475569]">
-            {registrations} / {capacity}
-          </p>
-        </div>
-        <div className="w-full bg-[#E2E8F0] rounded-full h-2">
-          <div
-            className={`h-2 rounded-full transition-all ${capacityPercent > 90 ? "bg-[#B91C1C]" : capacityPercent > 70 ? "bg-[#D97706]" : "bg-[#1F7A63]"
-              }`}
-            style={{ width: `${Math.min(capacityPercent, 100)}%` }}
-          />
+        {/* Registrations */}
+        <div className="flex justify-between items-center bg-[#F8FAFC] p-3 rounded-lg border border-[#E2E8F0]">
+          <p className="text-sm font-semibold text-[#334155]">Total Registrations</p>
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-[#1F7A63]" />
+            <span className="text-sm font-bold text-[#1F7A63]">{registrations.toLocaleString()}</span>
+          </div>
         </div>
       </div>
     </div>

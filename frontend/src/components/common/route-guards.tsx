@@ -22,6 +22,12 @@ export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps)
   const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
 
+  React.useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push("/auth/login");
+    }
+  }, [isLoading, isAuthenticated, router]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -31,7 +37,6 @@ export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps)
   }
 
   if (!isAuthenticated) {
-    router.push("/auth/login");
     return null;
   }
 

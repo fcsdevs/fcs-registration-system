@@ -25,7 +25,6 @@ export default function NewGroupPage() {
     name: "",
     type: "BIBLE_STUDY" as string,
     description: "",
-    capacity: "",
   });
 
   useEffect(() => {
@@ -54,7 +53,6 @@ export default function NewGroupPage() {
         name: formData.name,
         type: formData.type,
         description: formData.description || undefined,
-        capacity: formData.capacity ? parseInt(formData.capacity) : undefined,
       });
       router.push("/groups");
     } catch (err: any) {
@@ -119,7 +117,7 @@ export default function NewGroupPage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Group Type *
@@ -136,20 +134,6 @@ export default function NewGroupPage() {
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Capacity
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={formData.capacity}
-                  onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Maximum members (optional)"
-                />
               </div>
             </div>
 

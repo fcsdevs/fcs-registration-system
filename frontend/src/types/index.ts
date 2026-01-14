@@ -30,13 +30,39 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  otherNames?: string;
+  preferredName?: string;
   phone?: string;
+  whatsappNumber?: string;
   gender?: string;
-  avatar?: string;
+  maritalStatus?: string;
+  dateOfBirth?: string;
+  occupation?: string;
+  placeOfWork?: string;
+  institutionName?: string;
+  institutionType?: string;
+  level?: string;
+  course?: string;
+  graduationYear?: number;
+  yearJoined?: number;
+  membershipCategory?: string;
+  state?: string;
+  zone?: string;
+  branch?: string;
+  branchId?: string;
+  preferredContactMethod?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  ageBracket?: string;
+  guardianName?: string;
+  guardianPhone?: string;
+  guardianEmail?: string;
+  guardianRelationship?: string;
+  profilePhotoUrl?: string; // Standardized field
+  avatar?: string; // Legacy
   roles: UserRole[];
   unitId: string;
   unitName?: string;
-  level?: OrganizationalLevel;
   membershipStatus?: MembershipStatus;
   memberCode: string;
   createdAt: string;
@@ -61,7 +87,6 @@ export interface EventCenter {
   area?: string;
   zone?: string;
   address: string;
-  capacity?: number;
   adminIds: string[];
   isActive: boolean;
   latitude?: number;
@@ -74,7 +99,6 @@ export interface BibleStudyGroup {
   name: string;
   type: "BIBLE_STUDY" | "WORKSHOP" | "CUSTOM";
   description?: string;
-  capacity?: number;
   facilitatorIds: string[];
   isRequired: boolean;
   maxAssignments?: number;
@@ -95,6 +119,7 @@ export interface Event {
   registrationStart: string;
   registrationEnd: string;
   registrationOpen: boolean;
+  imageUrl?: string;
   maxCapacity?: number;
   unitId: string;
   createdBy: string;

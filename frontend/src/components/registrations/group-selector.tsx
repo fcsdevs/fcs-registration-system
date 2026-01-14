@@ -9,8 +9,6 @@ import React, { useState, useEffect } from 'react';
 import { Users, AlertCircle, BookOpen, Search, CheckCircle2, Trophy, Target } from 'lucide-react';
 import { groupsApi } from '@/lib/api/groups';
 import { EventGroup } from '@/types/api';
-import { CapacityIndicator } from '../ui/capacity-indicator';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 interface GroupSelectorProps {
@@ -51,10 +49,7 @@ export function GroupSelector({ eventId, selectedGroupId, onSelect, error, requi
         }
     };
 
-    const isGroupFull = (group: EventGroup) => {
-        if (!group.capacity) return false;
-        return (group.memberCount || 0) >= group.capacity;
-    };
+
 
     const getGroupIcon = (type: string, isSelected: boolean) => {
         const iconClass = isSelected ? 'text-white' : 'text-[#1F7A63]';
@@ -113,21 +108,17 @@ export function GroupSelector({ eventId, selectedGroupId, onSelect, error, requi
                 ) : (
                     filteredGroups.map(group => {
                         const isSelected = selectedGroupId === group.id;
-                        const isFull = isGroupFull(group);
 
                         return (
                             <button
                                 key={group.id}
                                 type="button"
-                                onClick={() => !isFull && onSelect(group.id, group.name)}
-                                disabled={isFull}
+                                onClick={() => onSelect(group.id, group.name)}
                                 className="group text-left outline-none"
                             >
                                 <div className={`p-6 rounded-[32px] border-2 transition-all duration-300 relative overflow-hidden h-full flex flex-col ${isSelected
-                                        ? 'border-[#1F7A63] bg-[#E8F5F1]/50 shadow-[0_20px_40px_-12px_rgba(31,122,99,0.15)] scale-[1.02]'
-                                        : isFull
-                                            ? 'border-slate-100 bg-slate-50 opacity-40 cursor-not-allowed'
-                                            : 'border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-200 hover:shadow-lg'
+                                    ? 'border-[#1F7A63] bg-[#E8F5F1]/50 shadow-[0_20px_40px_-12px_rgba(31,122,99,0.15)] scale-[1.02]'
+                                    : 'border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-200 hover:shadow-lg'
                                     }`}>
                                     {isSelected && (
                                         <div className="absolute top-4 right-4 animate-in fade-in zoom-in duration-300">
@@ -152,27 +143,7 @@ export function GroupSelector({ eventId, selectedGroupId, onSelect, error, requi
                                         </div>
                                     </div>
 
-                                    {group.capacity && (
-                                        <div className="mt-6 pt-4 border-t border-slate-100/50">
-                                            <div className="flex justify-between items-center mb-2 px-1">
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Unit Capacity</span>
-                                                <span className="text-[9px] font-black text-slate-500">{group.memberCount || 0}/{group.capacity}</span>
-                                            </div>
-                                            <CapacityIndicator
-                                                current={group.memberCount || 0}
-                                                max={group.capacity}
-                                                size="sm"
-                                            />
-                                        </div>
-                                    )}
 
-                                    {isFull && (
-                                        <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center p-4">
-                                            <Badge className="bg-red-500 text-white border-none font-black uppercase text-[10px] tracking-widest py-1.5 px-4 shadow-lg shadow-red-200">
-                                                Unit Maxed
-                                            </Badge>
-                                        </div>
-                                    )}
                                 </div>
                             </button>
                         );

@@ -14,18 +14,50 @@ export const loginSchema = z.object({
 export const signupSchema = z.object({
   firstName: z.string().min(2, "First name is required"),
   lastName: z.string().min(2, "Last name is required"),
-  email: z.string().email("Invalid email address"),
+  otherNames: z.string().optional(),
+  preferredName: z.string().optional(),
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
   phone: z.string().regex(/^\+?[\d\s\-()]+$/, "Invalid phone number"),
+  whatsappNumber: z.string().optional(),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
     .regex(/[A-Z]/, "Password must contain an uppercase letter")
     .regex(/[0-9]/, "Password must contain a number"),
   confirmPassword: z.string(),
-  unitId: z.string().optional(), // Keeping for backward compatibility if needed, but made optional
+
+  membershipCategory: z.enum(["PRIMARY", "SECONDARY", "TERTIARY", "ASSOCIATE"]),
+
+  institutionName: z.string().optional(),
+  institutionType: z.enum(["PRIMARY", "SECONDARY", "TERTIARY"]).optional(),
+  level: z.string().optional(),
+  course: z.string().optional(),
+  graduationYear: z.string().optional(),
+
+  occupation: z.string().optional(),
+  placeOfWork: z.string().optional(),
+  maritalStatus: z.enum(["SINGLE", "MARRIED", "DIVORCED", "WIDOWED"]),
+
   state: z.string().min(1, "State is required"),
   zone: z.string().min(1, "Zone/Area is required"),
-  branch: z.string().optional(),
+  branch: z.string().min(1, "Branch name is required"),
+  branchId: z.string().optional(),
+
+  gender: z.enum(["MALE", "FEMALE", "OTHER"]),
+  dateOfBirth: z.string().min(1, "Date of birth is required"),
+  ageBracket: z.string().optional(),
+
+  preferredContactMethod: z.enum(["SMS", "EMAIL", "WHATSAPP"]).optional(),
+  emergencyContactName: z.string().optional(),
+  emergencyContactPhone: z.string().optional(),
+
+  guardianName: z.string().optional(),
+  guardianPhone: z.string().optional(),
+  guardianEmail: z.string().optional(),
+  guardianRelationship: z.string().optional(),
+
+  privacyPolicyAccepted: z.boolean().refine((val) => val === true, "You must accept the privacy policy"),
+  termsAccepted: z.boolean().refine((val) => val === true, "You must accept the terms"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -67,7 +99,6 @@ export const eventCenterSchema = z.object({
   area: z.string().optional(),
   zone: z.string().optional(),
   address: z.string().min(5, "Address is required"),
-  capacity: z.number().positive("Capacity must be positive").optional(),
   adminIds: z.array(z.string()).optional(),
 });
 
@@ -75,7 +106,6 @@ export const eventGroupSchema = z.object({
   name: z.string().min(2, "Group name is required"),
   type: z.enum(["BIBLE_STUDY", "WORKSHOP", "CUSTOM"]),
   description: z.string().optional(),
-  capacity: z.number().positive("Capacity must be positive").optional(),
   facilitatorIds: z.array(z.string()).optional(),
   isRequired: z.boolean().default(false),
 });

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ProtectedRoute } from "@/components/common/route-guards";
 import { api } from "@/lib/api/client";
-import { Calendar, ArrowLeft, Save, Loader2 } from "lucide-react";
+import { Calendar, ArrowLeft, Save, Loader2, X } from "lucide-react";
 import Link from "next/link";
 
 export default function EditEventPage() {
@@ -14,6 +14,8 @@ export default function EditEventPage() {
     const [loading, setLoading] = useState(false);
     const [fetchingEvent, setFetchingEvent] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         title: "",
@@ -23,7 +25,7 @@ export default function EditEventPage() {
         registrationStart: "",
         registrationEnd: "",
         participationMode: "ONSITE" as "ONLINE" | "ONSITE" | "HYBRID",
-        capacity: "",
+        imageUrl: "",
     });
 
     useEffect(() => {
@@ -55,8 +57,11 @@ export default function EditEventPage() {
                 registrationStart: formatDateForInput(event.registrationStart),
                 registrationEnd: formatDateForInput(event.registrationEnd),
                 participationMode: event.participationMode || "ONSITE",
-                capacity: event.capacity ? String(event.capacity) : "",
+                imageUrl: event.imageUrl || "",
             });
+            if (event.imageUrl) {
+                setImagePreview(event.imageUrl);
+            }
         } catch (err: any) {
             setError("Failed to load event data");
             console.error(err);
@@ -72,16 +77,22 @@ export default function EditEventPage() {
         setLoading(true);
 
         try {
-            await api.put(`/events/${eventId}`, {
-                title: formData.title,
-                description: formData.description || undefined,
-                startDate: new Date(formData.startDate).toISOString(),
-                endDate: new Date(formData.endDate).toISOString(),
-                registrationStart: new Date(formData.registrationStart).toISOString(),
-                registrationEnd: new Date(formData.registrationEnd).toISOString(),
-                participationMode: formData.participationMode,
-                capacity: formData.capacity ? parseInt(formData.capacity) : undefined,
-            });
+            const payload = new FormData();
+            payload.append("title", formData.title);
+            if (formData.description) payload.append("description", formData.description);
+            payload.append("startDate", new Date(formData.startDate).toISOString());
+            payload.append("endDate", new Date(formData.endDate).toISOString());
+            payload.append("registrationStart", new Date(formData.registrationStart).toISOString());
+            payload.append("registrationEnd", new Date(formData.registrationEnd).toISOString());
+            payload.append("participationMode", formData.participationMode);
+
+            if (imageFile) {
+                payload.append("image", imageFile);
+            } else if (formData.imageUrl) {
+                payload.append("imageUrl", formData.imageUrl);
+            }
+
+            await api.put(`/events/${eventId}`, payload);
             alert('Event updated successfully!');
             router.push(`/events/${eventId}`);
         } catch (err: any) {
@@ -225,16 +236,55 @@ export default function EditEventPage() {
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Capacity
+                                        Event Banner Image
                                     </label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        value={formData.capacity}
-                                        onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        placeholder="Leave empty for unlimited"
-                                    />
+                                    <div className="flex items-center gap-4">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    setImageFile(file);
+                                                    const reader = new FileReader();
+                                                    reader.onloadend = () => {
+                                                        setImagePreview(reader.result as string);
+                                                    };
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }}
+                                            className="hidden"
+                                            id="event-image-upload"
+                                        />
+                                        <label
+                                            htmlFor="event-image-upload"
+                                            className="cursor-pointer px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium border border-gray-300"
+                                        >
+                                            {imagePreview ? "Change Image" : "Upload Image"}
+                                        </label>
+                                        {(imageFile || formData.imageUrl) && (
+                                            <span className="text-sm text-gray-500 truncate max-w-[200px]">
+                                                {imageFile ? imageFile.name : "Current Image"}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {imagePreview && (
+                                        <div className="mt-3 relative w-32 h-20 rounded-lg overflow-hidden border border-gray-200">
+                                            <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setImageFile(null);
+                                                    setImagePreview(null);
+                                                    setFormData({ ...formData, imageUrl: "" });
+                                                }}
+                                                className="absolute top-1 right-1 p-0.5 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-sm"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    )}
+                                    <p className="text-xs text-gray-500 mt-1 italic">Optional: Upload a banner image (JPG/PNG)</p>
                                 </div>
                             </div>
 
