@@ -118,7 +118,7 @@ export function EventCard({
           </div>
         )}
         <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest shadow-lg ${statusClasses[status]}`}>
-          {status}
+          {status === 'active' ? 'UPCOMING' : status === 'completed' ? 'PAST' : status}
         </div>
       </div>
 

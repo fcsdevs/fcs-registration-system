@@ -271,6 +271,9 @@ export default function PublicRegistrationDashboard() {
                                             sac={sac}
                                             eventName={registration.event.title}
                                             participantName={`${registration.firstName} ${registration.lastName}`}
+                                            centerName={registration.center?.name}
+                                            groupName={registration.group?.name}
+                                            dates={`${new Date(registration.event.startDate).toLocaleDateString()} - ${new Date(registration.event.endDate).toLocaleDateString()}`}
                                             showDownload={true}
                                             showPrint={true}
                                         />

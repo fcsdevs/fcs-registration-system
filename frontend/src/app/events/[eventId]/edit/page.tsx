@@ -72,14 +72,26 @@ export default function EditEventPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         setError(null);
+
+        // Validation
+        if (new Date(formData.startDate) >= new Date(formData.endDate)) {
+            setError("Event start date must be before end date");
+            return;
+        }
+        if (new Date(formData.registrationStart) >= new Date(formData.registrationEnd)) {
+            setError("Registration start date must be before end date");
+            return;
+        }
+
         setLoading(true);
 
         try {
             const payload = new FormData();
             payload.append("title", formData.title);
-            if (formData.description) payload.append("description", formData.description);
+            // Always append description, defaulting to empty string if missing to allow clearing
+            payload.append("description", formData.description || "");
+
             payload.append("startDate", new Date(formData.startDate).toISOString());
             payload.append("endDate", new Date(formData.endDate).toISOString());
             payload.append("registrationStart", new Date(formData.registrationStart).toISOString());
@@ -90,11 +102,15 @@ export default function EditEventPage() {
                 payload.append("image", imageFile);
             } else if (formData.imageUrl) {
                 payload.append("imageUrl", formData.imageUrl);
+            } else {
+                // Send empty string to indicate removal of image
+                payload.append("imageUrl", "");
             }
 
             await api.put(`/events/${eventId}`, payload);
-            alert('Event updated successfully!');
             router.push(`/events/${eventId}`);
+            // Use toast instead of alert if possible, or keep inconsistent
+            alert('Event updated successfully!');
         } catch (err: any) {
             setError(err.message || "Failed to update event");
         } finally {

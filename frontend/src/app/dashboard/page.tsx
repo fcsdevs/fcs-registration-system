@@ -53,13 +53,13 @@ export default function UserDashboardPage() {
                     // - Events from descendant units
                     const response = await api.get<any>(`/events?unitId=${user.unitId}&isPublished=true`);
                     if (response.data) {
-                        fetchedEvents = response.data.data || [];
+                        fetchedEvents = response.data || [];
                     }
                 } else {
                     // No unitId assigned - show all published events
                     const response = await api.get<any>(`/events?isPublished=true`);
                     if (response.data) {
-                        fetchedEvents = response.data.data || [];
+                        fetchedEvents = response.data || [];
                     }
                 }
 

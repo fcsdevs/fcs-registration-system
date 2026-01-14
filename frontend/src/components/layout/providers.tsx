@@ -23,12 +23,15 @@ const queryClient = new QueryClient({
   },
 });
 
+import { Toaster } from "react-hot-toast";
+
 export function RootProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         {children}
       </AuthProvider>
+      <Toaster position="top-right" />
     </QueryClientProvider>
   );
 }

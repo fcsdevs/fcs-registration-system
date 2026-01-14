@@ -62,6 +62,51 @@ const passwordRequirements: PasswordRequirement[] = [
   { label: "Contains special character (recommended)", test: (p) => /[^a-zA-Z0-9]/.test(p) },
 ];
 
+// Resend OTP Component with Countdown
+const ResendOTPButton = ({ onResend }: { onResend: () => Promise<void> }) => {
+  const [countdown, setCountdown] = useState(0);
+  const [isResending, setIsResending] = useState(false);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (countdown > 0) {
+      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  const handleResend = async () => {
+    setIsResending(true);
+    try {
+      await onResend();
+      setCountdown(60); // Start 60s countdown
+    } catch (error) {
+      console.error("Resend failed", error);
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  if (countdown > 0) {
+    return (
+      <p className="text-xs text-gray-400 mt-2">
+        Resend code in <span className="font-mono font-bold text-primary">{countdown}s</span>
+      </p>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleResend}
+      disabled={isResending}
+      className="text-sm font-bold text-primary hover:text-primary/80 transition-colors disabled:opacity-50 mt-2"
+    >
+      {isResending ? "Resending..." : "Resend Code"}
+    </button>
+  );
+};
+
 export default function SignupPage() {
   const router = useRouter();
   const [otpValue, setOtpValue] = useState("");
@@ -229,7 +274,7 @@ export default function SignupPage() {
     try {
       setError(null);
       await signup(data);
-      router.push("/auth/login?registered=true&email=" + encodeURIComponent(data.email || ""));
+      router.replace("/dashboard");
     } catch (err: any) {
       setError(err.message || "Sign up failed. Please try again.");
     }
@@ -578,7 +623,7 @@ export default function SignupPage() {
                 <ShieldCheck className="w-12 h-12 text-primary mx-auto mb-3" />
                 <h3 className="text-xl font-bold text-gray-900">Verify Your Identity</h3>
                 <p className="text-gray-600 text-sm">
-                  We've sent a 6-digit code to {watch("email") || watch("phone")}.
+                  We've sent a 6-digit code to <span className="font-semibold text-primary">{watch("email") || watch("phone")}</span>.
                 </p>
               </div>
 
@@ -593,6 +638,13 @@ export default function SignupPage() {
                   maxLength={6}
                   placeholder="000000"
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent tracking-[0.5em] font-mono text-center text-xl"
+                />
+              </div>
+
+              <div className="text-center space-y-2">
+                <p className="text-sm text-gray-500">Didn't receive the code?</p>
+                <ResendOTPButton
+                  onResend={() => sendOTP(watch("email") || watch("phone"), 'REGISTRATION')}
                 />
               </div>
 
