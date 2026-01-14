@@ -170,7 +170,7 @@ export default function ProfilePage() {
                                         {user.firstName} {user.lastName}
                                     </h2>
                                     {user.preferredName && <p className="text-sm text-gray-500 italic mt-0.5">"{user.preferredName}"</p>}
-                                    <p className="text-gray-500 font-medium mb-6 mt-1">{user.email}</p>
+                                    <p className="text-gray-500 font-medium mb-6 mt-1 truncate w-full px-4 text-center" title={user.email}>{user.email}</p>
 
                                     <div className="w-full flex gap-3 justify-center">
                                         <Button
@@ -209,13 +209,17 @@ export default function ProfilePage() {
                                         <span className="text-sm text-gray-500">Member Code</span>
                                         <span className="font-mono font-medium text-blue-700 bg-blue-50 px-2 py-1 rounded">{user.memberCode || "N/A"}</span>
                                     </div>
-                                    <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                                        <span className="text-sm text-gray-500">Structure</span>
-                                        <span className="font-medium text-gray-900">{user.unitName || user.unitId || "Not assigned"}</span>
+                                    <div className="py-2 border-b border-gray-50">
+                                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Structure</span>
+                                        <span className="font-medium text-gray-900 block truncate" title={user.unitName || user.unitId || "Not assigned"}>
+                                            {user.unitName || user.unitId || "Not assigned"}
+                                        </span>
                                     </div>
-                                    <div className="flex justify-between items-center py-2">
-                                        <span className="text-sm text-gray-500">Role</span>
-                                        <span className="font-medium text-gray-900 capitalize">{(user.roles || []).join(", ")}</span>
+                                    <div className="py-2">
+                                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Role</span>
+                                        <span className="font-medium text-gray-900 block truncate capitalize" title={(user.roles || []).join(", ")}>
+                                            {(user.roles || []).join(", ")}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -477,9 +481,9 @@ function ProfileField({ label, value, capitalize = false, icon = null }: { label
     return (
         <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:border-blue-100 transition-all group/field">
             <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">{label}</span>
-            <div className="flex items-center gap-2">
-                {icon && <div className="text-blue-500 opacity-60 group-hover/field:opacity-100 transition-opacity">{icon}</div>}
-                <p className={`text-base font-semibold text-gray-800 ${capitalize ? 'capitalize' : ''}`}>
+            <div className="flex items-center gap-2 overflow-hidden">
+                {icon && <div className="text-blue-500 opacity-60 group-hover/field:opacity-100 transition-opacity shrink-0">{icon}</div>}
+                <p className={`text-base font-semibold text-gray-800 truncate w-full ${capitalize ? 'capitalize' : ''}`} title={value}>
                     {value || <span className="text-gray-300 font-normal italic">Not provided</span>}
                 </p>
             </div>

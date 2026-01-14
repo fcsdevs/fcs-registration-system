@@ -17,6 +17,7 @@ import {
     CheckCircle2,
     Edit,
     UserPlus,
+    Globe,
 } from "lucide-react";
 import Link from "next/link";
 import { ProtectedRoute } from "@/components/common/route-guards";
@@ -68,6 +69,24 @@ export default function EventDetailsPage() {
     const handleRegisterUser = () => {
         // Navigate to registrar dashboard for this event
         router.push(`/my-events/${eventId}/registrar?tab=register`);
+    };
+
+    const handlePublish = async () => {
+        if (!confirm("Are you sure you want to publish this event? This will make it visible to users and enable registrations.")) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await api.post(`/events/${eventId}/publish`);
+            alert("Event published successfully!");
+            await fetchEventDetails();
+        } catch (error: any) {
+            console.error("Failed to publish event:", error);
+            alert(error.message || "Failed to publish event");
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (loading) {
@@ -136,14 +155,25 @@ export default function EventDetailsPage() {
                                 </Button>
                             )
                         ) : isAdmin ? (
-                            <Button
-                                variant="outline"
-                                onClick={() => router.push(`/events/${eventId}/edit`)}
-                                className="border-blue-200 hover:bg-blue-50 text-blue-700"
-                            >
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit Event
-                            </Button>
+                            <div className="flex gap-2">
+                                {event.status === 'draft' && (
+                                    <Button
+                                        onClick={handlePublish}
+                                        className="bg-green-600 hover:bg-green-700 text-white"
+                                    >
+                                        <Globe className="h-4 w-4 mr-2" />
+                                        Publish Event
+                                    </Button>
+                                )}
+                                <Button
+                                    variant="outline"
+                                    onClick={() => router.push(`/events/${eventId}/edit`)}
+                                    className="border-blue-200 hover:bg-blue-50 text-blue-700"
+                                >
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Edit Event
+                                </Button>
+                            </div>
                         ) : (
                             isRegistrationOpen() && (
                                 <Button
