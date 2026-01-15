@@ -89,8 +89,8 @@ export function DashboardWidgets() {
             </div>
 
             {/* Sub-Level List */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-4">
+            <div className="grid gap-4">
+                <Card>
                     <CardHeader>
                         <CardTitle>{getSubUnitLabel(currentScope.level)} Overview</CardTitle>
                     </CardHeader>

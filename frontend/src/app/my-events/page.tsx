@@ -302,13 +302,37 @@ function MyEventsContent() {
 
                                             {/* 3. Action */}
                                             <div className="flex-shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100 sm:border-l sm:pl-4">
-                                                <Link
-                                                    href={`/my-events/registration/${registration.id}`}
-                                                    className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 text-xs font-bold rounded-lg hover:bg-blue-100 transition-colors group-hover:bg-blue-600 group-hover:text-white"
-                                                >
-                                                    View Badge
-                                                    <ArrowRight className="w-3 h-3" />
-                                                </Link>
+                                                <div className="flex flex-col gap-2">
+                                                    <Link
+                                                        href={`/my-events/registration/${registration.id}`}
+                                                        className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 text-xs font-bold rounded-lg hover:bg-blue-100 transition-colors"
+                                                    >
+                                                        View Badge
+                                                        <ArrowRight className="w-3 h-3" />
+                                                    </Link>
+                                                    <button
+                                                        onClick={async () => {
+                                                            try {
+                                                                const { registrationsApi } = await import('@/lib/api/registrations');
+                                                                const blob = await registrationsApi.downloadTag(registration.id);
+                                                                const url = window.URL.createObjectURL(blob);
+                                                                const a = document.createElement('a');
+                                                                a.href = url;
+                                                                a.download = `Tag_${registration.member?.fcsCode || 'Event'}.pdf`;
+                                                                document.body.appendChild(a);
+                                                                a.click();
+                                                                window.URL.revokeObjectURL(url);
+                                                                document.body.removeChild(a);
+                                                            } catch (err) {
+                                                                console.error('Download failed', err);
+                                                                alert('Failed to download tag');
+                                                            }
+                                                        }}
+                                                        className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 text-xs font-bold rounded-lg hover:bg-gray-200 transition-colors"
+                                                    >
+                                                        Print Tag (PDF)
+                                                    </button>
+                                                </div>
                                             </div>
 
                                         </div>

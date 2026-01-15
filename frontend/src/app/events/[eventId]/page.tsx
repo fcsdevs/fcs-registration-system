@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
-import { Event } from "@/types";
+import { Event } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ import {
     Edit,
     UserPlus,
     Globe,
+    Bell,
 } from "lucide-react";
 import Link from "next/link";
 import { ProtectedRoute } from "@/components/common/route-guards";
@@ -288,6 +289,35 @@ export default function EventDetailsPage() {
                     </div>
                 </div>
 
+                {/* Admin Quick Console */}
+                {isAdmin && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <Link href={`/events/${eventId}/notifications`} className="group flex flex-col p-6 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-200 transition-all cursor-pointer">
+                            <div className="h-12 w-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                <Bell className="h-6 w-6" />
+                            </div>
+                            <h3 className="font-bold text-gray-900 mb-1">Notification Triggers</h3>
+                            <p className="text-sm text-gray-500">Configure automated alerts and emails for this event.</p>
+                        </Link>
+
+                        <Link href={`/events/${eventId}/registrations`} className="group flex flex-col p-6 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-200 transition-all cursor-pointer">
+                            <div className="h-12 w-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                                <Users className="h-6 w-6" />
+                            </div>
+                            <h3 className="font-bold text-gray-900 mb-1">Attendee Roster</h3>
+                            <p className="text-sm text-gray-500">View and manage all registered participants and groups.</p>
+                        </Link>
+
+                        <Link href={`/events/${eventId}/analytics`} className="group flex flex-col p-6 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-200 transition-all cursor-pointer">
+                            <div className="h-12 w-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-4 group-hover:bg-purple-600 group-hover:text-white transition-all">
+                                <Globe className="h-6 w-6" />
+                            </div>
+                            <h3 className="font-bold text-gray-900 mb-1">Session Insights</h3>
+                            <p className="text-sm text-gray-500">Monitor registration metrics and attendance analytics.</p>
+                        </Link>
+                    </div>
+                )}
+
                 {/* Additional Information */}
                 <div className="grid gap-6 md:grid-cols-2">
                     <Card>
@@ -330,6 +360,5 @@ export default function EventDetailsPage() {
                 </div>
             </div>
         </div>
-
     );
 }

@@ -250,6 +250,7 @@ export interface Event {
   registrationEnd: string;
   participationMode: 'ONLINE' | 'ONSITE' | 'HYBRID';
   isPublished: boolean;
+  status: 'draft' | 'published' | 'active' | 'completed' | 'cancelled';
   imageUrl?: string;
   createdBy: string;
   createdAt: string;
@@ -304,16 +305,12 @@ export interface UpdateEventSettingsRequest {
 }
 
 export interface EventStatistics {
-  event: {
-    id: string;
-    name: string;
-  };
-  overview: {
-    totalRegistrations: number;
-    totalAttendance: number;
-    attendanceRate: number;
-    totalCenters: number;
-  };
+  eventId: string;
+  title: string;
+  participationMode: string;
+  totalRegistrations: number;
+  totalAttendance: number;
+  attendanceRate: number;
   registrationsByMode: Array<{
     mode: string;
     count: number;
@@ -322,12 +319,12 @@ export interface EventStatistics {
     mode: string;
     count: number;
   }>;
-  centerStats: Array<{
+  centerStatistics: Array<{
     centerId: string;
-    name: string;
-    state: string;
+    centerName: string;
     registrations: number;
     attendance: number;
+    state?: string;
   }>;
 }
 
