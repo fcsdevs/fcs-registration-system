@@ -11,9 +11,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   keywords: ["FCS", "registration", "attendance", "event-management", "church"],
   authors: [{ name: "FCS Development Team" }],
-  icons: {
-    icon: "/favicon.ico",
-  },
+
 };
 
 // Force dynamic rendering for all pages
