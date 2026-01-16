@@ -156,6 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(userData);
 
       // Redirect based on role
+      // Include registrars as they need admin-level access to see all events
       const isAdmin = userData.roles.some((r: string) => r.toLowerCase().includes('admin') || r.toLowerCase() === 'leader');
 
       if (isAdmin) {
