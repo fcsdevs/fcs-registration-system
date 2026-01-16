@@ -52,7 +52,7 @@ export default function EventPage() {
       let url = '/events';
 
       if (user?.unitId && !isAdmin) {
-        // Regular users with unitId: get hierarchical events
+        // Regular users with unitId: get hierarchical published events
         url = `/events?unitId=${user.unitId}&isPublished=true`;
       } else if (!isAdmin) {
         // Regular users without unitId: get all published events
