@@ -257,7 +257,7 @@ export default function EventPage() {
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Calendar className="w-4 h-4" />
-                      <span>{new Date(event.startDate).toLocaleDateString()} - {new Date(event.endDate).toLocaleDateString()}</span>
+                      <span>{new Date(event.startDate).toLocaleDateString(undefined, { dateStyle: 'full' })} - {new Date(event.endDate).toLocaleDateString(undefined, { dateStyle: 'full' })}</span>
                     </div>
                     {event.maxCapacity && (
                       <div className="flex items-center gap-2 text-sm text-gray-600">

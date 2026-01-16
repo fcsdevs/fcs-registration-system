@@ -184,18 +184,26 @@ function EventCard({ event }: { event: Event }) {
                 </div>
                 <CardDescription className="flex items-center mt-1">
                     <Calendar className="w-3 h-3 mr-1" />
-                    {new Date(event.startDate).toLocaleDateString()}
+                    {new Date(event.startDate).toLocaleDateString(undefined, { dateStyle: 'full' })}
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col justify-between pt-0">
                 <p className="text-sm text-gray-600 line-clamp-2 mb-4">
                     {event.description || "No description provided."}
                 </p>
-                <Link href={`/events/${event.id}/register`} className="mt-auto">
-                    <Button className="w-full bg-primary text-white hover:bg-primary/90">
-                        Register Now
-                    </Button>
-                </Link>
+                {new Date(event.endDate) > new Date() ? (
+                    <Link href={`/events/${event.id}/register`} className="mt-auto">
+                        <Button className="w-full bg-primary text-white hover:bg-primary/90">
+                            Register Now
+                        </Button>
+                    </Link>
+                ) : (
+                    <div className="mt-auto">
+                        <Button disabled className="w-full bg-gray-100 text-gray-400 cursor-not-allowed">
+                            Registration Closed
+                        </Button>
+                    </div>
+                )}
             </CardContent>
         </Card>
     )
