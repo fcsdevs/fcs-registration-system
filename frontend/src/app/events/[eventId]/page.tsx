@@ -63,7 +63,7 @@ export default function EventDetailsPage() {
         if (user) {
             router.push(`/my-events/${eventId}/register`);
         } else {
-            router.push(`/events/register/${eventId}`);
+            router.push(`/events/${eventId}/register`);
         }
     };
 

@@ -137,7 +137,7 @@ export default function PublicRegistrationDashboard() {
     };
 
     const handleRegisterOthers = () => {
-        router.push(`/events/register/${registration?.event.id}/others?primaryToken=${token}`);
+        router.push(`/my-events/${registration?.event.id}/register-others`);
     };
 
     if (!token) {

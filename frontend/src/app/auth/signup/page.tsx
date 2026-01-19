@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { NIGERIAN_STATES } from "@/lib/constants/states";
 import { authApi } from "@/lib/api/auth";
+import { unitsApi } from "@/lib/api/units";
+import { Unit } from "@/types/api";
 
 // Password strength calculator
 const calculatePasswordStrength = (password: string): {
@@ -112,10 +114,17 @@ export default function SignupPage() {
   const [otpValue, setOtpValue] = useState("");
   const { signup, login, isLoading, sendOTP } = useAuth();
   const [error, setError] = useState<string | null>(null);
-  const [step, setStep] = useState(1); // 1: Acc/Security, 2: OTP, 3: Profile, 4: Membership, 5: Church/Legal
+  const [step, setStep] = useState(1); // 1: Acc/Security, 2: OTP, 3: Profile, 4: Membership, 5: Placement & Consent
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [isChecking, setIsChecking] = useState(false);
+
+  // Location Data States
+  const [states, setStates] = useState<Unit[]>([]);
+  const [branches, setBranches] = useState<Unit[]>([]);
+  const [isLoadingLocations, setIsLoadingLocations] = useState(false);
+  const [isLoadingBranches, setIsLoadingBranches] = useState(false);
 
   // Watch password fields for real-time validation
   const [passwordValue, setPasswordValue] = useState("");
@@ -189,7 +198,80 @@ export default function SignupPage() {
     });
 
     return () => subscription.unsubscribe();
+
   }, [watch, passwordValue, confirmPasswordValue]);
+
+  // Fetch States on Mount
+  useEffect(() => {
+    const fetchStates = async () => {
+      try {
+        setIsLoadingLocations(true);
+        const response = await unitsApi.list({ type: 'State', limit: 300 }); // Increased limit
+        console.log('States API Response:', response);
+        if (response.data?.data) {
+          setStates(response.data.data);
+        } else {
+          console.warn('States data is empty or malformed', response);
+        }
+      } catch (err) {
+        console.error("Failed to fetch states", err);
+      } finally {
+        setIsLoadingLocations(false);
+      }
+    };
+    fetchStates();
+  }, []);
+
+  // Watch State to Fetch Branches & Derive Area
+  const selectedStateName = watch("state");
+  useEffect(() => {
+    const fetchBranchesAndArea = async () => {
+      if (!selectedStateName) {
+        setBranches([]);
+        setValue("branch", "");
+        setValue("branchId", "");
+        setValue("zone", "");
+        return;
+      }
+
+      // Find the State Unit Object
+      const stateUnit = states.find(s => s.name === selectedStateName);
+      if (!stateUnit) return;
+
+      try {
+        setIsLoadingBranches(true);
+
+        // 1. Fetch Branches for this State
+        const response = await unitsApi.list({
+          parentUnitId: stateUnit.id,
+          type: 'Branch',
+          recursive: true, // Use recursive to find nested branches (State -> Zone -> Branch)
+          limit: 300
+        });
+        if (response.data?.data) {
+          setBranches(response.data.data);
+        }
+
+        // 2. Fetch/Derive Area (Parent of the State)
+        // We can get this if we fetched the State details, or assume we can get it from the stateUnit's parentId if we had it.
+        // The list() call might not return parent details. Let's fetch the specific state unit to get its parent.
+        const stateDetails = await unitsApi.getById(stateUnit.id);
+        if (stateDetails.data && stateDetails.data.parent) {
+          setValue("zone", stateDetails.data.parent.name);
+        } else {
+          // Fallback or if no parent
+          setValue("zone", "Unassigned Area");
+        }
+
+      } catch (err) {
+        console.error("Failed to fetch branches/area details", err);
+      } finally {
+        setIsLoadingBranches(false);
+      }
+    };
+
+    fetchBranchesAndArea();
+  }, [selectedStateName, states, setValue]);
 
   const onNextStep = async () => {
     let fieldsToValidate: any[] = [];
@@ -323,7 +405,7 @@ export default function SignupPage() {
             {step === 2 && "Verification"}
             {step === 3 && "Personal Profile"}
             {step === 4 && "Membership Details"}
-            {step === 5 && "Church & Consent"}
+            {step === 5 && "Placement & Consent"}
           </p>
         </div>
 
@@ -888,33 +970,53 @@ export default function SignupPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">State</label>
+                    <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">
+                      State {isLoadingLocations && <Loader2 className="inline w-3 h-3 animate-spin" />}
+                    </label>
                     <select
                       {...register("state")}
                       className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-primary/20"
                     >
                       <option value="">Select State</option>
-                      {NIGERIAN_STATES.map((s) => (
-                        <option key={s} value={s}>{s}</option>
+                      {states.map((s) => (
+                        <option key={s.id} value={s.name}>{s.name}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Zone / Area</label>
+                    <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Zone / Area (Auto-Filled)</label>
                     <input
                       {...register("zone")}
-                      placeholder="Zone 1"
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20"
+                      readOnly
+                      placeholder="Auto-assigned based on State"
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-500 focus:outline-none cursor-not-allowed"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">FCS Branch</label>
-                  <input
-                    {...register("branch")}
-                    placeholder="e.g. UNILAG Branch"
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20"
-                  />
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">
+                    FCS Branch {isLoadingBranches && <Loader2 className="inline w-3 h-3 animate-spin" />}
+                  </label>
+                  <select
+                    {...register("branch")} // This registers the branch NAME or ID? 
+                    // The schema expects 'branch' string (name). But we should also set 'branchId'.
+                    // Let's handle onChange manually to set both.
+                    onChange={(e) => {
+                      const selectedBranch = branches.find(b => b.name === e.target.value);
+                      setValue("branch", e.target.value);
+                      if (selectedBranch) {
+                        setValue("branchId", selectedBranch.id);
+                      } else {
+                        setValue("branchId", undefined); // or ""
+                      }
+                    }}
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-primary/20"
+                  >
+                    <option value="">Select Branch</option>
+                    {branches.map(b => (
+                      <option key={b.id} value={b.name}>{b.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

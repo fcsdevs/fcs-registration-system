@@ -35,6 +35,7 @@ export const unitsApi = {
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.type) queryParams.append('type', params.type);
     if (params?.parentUnitId) queryParams.append('parentUnitId', params.parentUnitId);
+    if (params?.recursive) queryParams.append('recursive', params.recursive.toString());
     if (params?.search) queryParams.append('search', params.search);
 
     const query = queryParams.toString();
