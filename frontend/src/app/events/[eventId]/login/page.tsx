@@ -149,7 +149,7 @@ export default function EventLoginPage() {
                             First time registering?
                         </p>
                         <Link
-                            href={`/events/register/${eventId}`}
+                            href={`/events/${eventId}/register`}
                             className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-50 text-green-700 rounded-lg font-medium hover:bg-green-100 transition-colors border-2 border-green-200"
                         >
                             <UserPlus className="w-5 h-5" />

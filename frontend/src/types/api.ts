@@ -698,6 +698,10 @@ export interface Unit {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  parent?: {
+    id: string;
+    name: string;
+  };
   parentUnit?: {
     id: string;
     name: string;
@@ -759,6 +763,7 @@ export interface UnitStatistics {
 export interface ListUnitsParams extends PaginationParams {
   type?: string;
   parentUnitId?: string;
+  recursive?: boolean;
   search?: string;
 }
 
