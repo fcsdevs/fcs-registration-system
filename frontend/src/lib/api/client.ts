@@ -22,7 +22,7 @@ class ApiClient {
   constructor(config: ApiClientConfig = {}) {
     this.baseUrl = API_BASE_URL;
     this.config = {
-      timeout: config.timeout || 30000,
+      timeout: config.timeout || 60000,
       retries: config.retries || 3,
       headers: config.headers || {},
     };

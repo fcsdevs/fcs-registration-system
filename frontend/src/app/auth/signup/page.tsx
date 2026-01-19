@@ -274,6 +274,7 @@ export default function SignupPage() {
   }, [selectedStateName, states, setValue]);
 
   const onNextStep = async () => {
+    if (isChecking) return;
     let fieldsToValidate: any[] = [];
 
     if (step === 1) {
