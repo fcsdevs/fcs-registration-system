@@ -3,7 +3,7 @@
  */
 
 // Organizational Hierarchy
-export type OrganizationalLevel = "National" | "Region" | "Area" | "State" | "Zone" | "Branch";
+export type OrganizationalLevel = "National" | "Area" | "State" | "Zone" | "Branch";
 
 export interface OrganizationalUnit {
   id: string;

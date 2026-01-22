@@ -340,7 +340,7 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
                                                 disabled={processing || !selectedEventId || !inputValue}
                                                 className="w-full h-20 rounded-3xl bg-[#060CCD] hover:bg-[#010030] text-xl font-black uppercase tracking-widest shadow-xl shadow-blue-200"
                                             >
-                                                Verifying Admission
+                                                Confirm Attendance
                                             </Button>
                                         </form>
 
@@ -397,13 +397,13 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
                                         </div>
                                         <h3 className={`text-2xl font-black uppercase tracking-tight mb-2 ${lastCheckIn.alreadyCheckedIn ? 'text-amber-800' : 'text-[#1F7A63]'
                                             }`}>
-                                            {lastCheckIn.alreadyCheckedIn ? 'Duplicate Access' : 'Access Granted'}
+                                            {lastCheckIn.alreadyCheckedIn ? 'Duplicate Access' : 'Checked In Successfully'}
                                         </h3>
                                         <div className="h-px w-12 bg-black/10 mx-auto mb-6" />
 
                                         <div className="bg-white/40 backdrop-blur-md rounded-3xl p-6 text-left border border-white/50">
                                             <div className="flex items-center gap-4 mb-4">
-                                                <div className="h-12 w-12 bg-[#060CCD] rounded-2xl flex items-center justify-center text-white font-black">
+                                                <div className="h-12 w-12 bg-[#060CCD] rounded-2xl flex items-center justify-center text-white font-black select-none">
                                                     {lastCheckIn.member?.firstName?.[0]}
                                                 </div>
                                                 <div className="min-w-0">

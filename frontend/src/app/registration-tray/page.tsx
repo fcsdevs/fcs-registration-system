@@ -36,7 +36,8 @@ import {
     ChevronRight,
     Loader2,
     Filter,
-    ArrowRight
+    ArrowRight,
+    Sparkles
 } from "lucide-react";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
@@ -310,8 +311,8 @@ export default function RegistrationTrayPage() {
 
                 {/* List Container */}
                 <Card className="border-[#E2E8F0] shadow-2xl rounded-[32px] overflow-hidden bg-white animate-slide-up animation-delay-500">
-                    <div className="p-6 sm:p-8 border-b border-[#F1F5F9] flex items-center justify-between">
-                        <h2 className="text-xl font-black text-[#0F172A] tracking-tight">Recent Registrations</h2>
+                    <div className="p-5 sm:p-6 border-b border-[#F1F5F9] flex items-center justify-between">
+                        <h2 className="text-lg font-black text-[#0F172A] tracking-tight">Recent Registrations</h2>
                         <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-[#F8FAFC] rounded-full text-[10px] font-bold text-[#64748B] uppercase">
                             <Users size={12} />
                             {pagination.total} Records
@@ -323,11 +324,11 @@ export default function RegistrationTrayPage() {
                         <Table>
                             <TableHeader className="bg-[#F8FAFC]">
                                 <TableRow className="hover:bg-transparent border-none">
-                                    <TableHead className="font-bold text-[#1e293b] py-6 px-8">Member Information</TableHead>
+                                    <TableHead className="font-bold text-[#1e293b] py-4 px-6">Member Information</TableHead>
                                     <TableHead className="font-bold text-[#1e293b]">FCS Identity</TableHead>
                                     <TableHead className="font-bold text-[#1e293b]">Participation</TableHead>
                                     <TableHead className="font-bold text-[#1e293b]">Current Status</TableHead>
-                                    <TableHead className="text-right font-bold text-[#1e293b] px-8">Center Location</TableHead>
+                                    <TableHead className="text-right font-bold text-[#1e293b] px-6">Center Location</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -350,57 +351,57 @@ export default function RegistrationTrayPage() {
                                             </div>
                                         </TableCell>
                                     </TableRow>
-                                ) : (
-                                    registrations.map((reg) => (
-                                        <TableRow key={reg.id} className="hover:bg-[#F8FAFC]/50 transition-colors border-none group cursor-pointer">
-                                            <TableCell className="px-8 py-6">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-[#F1F5F9] to-white border border-[#E2E8F0] flex items-center justify-center font-black text-[#060CCD]">
-                                                        {reg.member?.firstName?.[0]}{reg.member?.lastName?.[0]}
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-black text-[#0F172A] group-hover:text-[#060CCD] transition-colors uppercase text-sm">
-                                                            {reg.member?.firstName} {reg.member?.lastName}
-                                                        </div>
-                                                        <div className="text-xs text-[#64748B] font-medium">{reg.member?.email || 'System Member'}</div>
-                                                    </div>
+                                ) : registrations.map((reg) => (
+                                    <TableRow key={reg.id} className="hover:bg-[#F8FAFC]/50 transition-colors border-none group cursor-pointer">
+                                        <TableCell className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-[#F1F5F9] to-white border border-[#E2E8F0] flex items-center justify-center font-black text-[#060CCD] text-xs select-none">
+                                                    {reg.member?.firstName?.[0]}{reg.member?.lastName?.[0]}
                                                 </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <span className="font-mono text-[11px] font-black text-[#64748B] bg-[#F1F5F9] px-3 py-1.5 rounded-xl border border-[#E2E8F0]">
-                                                    {reg.member?.fcsCode || 'PENDING'}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex flex-col gap-1">
-                                                    <div className="flex items-center gap-2 text-xs font-bold text-[#475569]">
-                                                        <MapPin size={12} className="text-[#3B82F6]" />
-                                                        {reg.participation?.participationMode || 'ONSITE'}
+                                                <div>
+                                                    <div className="font-black text-[#0F172A] group-hover:text-[#060CCD] transition-colors uppercase text-xs flex items-center gap-1.5">
+                                                        {reg.member?.firstName} {reg.member?.lastName}
+                                                        {reg.registeredBy === user?.id && <Sparkles size={10} className="text-blue-500 fill-blue-500" />}
                                                     </div>
-                                                    <div className="text-[10px] text-[#94A3B8] font-medium">
-                                                        {reg.registrationDate ? format(new Date(reg.registrationDate), "MMM d, hh:mm a") : 'N/A'}
-                                                    </div>
+                                                    <div className="text-[10px] text-[#64748B] font-medium">{reg.member?.email || 'System Member'}</div>
                                                 </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge
-                                                    className={`rounded-full px-4 py-1 text-[10px] font-black border-none uppercase tracking-widest ${reg.status === 'CONFIRMED' ? 'bg-[#E8F5F1] text-[#10B981]' :
-                                                            reg.status === 'CHECKED_IN' || reg.status === 'ATTENDED' ? 'bg-[#F5F3FF] text-[#8B5CF6]' :
-                                                                reg.status === 'CANCELLED' ? 'bg-[#FEF2F2] text-[#EF4444]' :
-                                                                    'bg-[#F1F5F9] text-[#64748B]'
-                                                        }`}
-                                                >
-                                                    {reg.status === 'CHECKED_IN' ? 'Verified' : reg.status}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-right px-8">
-                                                <div className="flex items-center justify-end gap-2 text-[#475569] font-bold text-sm">
-                                                    <span>{reg.participation?.center?.centerName || 'Main Campus'}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className="font-mono text-[10px] font-black text-[#64748B] bg-[#F1F5F9] px-2.5 py-1 rounded-lg border border-[#E2E8F0]">
+                                                {reg.member?.fcsCode || 'PENDING'}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col gap-0.5">
+                                                <div className="flex items-center gap-2 text-[11px] font-bold text-[#475569]">
+                                                    <MapPin size={10} className="text-[#3B82F6]" />
+                                                    {reg.participation?.participationMode || 'ONSITE'}
                                                 </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                )}
+                                                <div className="text-[9px] text-[#94A3B8] font-medium">
+                                                    {reg.registrationDate ? format(new Date(reg.registrationDate), "MMM d") : 'N/A'}
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                className={`rounded-full px-3 py-0.5 text-[9px] font-black border-none uppercase tracking-widest ${reg.status === 'CONFIRMED' ? 'bg-[#E8F5F1] text-[#10B981]' :
+                                                    reg.status === 'CHECKED_IN' || reg.status === 'ATTENDED' ? 'bg-[#F5F3FF] text-[#8B5CF6]' :
+                                                        reg.status === 'CANCELLED' ? 'bg-[#FEF2F2] text-[#EF4444]' :
+                                                            'bg-[#F1F5F9] text-[#64748B]'
+                                                    }`}
+                                            >
+                                                {reg.status === 'CHECKED_IN' ? 'Verified' : reg.status}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right px-6">
+                                            <div className="flex items-center justify-end gap-2 text-[#475569] font-bold text-xs">
+                                                <span>{reg.participation?.center?.centerName || 'Main Campus'}</span>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                                }
                             </TableBody>
                         </Table>
                     </div>
@@ -413,36 +414,37 @@ export default function RegistrationTrayPage() {
                                 <span className="text-xs font-black uppercase tracking-widest">No Records</span>
                             </div>
                         ) : registrations.map((reg) => (
-                            <div key={reg.id} className="bg-white p-6 active:bg-[#F8FAFC] transition-colors">
+                            <div key={reg.id} className="bg-white p-4 active:bg-[#F8FAFC] transition-colors">
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-center gap-4">
-                                        <div className="h-10 w-10 rounded-xl bg-[#F8FAFC] flex items-center justify-center font-black text-[#060CCD] text-sm">
+                                        <div className="h-9 w-9 rounded-lg bg-[#F8FAFC] flex items-center justify-center font-black text-[#060CCD] text-xs select-none">
                                             {reg.member?.firstName?.[0]}{reg.member?.lastName?.[0]}
                                         </div>
                                         <div>
-                                            <h4 className="font-black text-[#0F172A] uppercase text-xs">
+                                            <h4 className="font-black text-[#0F172A] uppercase text-[11px] flex items-center gap-1">
                                                 {reg.member?.firstName} {reg.member?.lastName}
+                                                {reg.registeredBy === user?.id && <Sparkles size={8} className="text-blue-500 fill-blue-500" />}
                                             </h4>
-                                            <p className="text-[10px] font-mono text-[#64748B] mt-1">{reg.member?.fcsCode}</p>
+                                            <p className="text-[9px] font-mono text-[#64748B]">{reg.member?.fcsCode}</p>
                                         </div>
                                     </div>
                                     <Badge
                                         className={`rounded-full px-3 py-1 text-[9px] font-black uppercase border-none ${reg.status === 'CONFIRMED' ? 'bg-[#E8F5F1] text-[#10B981]' :
-                                                reg.status === 'CHECKED_IN' || reg.status === 'ATTENDED' ? 'bg-[#F5F3FF] text-[#8B5CF6]' :
-                                                    'bg-[#F1F5F9] text-[#64748B]'
+                                            reg.status === 'CHECKED_IN' || reg.status === 'ATTENDED' ? 'bg-[#F5F3FF] text-[#8B5CF6]' :
+                                                'bg-[#F1F5F9] text-[#64748B]'
                                             }`}
                                     >
                                         {reg.status}
                                     </Badge>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#F8FAFC]">
+                                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-[#F8FAFC]">
                                     <div>
-                                        <p className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest mb-1">Center</p>
-                                        <p className="text-[11px] font-bold text-[#475569] truncate">{reg.participation?.center?.centerName || 'Main'}</p>
+                                        <p className="text-[8px] font-black text-[#94A3B8] uppercase tracking-widest leading-none mb-0.5">Center</p>
+                                        <p className="text-[10px] font-bold text-[#475569] truncate">{reg.participation?.center?.centerName || 'Main'}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest mb-1">Participation</p>
-                                        <p className="text-[11px] font-bold text-[#475569]">{reg.participation?.participationMode || 'ONSITE'}</p>
+                                        <p className="text-[8px] font-black text-[#94A3B8] uppercase tracking-widest leading-none mb-0.5">Mode</p>
+                                        <p className="text-[10px] font-bold text-[#475569]">{reg.participation?.participationMode || 'ONSITE'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -472,8 +474,8 @@ export default function RegistrationTrayPage() {
                                             key={pageNum}
                                             variant={pagination.page === pageNum ? "default" : "ghost"}
                                             className={`h-12 w-12 rounded-2xl text-xs font-black transition-all ${pagination.page === pageNum
-                                                    ? "bg-[#060CCD] text-white shadow-lg shadow-blue-200"
-                                                    : "text-[#64748B] hover:bg-white"
+                                                ? "bg-[#060CCD] text-white shadow-lg shadow-blue-200"
+                                                : "text-[#64748B] hover:bg-white"
                                                 }`}
                                             onClick={() => handlePageChange(pageNum)}
                                         >
@@ -495,7 +497,7 @@ export default function RegistrationTrayPage() {
                         </div>
                     </div>
                 </Card>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

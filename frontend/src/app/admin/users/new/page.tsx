@@ -97,7 +97,7 @@ function AssignAdminContent() {
                 }
             }
             // If State, set States to [currentUnit] and load Zones
-            else if (currentScope.level === 'State') {
+            else if (currentScope.level === 'State' && currentScope.unitId) {
                 // Locking State selection effectively
                 const stateRes = await unitsApi.getById(currentScope.unitId);
                 if (stateRes.data) {

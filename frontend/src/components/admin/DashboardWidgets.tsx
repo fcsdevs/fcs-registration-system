@@ -20,13 +20,16 @@ export function DashboardWidgets() {
 
             setIsLoading(true);
             try {
-                const [statsRes, subUnitsRes] = await Promise.all([
-                    unitsApi.getStatistics(currentScope.unitId),
-                    unitsApi.getChildren(currentScope.unitId)
-                ]);
+                // Only fetch stats for non-global scope
+                if (currentScope.unitId) {
+                    const [statsRes, subUnitsRes] = await Promise.all([
+                        unitsApi.getStatistics(currentScope.unitId),
+                        unitsApi.getChildren(currentScope.unitId)
+                    ]);
 
-                if (statsRes.data) setStats(statsRes.data);
-                if (subUnitsRes.data) setSubUnits(subUnitsRes.data);
+                    if (statsRes.data) setStats(statsRes.data);
+                    if (subUnitsRes.data) setSubUnits(subUnitsRes.data);
+                }
 
             } catch (err) {
                 console.error("Failed to fetch dashboard data", err);
@@ -56,7 +59,7 @@ export function DashboardWidgets() {
             <div>
                 <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
                 <p className="text-muted-foreground">
-                    Overview for {currentScope.name} ({currentScope.level})
+                    Overview for {currentScope.unitName} ({currentScope.level})
                 </p>
             </div>
 
@@ -84,7 +87,7 @@ export function DashboardWidgets() {
                     title={getSubUnitLabel(currentScope.level)}
                     value={stats?.statistics.childUnits || 0}
                     icon={MapPin}
-                    description={`Directly under ${currentScope.name}`}
+                    description={`Directly under ${currentScope.unitName}`}
                 />
             </div>
 

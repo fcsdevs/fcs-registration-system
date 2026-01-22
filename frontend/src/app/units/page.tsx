@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { ProtectedRoute } from "@/components/common/route-guards";
 import { Header } from "@/components/layout/header";
 import { api } from "@/lib/api/client";
-import { Building, Plus, Users, Search } from "lucide-react";
+import { Building, Plus, Users, Search, RotateCw } from "lucide-react";
 import Link from "next/link";
 
 export default function UnitPage() {
@@ -14,6 +14,16 @@ export default function UnitPage() {
 
   useEffect(() => {
     fetchUnits();
+    
+    // Also refetch when the page becomes visible (user returns from another page)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchUnits();
+      }
+    };
+    
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
 
   const fetchUnits = async () => {
@@ -45,13 +55,23 @@ export default function UnitPage() {
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Units</h1>
                 <p className="text-sm sm:text-base text-gray-600 mt-1">Manage organizational units</p>
               </div>
-              <Link
-                href="/units/new"
-                className="inline-flex items-center justify-center gap-2 px-3 py-2 sm:px-4 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                Create Unit
-              </Link>
+              <div className="flex gap-2">
+                <button
+                  onClick={fetchUnits}
+                  disabled={loading}
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 sm:px-4 text-sm sm:text-base bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+                  title="Refresh units list"
+                >
+                  <RotateCw className={`w-4 h-4 sm:w-5 sm:h-5 ${loading ? 'animate-spin' : ''}`} />
+                </button>
+                <Link
+                  href="/units/new"
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 sm:px-4 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                  Create Unit
+                </Link>
+              </div>
             </div>
           </div>
 

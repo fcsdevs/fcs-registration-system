@@ -71,7 +71,7 @@ export default function EditAdminPage() {
                 } else if (data && Array.isArray(data.data)) {
                     setStates(data.data);
                 }
-            } else if (currentScope.level === 'State') {
+            } else if (currentScope.level === 'State' && currentScope.unitId) {
                 const stateRes = await unitsApi.getById(currentScope.unitId);
                 if (stateRes.data) {
                     setStates([stateRes.data]);
