@@ -44,34 +44,25 @@ export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOth
         setFoundMember(null);
 
         try {
-            // Using the specific endpoint for code lookup
-            // Note: Use simple api.get which returns the data unwrapped if interception is uniform
-            // or check the response structure. 
-            // Based on other files: api.get returns response.body.
-            // backend route: router.get('/code/:code', ...)
-            const response = await api.get<{ data: Member } | Member>(`/members/code/${encodeURIComponent(searchCode.trim())}`);
+            // Using general search which supports both email and FCS code
+            const response = await api.get<{ data: Member[] } | Member[]>(`/members/search?q=${encodeURIComponent(searchCode.trim())}`);
 
-            // Check structure
-            let memberData: Member | null = null;
-            if ((response as any).data) { // wrapped
-                memberData = (response as any).data;
-            } else {
-                memberData = response as Member;
+            let members: Member[] = [];
+            if ((response as any).data) { // wrapped in { data: [...] }
+                members = (response as any).data;
+            } else if (Array.isArray(response)) { // direct array
+                members = response;
             }
 
-            if (memberData) {
-                setFoundMember(memberData);
+            if (members && members.length > 0) {
+                // If we found exactly one or just take the first hit
+                setFoundMember(members[0]);
             } else {
-                setError('Member not found. Please check the FCS Code.');
+                setError('No member found with that FCS Code or Email Address.');
             }
         } catch (err: any) {
             console.error('Search failed:', err);
-            // Handle 404 specifically if needed, otherwise generic
-            if (err.response?.status === 404) {
-                setError('Member with this FCS Code not found.');
-            } else {
-                setError('Failed to search for member. Please try again.');
-            }
+            setError('Failed to search for member. Please verify the details and try again.');
         } finally {
             setLoading(false);
         }
@@ -142,13 +133,9 @@ export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOth
                             <input
                                 type="text"
                                 value={searchCode}
-                                onChange={(e) => {
-                                    // Auto-convert to typical FCS format if needed, but here simple upper casing is good UX
-                                    const val = e.target.value.toUpperCase();
-                                    setSearchCode(val);
-                                }}
-                                placeholder="Enter FCS Code (e.g., FCS/123/XYZ)"
-                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all uppercase placeholder:normal-case"
+                                onChange={(e) => setSearchCode(e.target.value)}
+                                placeholder="Enter FCS Code or Email Address"
+                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:normal-case"
                             />
                         </div>
                         <button

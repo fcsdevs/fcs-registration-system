@@ -164,14 +164,14 @@ export default function RegistrationTrayPage() {
         <div className="min-h-screen bg-[#F8FAFC] pb-20">
             {/* Glossy Header Area */}
             <div className="bg-white border-b border-[#E2E8F0] sticky top-0 z-30 backdrop-blur-md bg-white/80">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div className="animate-fade-in">
                             <div className="flex items-center gap-2 text-[#060CCD] mb-1">
                                 <Filter size={14} className="animate-pulse" />
                                 <span className="text-[10px] font-black uppercase tracking-[0.2em]">Registrar Portal</span>
                             </div>
-                            <h1 className="text-3xl font-black text-[#0F172A] leading-none">Registration Tray</h1>
+                            <h1 className="text-2xl font-black text-[#0F172A] leading-none">Registration Tray</h1>
                             <p className="text-sm text-[#64748B] mt-2 font-medium">
                                 Welcome back, <span className="text-[#060CCD] font-bold">{user?.firstName}</span>
                             </p>
@@ -221,59 +221,59 @@ export default function RegistrationTrayPage() {
                 {/* Stats Cards - Modernized */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-slide-up">
                     {/* Primary Stat: My Contributions */}
-                    <Card className="relative overflow-hidden border-none shadow-2xl bg-gradient-to-br from-[#060CCD] to-[#010030] p-8 text-white group">
+                    <Card className="relative overflow-hidden border-none shadow-2xl bg-gradient-to-br from-[#060CCD] to-[#010030] px-6 py-3 text-white group">
                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
-                            <UserPlus className="w-32 h-32 transform translate-x-8 -translate-y-8" />
+                            <UserPlus className="w-16 h-16 transform translate-x-6 -translate-y-6" />
                         </div>
                         <div className="relative z-10">
-                            <div className="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full backdrop-blur-md mb-6 border border-white/10">
-                                <UserPlus size={14} className="text-[#3B82F6]" />
+                            <div className="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full backdrop-blur-md mb-1.5 border border-white/10">
+                                <UserPlus size={12} className="text-[#3B82F6]" />
                                 <span className="text-[10px] font-black uppercase tracking-widest">My Contributions</span>
                             </div>
-                            <div className="flex items-center gap-4">
-                                <h3 className="text-5xl font-black tabular-nums">{stats?.registeredByMe || 0}</h3>
-                                <div className="h-10 w-[2px] bg-white/20" />
+                            <div className="flex items-center gap-3">
+                                <h3 className="text-3xl font-black tabular-nums">{stats?.registeredByMe || 0}</h3>
+                                <div className="h-6 w-[2px] bg-white/20" />
                                 <div>
-                                    <p className="text-xs font-bold text-white/60 uppercase">Registrations</p>
-                                    <p className="text-[10px] text-blue-300 font-medium">Managed by you</p>
+                                    <p className="text-[10px] font-bold text-white/60 uppercase">Registrations</p>
+                                    <p className="text-[9px] text-blue-300 font-medium">Managed by you</p>
                                 </div>
                             </div>
                         </div>
                     </Card>
 
                     {/* Secondary Stat: Center Total */}
-                    <Card className="relative overflow-hidden border border-[#E2E8F0] shadow-xl bg-white p-8 group hover:border-[#10B981] transition-colors">
-                        <div className="inline-flex items-center gap-2 bg-[#E8F5F1] px-3 py-1 rounded-full mb-6 text-[#10B981]">
-                            <Users size={14} />
+                    <Card className="relative overflow-hidden border border-[#E2E8F0] shadow-xl bg-white px-6 py-3 group hover:border-[#10B981] transition-colors">
+                        <div className="inline-flex items-center gap-2 bg-[#E8F5F1] px-3 py-1 rounded-full mb-1.5 text-[#10B981]">
+                            <Users size={12} />
                             <span className="text-[10px] font-black uppercase tracking-widest">Center Impact</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="text-4xl font-black text-[#0F172A] tabular-nums">{stats?.centerStats?.totalRegistered || 0}</h3>
-                                <p className="text-xs font-bold text-[#64748B] uppercase mt-1">Total Members Registered</p>
+                                <h3 className="text-3xl font-black text-[#0F172A] tabular-nums">{stats?.centerStats?.totalRegistered || 0}</h3>
+                                <p className="text-[10px] font-bold text-[#64748B] uppercase mt-0.5">Total Members Registered</p>
                             </div>
-                            <div className="h-12 w-12 bg-[#F8FAFC] rounded-2xl flex items-center justify-center text-[#10B981] group-hover:bg-[#10B981] group-hover:text-white transition-all">
-                                <Users size={24} />
+                            <div className="h-8 w-8 bg-[#F8FAFC] rounded-xl flex items-center justify-center text-[#10B981] group-hover:bg-[#10B981] group-hover:text-white transition-all">
+                                <Users size={16} />
                             </div>
                         </div>
                     </Card>
 
                     {/* Tertiary Stat: Checked In */}
-                    <Card className="relative overflow-hidden border border-[#E2E8F0] shadow-xl bg-white p-8 group hover:border-[#8B5CF6] transition-colors sm:col-span-2 lg:col-span-1">
-                        <div className="inline-flex items-center gap-2 bg-[#F5F3FF] px-3 py-1 rounded-full mb-6 text-[#8B5CF6]">
-                            <UserCheck size={14} />
+                    <Card className="relative overflow-hidden border border-[#E2E8F0] shadow-xl bg-white px-6 py-3 group hover:border-[#8B5CF6] transition-colors sm:col-span-2 lg:col-span-1">
+                        <div className="inline-flex items-center gap-2 bg-[#F5F3FF] px-3 py-1 rounded-full mb-1.5 text-[#8B5CF6]">
+                            <UserCheck size={12} />
                             <span className="text-[10px] font-black uppercase tracking-widest">Physical Presence</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="text-4xl font-black text-[#0F172A] tabular-nums">{stats?.centerStats?.totalCheckedIn || 0}</h3>
-                                <p className="text-xs font-bold text-[#64748B] uppercase mt-1">Members Checked-In</p>
+                                <h3 className="text-3xl font-black text-[#0F172A] tabular-nums">{stats?.centerStats?.totalCheckedIn || 0}</h3>
+                                <p className="text-[10px] font-bold text-[#64748B] uppercase mt-0.5">Members Checked-In</p>
                             </div>
-                            <div className="h-12 w-12 bg-[#F8FAFC] rounded-2xl flex items-center justify-center text-[#8B5CF6] group-hover:bg-[#8B5CF6] group-hover:text-white transition-all">
-                                <UserCheck size={24} />
+                            <div className="h-8 w-8 bg-[#F8FAFC] rounded-xl flex items-center justify-center text-[#8B5CF6] group-hover:bg-[#8B5CF6] group-hover:text-white transition-all">
+                                <UserCheck size={16} />
                             </div>
                         </div>
-                        <div className="mt-6 h-1 w-full bg-[#F1F5F9] rounded-full overflow-hidden">
+                        <div className="mt-2 h-1 w-full bg-[#F1F5F9] rounded-full overflow-hidden">
                             <div
                                 className="h-full bg-[#8B5CF6] transition-all duration-1000"
                                 style={{ width: `${stats?.centerStats?.totalRegistered ? (stats.centerStats.totalCheckedIn / stats.centerStats.totalRegistered) * 100 : 0}%` }}
@@ -288,7 +288,7 @@ export default function RegistrationTrayPage() {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#94A3B8]" size={18} />
                         <Input
                             placeholder="Search by name, FCS code, or center..."
-                            className="bg-white border-[#E2E8F0] pl-12 py-6 rounded-2xl shadow-sm focus:ring-[#060CCD] transition-all font-medium text-[#475569]"
+                            className="bg-white border-[#E2E8F0] pl-12 py-5 rounded-xl shadow-sm focus:ring-[#060CCD] transition-all font-medium text-[#475569]"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -296,23 +296,23 @@ export default function RegistrationTrayPage() {
                     <div className="flex items-center gap-3 w-full sm:w-auto">
                         <Button
                             variant="outline"
-                            className="flex-1 sm:flex-none py-6 rounded-2xl border-[#E2E8F0] hover:bg-[#F8FAFC] font-bold text-[#475569] gap-2"
+                            className="flex-1 sm:flex-none py-5 px-5 h-auto rounded-xl border-[#E2E8F0] hover:bg-[#F8FAFC] font-bold text-[#475569] gap-2"
                             onClick={() => fetchTrayData()}
                         >
-                            <RefreshCcw size={18} className={statsLoading ? 'animate-spin' : ''} />
+                            <RefreshCcw size={16} className={statsLoading ? 'animate-spin' : ''} />
                             <span className="hidden sm:inline">Refresh Data</span>
                         </Button>
-                        <Button className="flex-1 sm:flex-none py-6 px-8 rounded-2xl bg-[#060CCD] hover:bg-[#010030] font-bold text-white shadow-xl shadow-blue-200 gap-2">
-                            <Download size={18} />
+                        <Button className="flex-1 sm:flex-none py-5 px-6 h-auto rounded-xl bg-[#060CCD] hover:bg-[#010030] font-bold text-white shadow-xl shadow-blue-200 gap-2">
+                            <Download size={16} />
                             Export Tray
                         </Button>
                     </div>
                 </div>
 
                 {/* List Container */}
-                <Card className="border-[#E2E8F0] shadow-2xl rounded-[32px] overflow-hidden bg-white animate-slide-up animation-delay-500">
-                    <div className="p-5 sm:p-6 border-b border-[#F1F5F9] flex items-center justify-between">
-                        <h2 className="text-lg font-black text-[#0F172A] tracking-tight">Recent Registrations</h2>
+                <Card className="border-[#E2E8F0] shadow-xl rounded-2xl overflow-hidden bg-white animate-slide-up animation-delay-500">
+                    <div className="p-4 sm:p-5 border-b border-[#F1F5F9] flex items-center justify-between">
+                        <h2 className="text-base font-black text-[#0F172A] tracking-tight">Recent Registrations</h2>
                         <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-[#F8FAFC] rounded-full text-[10px] font-bold text-[#64748B] uppercase">
                             <Users size={12} />
                             {pagination.total} Records
@@ -353,7 +353,7 @@ export default function RegistrationTrayPage() {
                                     </TableRow>
                                 ) : registrations.map((reg) => (
                                     <TableRow key={reg.id} className="hover:bg-[#F8FAFC]/50 transition-colors border-none group cursor-pointer">
-                                        <TableCell className="px-6 py-4">
+                                        <TableCell className="px-6 py-3">
                                             <div className="flex items-center gap-3">
                                                 <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-[#F1F5F9] to-white border border-[#E2E8F0] flex items-center justify-center font-black text-[#060CCD] text-xs select-none">
                                                     {reg.member?.firstName?.[0]}{reg.member?.lastName?.[0]}

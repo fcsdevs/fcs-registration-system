@@ -174,37 +174,55 @@ function DashboardCard({ title, description, icon: Icon, href, color }: any) {
 
 function EventCard({ event }: { event: Event }) {
     return (
-        <Card className="flex flex-col h-full hover:shadow-md transition-shadow">
-            <CardHeader>
-                <div className="flex justify-between items-start">
-                    <CardTitle className="line-clamp-1" title={event.title}>{event.title}</CardTitle>
-                    <span className={`px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100 whitespace-nowrap`}>
+        <Card className="flex flex-col h-full hover:shadow-lg transition-all duration-300 border-none bg-white/70 backdrop-blur-sm shadow-sm overflow-hidden group">
+            {/* Image Section */}
+            <div className="relative h-48 w-full overflow-hidden">
+                {event.imageUrl ? (
+                    <img
+                        src={event.imageUrl}
+                        alt={event.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-500/10 to-purple-500/10 flex items-center justify-center">
+                        <Calendar className="w-12 h-12 text-blue-200" />
+                    </div>
+                )}
+                <div className="absolute top-4 right-4">
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/90 backdrop-blur-md text-blue-700 border border-blue-100 shadow-sm uppercase tracking-wider">
                         {event.participationMode}
                     </span>
                 </div>
-                <CardDescription className="flex items-center mt-1">
-                    <Calendar className="w-3 h-3 mr-1" />
-                    {new Date(event.startDate).toLocaleDateString(undefined, { dateStyle: 'full' })}
-                </CardDescription>
+            </div>
+
+            <CardHeader className="pb-2">
+                <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-1" title={event.title}>
+                    {event.title}
+                </CardTitle>
+                <div className="flex items-center text-sm text-gray-500 font-medium">
+                    <Calendar className="w-4 h-4 mr-1.5 text-blue-500" />
+                    {new Date(event.startDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                </div>
             </CardHeader>
-            <CardContent className="flex-1 flex flex-col justify-between pt-0">
-                <p className="text-sm text-gray-600 line-clamp-2 mb-4">
-                    {event.description || "No description provided."}
+            <CardContent className="flex-1 flex flex-col pt-0">
+                <p className="text-sm text-gray-600 line-clamp-2 mb-6 min-h-[2.5rem]">
+                    {event.description || "Join us for this amazing spiritual gathering."}
                 </p>
-                {new Date(event.endDate) > new Date() ? (
-                    <Link href={`/events/${event.id}/register`} className="mt-auto">
-                        <Button className="w-full bg-primary text-white hover:bg-primary/90">
-                            Register Now
-                        </Button>
-                    </Link>
-                ) : (
-                    <div className="mt-auto">
-                        <Button disabled className="w-full bg-gray-100 text-gray-400 cursor-not-allowed">
+                <div className="mt-auto">
+                    {new Date(event.endDate) > new Date() ? (
+                        <Link href={`/events/${event.id}/register`}>
+                            <Button className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl py-6 font-semibold shadow-md shadow-primary/20 transition-all hover:-translate-y-0.5">
+                                Register Now
+                            </Button>
+                        </Link>
+                    ) : (
+                        <Button disabled className="w-full bg-gray-100 text-gray-400 cursor-not-allowed rounded-xl py-6">
                             Registration Closed
                         </Button>
-                    </div>
-                )}
+                    )}
+                </div>
             </CardContent>
         </Card>
-    )
+    );
 }
+
