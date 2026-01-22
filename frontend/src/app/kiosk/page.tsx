@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ProtectedRoute } from "@/components/common/route-guards";
 import { api } from "@/lib/api/client";
-import { Smartphone, QrCode, CheckCircle, XCircle, Search, Calendar, UserCheck } from "lucide-react";
+import { Smartphone, QrCode, CheckCircle, XCircle, Search, Calendar, UserCheck, Loader, Camera, RefreshCw } from "lucide-react";
 
 export default function KioskPage() {
   const [events, setEvents] = useState<any[]>([]);
@@ -13,10 +13,30 @@ export default function KioskPage() {
   const [registration, setRegistration] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [scannerActive, setScannerActive] = useState(false);
+  const [cameraPermission, setCameraPermission] = useState<"granted" | "denied" | "pending">("pending");
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const readerRef = useRef<any>(null);
 
   useEffect(() => {
     fetchEvents();
+    checkCameraPermission();
   }, []);
+
+  useEffect(() => {
+    if (scannerActive && videoRef.current && cameraPermission === "granted") {
+      startScanner();
+    }
+    return () => {
+      if (readerRef.current) {
+        try {
+          readerRef.current.reset();
+        } catch (e) {
+          console.error("Error stopping scanner:", e);
+        }
+      }
+    };
+  }, [scannerActive, cameraPermission]);
 
   const fetchEvents = async () => {
     try {
@@ -34,40 +54,70 @@ export default function KioskPage() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
+    await performSearch(searchQuery);
+  };
 
-    setLoading(true);
-    setMessage(null);
-    setSearchResult(null);
-    setRegistration(null);
+  const performSearch = async (query: string) => {
+    if (!selectedEventId || !query.trim()) return;
 
     try {
-      // 1. Search for member
-      const memberRes = await api.get<any>(`/members/search?q=${encodeURIComponent(searchQuery)}`);
-      const members = memberRes.data?.data || memberRes.data || memberRes || [];
+      setLoading(true);
+      setMessage(null);
+      setSearchResult(null);
+      setRegistration(null);
 
-      if (Array.isArray(members) && members.length > 0) {
-        const member = members[0];
-        setSearchResult(member);
+      const response = await api.get<any>(`/registrations?eventId=${selectedEventId}&search=${encodeURIComponent(query)}&limit=1`);
 
-        // 2. If event is selected, check for registration
-        if (selectedEventId) {
-          const regRes = await api.get<any>(`/registrations/member/${member.id}?eventId=${selectedEventId}`);
-          const registrations = regRes.data?.data || regRes.data || regRes || [];
-          if (Array.isArray(registrations) && registrations.length > 0) {
-            setRegistration(registrations[0]);
-          } else {
-            setMessage({ type: "error", text: "Member found but NO registration for this event." });
-          }
-        }
+      // Handle the consistent backend response structure: { data: { data: [...], pagination: {...} } }
+      const registrations = response.data?.data || [];
+      const foundRegistration = Array.isArray(registrations) ? registrations[0] : null;
+
+      if (foundRegistration) {
+        setRegistration(foundRegistration);
+        setSearchResult(foundRegistration.member);
       } else {
-        setMessage({ type: "error", text: "Member not found" });
+        setMessage({ type: "error", text: "No registration found matching this query." });
       }
     } catch (error: any) {
-      const errorMsg = error.response?.error?.message || error.message || "Search failed";
-      setMessage({ type: "error", text: errorMsg });
+      console.error("Search error:", error);
+      setMessage({ type: "error", text: "Search failed. Please try again." });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkCameraPermission = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      stream.getTracks().forEach(track => track.stop());
+      setCameraPermission("granted");
+    } catch (error) {
+      console.error("Camera permission denied:", error);
+      setCameraPermission("denied");
+    }
+  };
+
+  const startScanner = async () => {
+    if (!videoRef.current) return;
+
+    try {
+      const { BrowserMultiFormatReader } = await import("@zxing/browser");
+      const reader = new BrowserMultiFormatReader();
+      readerRef.current = reader;
+
+      reader.decodeFromVideoElement(videoRef.current, (result, err) => {
+        if (result) {
+          const barcode = result.getText();
+          console.log("Barcode scanned:", barcode);
+          setSearchQuery(barcode);
+          setScannerActive(false);
+          performSearch(barcode);
+        }
+      });
+    } catch (error) {
+      console.error("Scanner error:", error);
+      setMessage({ type: "error", text: "Scanner initialization failed" });
+      setScannerActive(false);
     }
   };
 
@@ -97,75 +147,220 @@ export default function KioskPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-[#F8FAFC]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
           {/* Header */}
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200 mb-6 transform rotate-3">
-              <UserCheck className="w-8 h-8 text-white transform -rotate-3" />
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-lg shadow-blue-300/40 mb-5 animate-pulse">
+              <UserCheck className="w-7 h-7 text-white" />
             </div>
-            <h1 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">Check-In Kiosk</h1>
-            <p className="text-slate-500 text-lg max-w-md mx-auto">Admin dashboard for rapid attendee check-in and membership lookup.</p>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">Check-In Kiosk</h1>
+            <p className="text-slate-600 text-sm sm:text-base max-w-lg mx-auto font-medium">Scan QR codes or search members for rapid event check-in</p>
           </div>
 
-          <div className="grid grid-cols-1 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {/* Event & Search Configuration */}
-            <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 p-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 ml-1">Active Event</label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <select
-                      value={selectedEventId}
-                      onChange={(e) => {
-                        setSelectedEventId(e.target.value);
-                        setSearchResult(null);
-                        setRegistration(null);
-                        setMessage(null);
-                      }}
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-slate-700 appearance-none"
-                    >
-                      <option value="">Select Event...</option>
-                      {events.map((e) => (
-                        <option key={e.id} value={e.id}>{e.title}</option>
-                      ))}
-                    </select>
-                  </div>
+            {/* Left Panel - Controls */}
+            <div className="lg:col-span-1 space-y-4">
+              {/* Event Selector */}
+              <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-4 backdrop-blur-sm">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Active Event</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <select
+                    value={selectedEventId}
+                    onChange={(e) => {
+                      setSelectedEventId(e.target.value);
+                      setSearchResult(null);
+                      setRegistration(null);
+                      setMessage(null);
+                    }}
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium text-sm text-slate-700 appearance-none transition-all"
+                  >
+                    <option value="">Select Event...</option>
+                    {events.map((e) => (
+                      <option key={e.id} value={e.id}>{e.title}</option>
+                    ))}
+                  </select>
                 </div>
+              </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 ml-1">Search Identifier</label>
-                  <form onSubmit={handleSearch} className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              {/* Search Input */}
+              <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-4 backdrop-blur-sm">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Manual Search</label>
+                <form onSubmit={handleSearch} className="space-y-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Name, Phone, or FCS ID"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-slate-700 placeholder:text-slate-400"
+                      placeholder="Name, Phone, or ID"
+                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium text-sm text-slate-700 placeholder:text-slate-400 transition-all"
                     />
-                  </form>
-                </div>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading || !searchQuery.trim() || !selectedEventId}
+                    className="w-full py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md"
+                  >
+                    {loading ? <Loader className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                    {loading ? "Searching..." : "Search"}
+                  </button>
+                </form>
               </div>
 
-              <button
-                onClick={handleSearch}
-                type="button"
-                disabled={loading || !searchQuery.trim() || !selectedEventId}
-                className="w-full py-4 bg-slate-900 text-white text-lg font-bold rounded-2xl hover:bg-black transition-all transform active:scale-[0.98] disabled:opacity-30 flex items-center justify-center gap-3 shadow-lg shadow-slate-200"
-              >
-                {loading && !searchResult ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : <Search className="w-5 h-5" />}
-                {loading && !searchResult ? "Searching..." : "Lookup Member"}
-              </button>
+              {/* Scanner Toggle */}
+              {cameraPermission === "granted" && (
+                <button
+                  onClick={() => setScannerActive(!scannerActive)}
+                  className={`w-full py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md border-2 ${scannerActive
+                    ? "bg-rose-50 border-rose-300 text-rose-700 hover:bg-rose-100"
+                    : "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100"
+                    }`}
+                >
+                  {scannerActive ? (
+                    <>
+                      <div className="w-3 h-3 bg-rose-600 rounded-full animate-pulse" />
+                      Stop Scanner
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="w-4 h-4" />
+                      Activate Scanner
+                    </>
+                  )}
+                </button>
+              )}
+
+              {cameraPermission === "denied" && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <p className="text-xs text-amber-700 font-medium">Camera access denied. Please enable camera permissions.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Right Panel - Scanner & Results */}
+            <div className="lg:col-span-2 space-y-4">
+
+              {/* Scanner View */}
+              {scannerActive && cameraPermission === "granted" && (
+                <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+                  <div className="relative bg-black rounded-xl overflow-hidden" style={{ aspectRatio: "4/3" }}>
+                    <video
+                      ref={videoRef}
+                      className="w-full h-full object-cover"
+                      style={{ transform: "scaleX(-1)" }}
+                    />
+                    {/* Scanner overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="w-48 h-48 border-2 border-emerald-400 rounded-lg shadow-lg shadow-emerald-500/50 animate-pulse" />
+                      <div className="absolute top-4 left-4 right-4 h-16 bg-gradient-to-b from-emerald-400/20 to-transparent" />
+                      <div className="absolute bottom-4 left-4 right-4 h-16 bg-gradient-to-t from-emerald-400/20 to-transparent" />
+                    </div>
+                  </div>
+                  <div className="p-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white text-center text-sm font-medium">
+                    Position QR code or barcode in frame
+                  </div>
+                </div>
+              )}
+
+              {/* Results Display */}
+              {searchResult && (
+                <div className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                  {/* Header with member info */}
+                  <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-5 text-white">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 bg-gradient-to-tr from-blue-400 to-indigo-500 rounded-xl flex items-center justify-center text-white font-black text-2xl shadow-lg">
+                        {searchResult.firstName?.[0]}{searchResult.lastName?.[0]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-xl sm:text-2xl font-black truncate">{searchResult.firstName} {searchResult.lastName}</h3>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <span className="px-2.5 py-1 bg-white/20 rounded-md text-xs font-bold uppercase tracking-wide">{searchResult.fcsCode}</span>
+                          {searchResult.gender && <span className="text-sm font-medium opacity-90">• {searchResult.gender}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Details */}
+                  <div className="p-5 space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-slate-50 rounded-lg p-3">
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email</p>
+                        <p className="text-sm font-semibold text-slate-700 truncate">{searchResult.email || "—"}</p>
+                      </div>
+                      <div className="bg-slate-50 rounded-lg p-3">
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Phone</p>
+                        <p className="text-sm font-semibold text-slate-700">{searchResult.phoneNumber || "—"}</p>
+                      </div>
+                    </div>
+
+                    {/* Registration Status */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-lg p-4">
+                      <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Registration Status</p>
+                      {registration ? (
+                        <div className="space-y-2">
+                          <div className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${registration.status === 'CONFIRMED'
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : 'bg-amber-100 text-amber-700'
+                            }`}>
+                            {registration.status}
+                          </div>
+                          <p className="text-xs text-slate-500">Ref: {registration.id.slice(0, 12)}</p>
+                        </div>
+                      ) : (
+                        <p className="text-sm font-bold text-rose-600">⚠️ Not Registered for Event</p>
+                      )}
+                    </div>
+
+                    {/* Check-in Button */}
+                    <button
+                      onClick={handleCheckIn}
+                      disabled={loading || !registration}
+                      className={`w-full py-4 rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-all shadow-lg active:scale-95 ${registration && !loading
+                        ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 shadow-emerald-200/50"
+                        : "bg-slate-200 text-slate-500 cursor-not-allowed"
+                        }`}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader className="w-5 h-5 animate-spin" />
+                          Confirming...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-5 h-5" />
+                          CONFIRM CHECK-IN
+                        </>
+                      )}
+                    </button>
+
+                    {/* Clear Button */}
+                    <button
+                      onClick={() => {
+                        setSearchQuery("");
+                        setSearchResult(null);
+                        setRegistration(null);
+                        setMessage(null);
+                        setScannerActive(true);
+                      }}
+                      className="w-full py-2 rounded-lg font-semibold text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Scan Another
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Messages */}
               {message && (
-                <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300 ${message.type === "success" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-rose-50 text-rose-700 border border-rose-100"
+                <div className={`p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300 border ${message.type === "success"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : "bg-rose-50 text-rose-700 border-rose-200"
                   }`}>
                   {message.type === "success" ? (
                     <CheckCircle className="w-5 h-5 flex-shrink-0" />
@@ -175,77 +370,19 @@ export default function KioskPage() {
                   <span className="font-semibold text-sm">{message.text}</span>
                 </div>
               )}
-            </div>
 
-            {/* Results Display */}
-            <div className={`transition-all duration-500 transform ${searchResult ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none absolute"}`}>
-              {searchResult && (
-                <div className="bg-white rounded-3xl shadow-2xl shadow-slate-200 border border-slate-100 overflow-hidden">
-                  <div className="bg-slate-900 p-8 text-white">
-                    <div className="flex items-center gap-6">
-                      <div className="w-20 h-20 bg-gradient-to-tr from-blue-400 to-indigo-500 rounded-2xl flex items-center justify-center text-white font-black text-3xl shadow-xl transform rotate-3">
-                        {searchResult.firstName?.[0]}{searchResult.lastName?.[0]}
-                      </div>
-                      <div>
-                        <h3 className="text-3xl font-black">{searchResult.firstName} {searchResult.lastName}</h3>
-                        <div className="flex items-center gap-2 mt-1 opacity-80">
-                          <span className="px-2 py-0.5 bg-white/20 rounded text-xs font-bold uppercase tracking-wider">{searchResult.fcsCode}</span>
-                          <span className="text-sm font-medium">• {searchResult.gender}</span>
-                        </div>
-                      </div>
-                    </div>
+              {/* Empty State */}
+              {!searchResult && !scannerActive && !loading && (
+                <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl border border-slate-200 p-12 text-center">
+                  <div className="bg-blue-100 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <QrCode className="w-10 h-10 text-blue-600" />
                   </div>
-
-                  <div className="p-8">
-                    <div className="grid grid-cols-2 gap-8 mb-8">
-                      <div>
-                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Contact Detail</p>
-                        <p className="text-slate-700 font-bold truncate">{searchResult.email || "No Email"}</p>
-                        <p className="text-slate-500 text-sm font-medium">{searchResult.phoneNumber || "No Phone"}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Registration Status</p>
-                        {registration ? (
-                          <div className="flex flex-col">
-                            <span className={`text-sm font-bold ${registration.status === 'CONFIRMED' ? 'text-emerald-600' : 'text-amber-500'}`}>
-                              {registration.status}
-                            </span>
-                            <span className="text-slate-400 text-xs font-medium">Ref: {registration.id.slice(0, 8)}...</span>
-                          </div>
-                        ) : (
-                          <span className="text-rose-500 text-sm font-bold">Unregistered</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={handleCheckIn}
-                      disabled={loading || !registration}
-                      className="w-full py-5 bg-emerald-500 text-white text-xl font-black rounded-2xl hover:bg-emerald-600 transition-all transform active:scale-[0.98] shadow-lg shadow-emerald-100 disabled:opacity-20 flex items-center justify-center gap-4"
-                    >
-                      {loading ? (
-                        <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                      ) : <CheckCircle className="w-6 h-6" />}
-                      {loading ? "Confirming..." : "CONFIRM CHECK-IN"}
-                    </button>
-
-                    {!registration && (
-                      <p className="text-center text-slate-400 text-xs mt-4 font-medium italic">
-                        Registration is required before check-in can be processed.
-                      </p>
-                    )}
-                  </div>
+                  <p className="text-slate-600 font-semibold mb-1">Ready for Check-In</p>
+                  <p className="text-slate-500 text-sm">Activate scanner or search manually to begin</p>
                 </div>
               )}
             </div>
 
-            {/* Empty State / Instructional */}
-            {!searchResult && !loading && (
-              <div className="text-center py-12">
-                <QrCode className="w-16 h-16 text-slate-200 mx-auto mb-4" />
-                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Waiting for Scan or Search</p>
-              </div>
-            )}
           </div>
         </div>
       </div>

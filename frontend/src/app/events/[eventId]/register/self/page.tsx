@@ -1,12 +1,14 @@
 /**
  * Public Event Registration Page
- * NO AUTHENTICATION REQUIRED - Anyone with the link can register
+ * For authenticated users: Skip Step 1 (identity form), use profile data
+ * For public users: Show Step 1 to collect identity
  */
 
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/context/auth-context';
 import {
     Calendar,
     MapPin,
@@ -41,19 +43,23 @@ import { Progress } from '@/components/ui/progress';
 export default function PublicEventRegistrationPage() {
     const params = useParams();
     const router = useRouter();
+    const { user, isLoading: authLoading } = useAuth();
     const eventId = params.eventId as string;
 
     const [event, setEvent] = useState<Event | null>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [currentStep, setCurrentStep] = useState(1);
+
+    // If user is authenticated, start from Step 2 (Participation Mode), else start from Step 1 (Identity)
+    const [currentStep, setCurrentStep] = useState(user ? 2 : 1);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
+    // Initialize form data with authenticated user's info if available
     const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
+        firstName: user?.firstName || '',
+        lastName: user?.lastName || '',
+        email: user?.email || '',
+        phone: user?.phone || '',
         password: '',
         confirmPassword: '',
         participationMode: undefined as 'ONLINE' | 'ONSITE' | undefined,

@@ -176,7 +176,7 @@ export function EnhancedHeader() {
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="flex items-center gap-2 p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-full bg-[#010030] text-white flex items-center justify-center font-bold text-sm">
+                  <div className="w-8 h-8 rounded-full bg-[#010030] text-white flex items-center justify-center font-bold text-sm select-none">
                     {user?.firstName?.[0] || "U"}
                   </div>
                   <ChevronDown className="w-4 h-4 text-gray-600 hidden md:block" />
@@ -292,7 +292,7 @@ export function EnhancedHeader() {
                 {/* Mobile User Profile Section */}
                 <div className="pt-6 border-t border-gray-100">
                   <div className="flex items-center gap-3 px-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-[#010030] text-white flex items-center justify-center font-bold text-lg">
+                    <div className="w-10 h-10 rounded-full bg-[#010030] text-white flex items-center justify-center font-bold text-lg select-none">
                       {user?.firstName?.[0] || "U"}
                     </div>
                     <div>

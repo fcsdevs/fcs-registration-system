@@ -35,10 +35,11 @@ export default function RegistrarsPage() {
             setIsLoading(true);
             try {
                 // Fetch users with the Registrar role
-                const query = new URLSearchParams({
-                    role: 'Registrar',
-                    unitId: currentScope.unitId
-                }).toString();
+                const params: Record<string, string> = { role: 'Registrar' };
+                if (currentScope.unitId) {
+                    params.unitId = currentScope.unitId;
+                }
+                const query = new URLSearchParams(params).toString();
 
                 const response = await api.get<any>(`/users?${query}`);
 
@@ -61,7 +62,7 @@ export default function RegistrarsPage() {
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Registrar Management</h1>
                         <p className="text-muted-foreground mt-1">
-                            Manage users authorized to register members at {currentScope?.name}.
+                            Manage users authorized to register members at {currentScope?.unitName}.
                         </p>
                     </div>
                     <Link href="/admin/users/new?role=Registrar">

@@ -37,9 +37,11 @@ export default function AdminUsersPage() {
                 // Fetch users for the current unit
                 // We fetch all users in the unit/scope and filter for admins client-side
                 // to avoid strict role matching issues with the API (e.g. 'State Admin' vs 'admin')
-                const query = new URLSearchParams({
-                    unitId: currentScope.unitId
-                }).toString();
+                const params: Record<string, string> = { role: 'admin' };
+                if (currentScope.unitId) {
+                    params.unitId = currentScope.unitId;
+                }
+                const query = new URLSearchParams(params).toString();
 
                 const response = await api.get<any>(`/users?${query}`);
 
@@ -82,7 +84,7 @@ export default function AdminUsersPage() {
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Admin Management</h1>
                         <p className="text-muted-foreground mt-1">
-                            Manage administrators for {currentScope?.name} and sub-units.
+                            Manage administrators for {currentScope?.unitName} and sub-units.
                         </p>
                     </div>
                     <Link href="/admin/users/new">

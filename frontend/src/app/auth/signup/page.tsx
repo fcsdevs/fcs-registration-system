@@ -22,6 +22,29 @@ import { authApi } from "@/lib/api/auth";
 import { unitsApi } from "@/lib/api/units";
 import { Unit } from "@/types/api";
 
+// Area-State Mapping for automatic zone/area assignment
+const AREA_STATE_MAPPING: Record<string, string[]> = {
+  "Abuja Area": ["Abuja (FCT)", "Niger", "Kwara", "Kogi"],
+  "Adamawa Area": ["Adamawa", "Gombe", "Taraba"],
+  "Kaduna Area": ["Kaduna", "Kano", "Katsina", "Jigawa"],
+  "Nasarawa Area": ["Nasarawa", "Benue", "Plateau"],
+  "Sokoto Area": ["Sokoto", "Kebbi", "Zamfara"],
+  "Yobe Area": ["Yobe"],
+  "South East Area": ["Anambra", "Enugu", "Ebonyi", "Imo", "Abia"],
+  "South South Area": ["Cross River", "Bayelsa", "Akwa Ibom", "Rivers", "Edo", "Delta"],
+  "South West Area": ["Ogun", "Oyo", "Osun", "Ondo", "Lagos", "Ekiti"]
+};
+
+// Helper function to get area from state name
+const getAreaFromState = (stateName: string): string | null => {
+  for (const [area, states] of Object.entries(AREA_STATE_MAPPING)) {
+    if (states.some(s => s.toLowerCase() === stateName.toLowerCase())) {
+      return area;
+    }
+  }
+  return null;
+};
+
 // Password strength calculator
 const calculatePasswordStrength = (password: string): {
   score: number;
@@ -206,15 +229,56 @@ export default function SignupPage() {
     const fetchStates = async () => {
       try {
         setIsLoadingLocations(true);
+        console.log('[Signup] Starting states fetch...');
         const response = await unitsApi.list({ type: 'State', limit: 300 }); // Increased limit
-        console.log('States API Response:', response);
-        if (response.data?.data) {
-          setStates(response.data.data);
+        console.log('[Signup] Full States API Response:', response);
+        console.log('[Signup] response.data:', response.data);
+        console.log('[Signup] response.data?.data:', response.data?.data);
+
+        // Handle paginated response: response.data is the PaginatedResponse
+        const statesData = response.data?.data || response?.data || [];
+        console.log('[Signup] Extracted statesData:', statesData);
+        console.log('[Signup] Is array?', Array.isArray(statesData));
+        console.log('[Signup] Array length:', Array.isArray(statesData) ? statesData.length : 'N/A');
+
+        if (Array.isArray(statesData) && statesData.length > 0) {
+          setStates(statesData);
+          console.log(`[Signup] ✅ Loaded ${statesData.length} states from API`);
         } else {
-          console.warn('States data is empty or malformed', response);
+          console.warn('[Signup] ⚠️ States data is empty or malformed, using fallback', { response, statesData });
+          // Fallback: Convert NIGERIAN_STATES to Unit objects
+          const fallbackStates: Unit[] = NIGERIAN_STATES.map((stateName, idx) => ({
+            id: `state-${idx}`,
+            name: stateName === 'FCT' ? 'Abuja (FCT)' : stateName,
+            code: `ST-${idx}`,
+            isActive: true,
+            type: 'State',
+            description: '',
+            unitTypeId: '',
+            parentId: undefined,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }));
+          setStates(fallbackStates);
+          console.log(`[Signup] ✅ Loaded ${fallbackStates.length} states from fallback`);
         }
       } catch (err) {
-        console.error("Failed to fetch states", err);
+        console.error("[Signup] ❌ Failed to fetch states", err);
+        // Fallback: Use hardcoded states
+        const fallbackStates: Unit[] = NIGERIAN_STATES.map((stateName, idx) => ({
+          id: `state-${idx}`,
+          name: stateName === 'FCT' ? 'Abuja (FCT)' : stateName,
+          code: `ST-${idx}`,
+          isActive: true,
+          type: 'State',
+          description: '',
+          unitTypeId: '',
+          parentId: undefined,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }));
+        setStates(fallbackStates);
+        console.log(`[Signup] ✅ Loaded ${fallbackStates.length} states from error fallback`);
       } finally {
         setIsLoadingLocations(false);
       }
@@ -248,23 +312,26 @@ export default function SignupPage() {
           recursive: true, // Use recursive to find nested branches (State -> Zone -> Branch)
           limit: 300
         });
-        if (response.data?.data) {
-          setBranches(response.data.data);
+
+        // Handle paginated response
+        const branchesData = response.data?.data || response?.data || [];
+        if (Array.isArray(branchesData)) {
+          setBranches(branchesData);
+          console.log(`Loaded ${branchesData.length} branches for state ${selectedStateName}`);
         }
 
-        // 2. Fetch/Derive Area (Parent of the State)
-        // We can get this if we fetched the State details, or assume we can get it from the stateUnit's parentId if we had it.
-        // The list() call might not return parent details. Let's fetch the specific state unit to get its parent.
-        const stateDetails = await unitsApi.getById(stateUnit.id);
-        if (stateDetails.data && stateDetails.data.parent) {
-          setValue("zone", stateDetails.data.parent.name);
+        // 2. Derive Area using client-side mapping
+        const area = getAreaFromState(selectedStateName);
+        if (area) {
+          setValue("zone", area);
         } else {
-          // Fallback or if no parent
+          // Fallback if state not in mapping
           setValue("zone", "Unassigned Area");
         }
 
       } catch (err) {
         console.error("Failed to fetch branches/area details", err);
+        setBranches([]);
       } finally {
         setIsLoadingBranches(false);
       }
@@ -998,26 +1065,54 @@ export default function SignupPage() {
                   <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">
                     FCS Branch {isLoadingBranches && <Loader2 className="inline w-3 h-3 animate-spin" />}
                   </label>
-                  <select
-                    {...register("branch")} // This registers the branch NAME or ID? 
-                    // The schema expects 'branch' string (name). But we should also set 'branchId'.
-                    // Let's handle onChange manually to set both.
-                    onChange={(e) => {
-                      const selectedBranch = branches.find(b => b.name === e.target.value);
-                      setValue("branch", e.target.value);
-                      if (selectedBranch) {
-                        setValue("branchId", selectedBranch.id);
-                      } else {
-                        setValue("branchId", undefined); // or ""
-                      }
-                    }}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-primary/20"
-                  >
-                    <option value="">Select Branch</option>
-                    {branches.map(b => (
-                      <option key={b.id} value={b.name}>{b.name}</option>
-                    ))}
-                  </select>
+
+                  {branches.length > 0 ? (
+                    // Show dropdown when branches are available
+                    <select
+                      {...register("branch")}
+                      onChange={(e) => {
+                        const selectedBranch = branches.find(b => b.name === e.target.value);
+                        setValue("branch", e.target.value);
+                        if (selectedBranch) {
+                          setValue("branchId", selectedBranch.id);
+                        } else {
+                          setValue("branchId", undefined);
+                        }
+                      }}
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="">Select Branch</option>
+                      {branches.map(b => (
+                        <option key={b.id} value={b.name}>{b.name}</option>
+                      ))}
+                    </select>
+                  ) : selectedStateName ? (
+                    // Show text input when state is selected but no branches found
+                    <>
+                      <input
+                        {...register("branch")}
+                        type="text"
+                        placeholder="Enter your branch name"
+                        onChange={(e) => {
+                          setValue("branch", e.target.value);
+                          // Clear branchId since it's a manual entry
+                          setValue("branchId", undefined);
+                        }}
+                        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-primary/20"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        No branches found for {selectedStateName}. Please enter your branch name.
+                      </p>
+                    </>
+                  ) : (
+                    // Show placeholder when no state is selected
+                    <select
+                      disabled
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-400 cursor-not-allowed"
+                    >
+                      <option>Select a state first</option>
+                    </select>
+                  )}
                 </div>
               </div>
 
