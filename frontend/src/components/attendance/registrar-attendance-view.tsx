@@ -232,7 +232,16 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
             const html5QrCode = new (window as any).Html5Qrcode("reader");
             await html5QrCode.start(
                 { facingMode: "environment" },
-                { fps: 20, qrbox: { width: 280, height: 280 }, aspectRatio: 1.0 },
+                {
+                    fps: 30,
+                    qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+                        return {
+                            width: Math.min(viewfinderWidth * 0.8, 400),
+                            height: Math.min(viewfinderHeight * 0.7, 280)
+                        };
+                    },
+                    aspectRatio: 1.777778 // 16:9 for better wide view
+                },
                 onScanSuccess,
                 () => { }
             );
@@ -307,15 +316,15 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
                             </div>
 
                             <TabsContent value="manual" className="mt-0 focus-visible:outline-none">
-                                <Card className="p-10 rounded-[40px] border-[#E2E8F0] shadow-2xl bg-white relative overflow-hidden group">
-                                    <div className="absolute top-0 right-0 p-8 opacity-5 group-focus-within:opacity-10 transition-opacity">
-                                        <Scan size={120} className="text-[#060CCD]" />
+                                <Card className="p-8 rounded-[32px] border-[#E2E8F0] shadow-2xl bg-white relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-6 opacity-5 group-focus-within:opacity-10 transition-opacity">
+                                        <Scan size={100} className="text-[#060CCD]" />
                                     </div>
 
-                                    <div className="relative z-10 w-full text-center space-y-8">
+                                    <div className="relative z-10 w-full text-center space-y-6">
                                         <div>
-                                            <h2 className="text-2xl font-black text-[#0F172A] mb-2">Identification Input</h2>
-                                            <p className="text-sm text-[#94A3B8] font-medium">Input FCS Code or full name from badge</p>
+                                            <h2 className="text-xl font-black text-[#0F172A] mb-1">Identification Input</h2>
+                                            <p className="text-xs text-[#94A3B8] font-medium">Input FCS Code or full name from badge</p>
                                         </div>
 
                                         <form onSubmit={(e) => { e.preventDefault(); handleCheckIn(inputValue.trim(), kioskMode ? 'KIOSK' : 'MANUAL'); setInputValue(""); }} className="space-y-4">
@@ -324,30 +333,30 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
                                                     ref={inputRef}
                                                     value={inputValue}
                                                     onChange={(e) => setInputValue(e.target.value)}
-                                                    className="h-24 text-4xl text-center font-black tracking-tighter rounded-3xl border-[#E2E8F0] bg-[#F8FAFC] focus:ring-4 focus:ring-[#060CCD]/10 transition-all uppercase placeholder:text-[#CBD5E1]"
+                                                    className="h-20 text-3xl text-center font-black tracking-tighter rounded-2xl border-[#E2E8F0] bg-[#F8FAFC] focus:ring-4 focus:ring-[#060CCD]/10 transition-all uppercase placeholder:text-[#CBD5E1]"
                                                     placeholder="-- -- -- --"
                                                     disabled={processing || !selectedEventId}
                                                     autoComplete="off"
                                                 />
                                                 {processing && (
                                                     <div className="absolute right-6 top-1/2 -translate-y-1/2">
-                                                        <Loader2 className="h-8 w-8 text-[#060CCD] animate-spin" />
+                                                        <Loader2 className="h-6 w-6 text-[#060CCD] animate-spin" />
                                                     </div>
                                                 )}
                                             </div>
                                             <Button
                                                 type="submit"
                                                 disabled={processing || !selectedEventId || !inputValue}
-                                                className="w-full h-20 rounded-3xl bg-[#060CCD] hover:bg-[#010030] text-xl font-black uppercase tracking-widest shadow-xl shadow-blue-200"
+                                                className="w-full h-16 rounded-2xl bg-[#060CCD] hover:bg-[#010030] text-lg font-black uppercase tracking-widest shadow-xl shadow-blue-200"
                                             >
                                                 Confirm Attendance
                                             </Button>
                                         </form>
 
                                         {!selectedEventId && (
-                                            <div className="flex items-center justify-center gap-2 p-4 bg-amber-50 rounded-2xl border border-amber-100 animate-pulse">
-                                                <AlertCircle size={16} className="text-amber-600" />
-                                                <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">Please Select Event Session Above</span>
+                                            <div className="flex items-center justify-center gap-2 p-3 bg-amber-50 rounded-xl border border-amber-100 animate-pulse">
+                                                <AlertCircle size={14} className="text-amber-600" />
+                                                <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Please Select Event Session Above</span>
                                             </div>
                                         )}
                                     </div>
@@ -355,21 +364,21 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
                             </TabsContent>
 
                             <TabsContent value="camera" className="mt-0 focus-visible:outline-none">
-                                <Card className="p-6 rounded-[40px] border-[#E2E8F0] shadow-2xl bg-black relative overflow-hidden h-[450px]">
-                                    <div id="reader" className="w-full h-full object-cover rounded-3xl overflow-hidden opacity-90"></div>
+                                <Card className="p-4 rounded-[32px] border-[#E2E8F0] shadow-2xl bg-black relative overflow-hidden h-[360px]">
+                                    <div id="reader" className="w-full h-full object-cover rounded-2xl overflow-hidden opacity-90"></div>
                                     {!isScanning && (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm z-10 text-white p-8 text-center">
-                                            <Camera size={64} className="mb-4 opacity-50" />
-                                            <h3 className="text-xl font-black uppercase mb-2">Live Camera Vision</h3>
-                                            <p className="text-gray-400 text-sm mb-8">Access system camera to scan member QR codes</p>
-                                            <Button onClick={startScanner} className="h-16 px-10 rounded-2xl bg-white text-black font-black uppercase tracking-widest hover:bg-gray-200">
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm z-10 text-white p-6 text-center">
+                                            <Camera size={48} className="mb-3 opacity-50" />
+                                            <h3 className="text-lg font-black uppercase mb-1">Live Camera Vision</h3>
+                                            <p className="text-gray-400 text-xs mb-6">Access system camera to scan member QR codes</p>
+                                            <Button onClick={startScanner} className="h-14 px-8 rounded-xl bg-white text-black font-black uppercase tracking-widest hover:bg-gray-200">
                                                 Activate Vision
                                             </Button>
                                         </div>
                                     )}
                                     {isScanning && (
-                                        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-4 z-20">
-                                            <Button onClick={() => stopScanner()} variant="destructive" className="h-14 px-8 rounded-2xl font-black uppercase text-xs tracking-widest">
+                                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4 z-20">
+                                            <Button onClick={() => stopScanner()} variant="destructive" className="h-12 px-6 rounded-xl font-black uppercase text-xs tracking-widest">
                                                 Power Off
                                             </Button>
                                         </div>

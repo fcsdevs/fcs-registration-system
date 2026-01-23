@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth-context";
 import { registrationsApi } from "@/lib/api/registrations";
+import { eventsApi } from "@/lib/api/events";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Printer, Download, Loader2, RefreshCcw, FileText, User, Calendar, MapPin, Tag, ArrowRight } from "lucide-react";
+import { Search, Printer, Download, Loader2, RefreshCcw, FileText, User, Calendar, MapPin, Tag, ArrowRight, Filter } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
     Table,
     TableBody,
@@ -25,6 +27,8 @@ export default function PrintTagsPage() {
     const [loading, setLoading] = useState(false);
     const [registrations, setRegistrations] = useState<any[]>([]);
     const [search, setSearch] = useState("");
+    const [events, setEvents] = useState<any[]>([]);
+    const [selectedEventId, setSelectedEventId] = useState<string>("all");
     const [activeTab, setActiveTab] = useState("center-registrations");
     const [pagination, setPagination] = useState({
         page: 1,
@@ -43,9 +47,13 @@ export default function PrintTagsPage() {
             const params: any = {
                 page: pagination.page,
                 limit: pagination.limit,
-                search: search.toUpperCase(), // Normalize search to uppercase for FCS Codes
+                search: search.trim(), // Use trim instead of forced upperCase to allow name search
                 include: 'member,event,participation'
             };
+
+            if (selectedEventId && selectedEventId !== "all") {
+                params.eventId = selectedEventId;
+            }
 
             if (activeTab === "my-registrations") {
                 params.registeredBy = user.id;
@@ -80,13 +88,28 @@ export default function PrintTagsPage() {
         }
     };
 
+    const fetchEvents = async () => {
+        try {
+            const response = await eventsApi.list({ limit: 100 });
+            // Extract the array from PaginatedResponse<Event>
+            const eventList = response.data?.data || (Array.isArray(response.data) ? response.data : []);
+            setEvents(eventList);
+        } catch (error) {
+            console.error("Failed to fetch events", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchEvents();
+    }, []);
+
     // Debounce search or fetch on change
     useEffect(() => {
         const timer = setTimeout(() => {
             fetchRegistrations();
         }, 500);
         return () => clearTimeout(timer);
-    }, [search, activeTab, pagination.page, user?.id]);
+    }, [search, activeTab, pagination.page, user?.id, selectedEventId]);
 
     const handlePrint = async (registration: any) => {
         try {
@@ -139,20 +162,46 @@ export default function PrintTagsPage() {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
-                {/* Search Bar - Modernized */}
-                <div className="relative max-w-2xl animate-slide-up">
-                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8]" />
-                    <Input
-                        placeholder="Scan or Search by FCS Code (e.g. FCS/24/1001)..."
-                        className="h-16 pl-14 pr-6 bg-white border-[#E2E8F0] rounded-[24px] shadow-sm text-lg font-medium placeholder:text-[#94A3B8] focus:ring-[#060CCD] transition-all"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                    {search && (
-                        <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                            <Badge className="bg-[#E8F5F1] text-[#10B981] border-none font-black text-[10px] py-1 px-3 rounded-full">READY</Badge>
+                {/* Search Bar & Event Filter - Modernized */}
+                <div className="flex flex-col lg:flex-row gap-4 items-stretch animate-slide-up">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8]" />
+                        <Input
+                            placeholder="Scan or Search by Name / FCS Code..."
+                            className="h-16 pl-14 pr-6 bg-white border-[#E2E8F0] rounded-[24px] shadow-sm text-lg font-medium placeholder:text-[#94A3B8] focus:ring-[#060CCD] transition-all"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                        {search && (
+                            <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                <Badge className="bg-[#E8F5F1] text-[#10B981] border-none font-black text-[10px] py-1 px-3 rounded-full">READY</Badge>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="w-full lg:w-[350px]">
+                        <div className="relative h-full">
+                            <Filter className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] z-10 pointer-events-none" />
+                            <Select value={selectedEventId} onValueChange={setSelectedEventId}>
+                                <SelectTrigger className="h-16 pl-14 rounded-[24px] bg-white border-[#E2E8F0] shadow-sm text-left font-bold text-[#0F172A]">
+                                    <SelectValue placeholder="Select Event Session" />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-2xl border-[#E2E8F0] shadow-2xl">
+                                    <SelectItem value="all" className="font-bold py-3">All Active Events</SelectItem>
+                                    {events.map((event) => (
+                                        <SelectItem key={event.id} value={event.id} className="py-3">
+                                            <div className="flex flex-col">
+                                                <span className="font-bold">{event.title}</span>
+                                                <span className="text-[10px] text-gray-400 uppercase tracking-tighter">
+                                                    {format(new Date(event.startDate), 'MMM dd, yyyy')}
+                                                </span>
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
-                    )}
+                    </div>
                 </div>
 
                 <Tabs defaultValue="center-registrations" onValueChange={setActiveTab} className="w-full animate-slide-up animation-delay-200">
@@ -202,9 +251,20 @@ export default function PrintTagsPage() {
                                             <TableRow key={reg.id} className="hover:bg-[#F8FAFC]/50 transition-colors border-none group">
                                                 <TableCell className="px-8 py-6">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-[#060CCD] to-[#3B82F6] flex items-center justify-center font-black text-white shadow-lg">
-                                                            {reg.member?.firstName?.[0]}{reg.member?.lastName?.[0]}
-                                                        </div>
+                                                        {reg.member?.profilePhotoUrl ? (
+                                                            <img
+                                                                src={reg.member.profilePhotoUrl}
+                                                                className="h-12 w-12 rounded-2xl object-cover shadow-lg border-2 border-white"
+                                                                alt="profile"
+                                                                onError={(e) => {
+                                                                    (e.target as any).src = 'https://ui-avatars.com/api/?name=' + reg.member?.firstName + '+' + reg.member?.lastName;
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-[#060CCD] to-[#3B82F6] flex items-center justify-center font-black text-white shadow-lg">
+                                                                {reg.member?.firstName?.[0]}{reg.member?.lastName?.[0]}
+                                                            </div>
+                                                        )}
                                                         <div>
                                                             <div className="font-black text-[#0F172A] group-hover:text-[#060CCD] transition-colors">{reg.member?.firstName} {reg.member?.lastName}</div>
                                                             <div className="text-xs font-medium text-[#64748B]">{reg.member?.email}</div>
@@ -221,14 +281,24 @@ export default function PrintTagsPage() {
                                                         <div className="text-xs font-bold text-[#475569] flex items-center gap-1.5">
                                                             <MapPin size={12} className="text-[#060CCD]" />
                                                             {reg.participation?.participationMode || 'ONSITE'}
+                                                            {reg.participation?.center?.centerName && (
+                                                                <span className="text-[#94A3B8] font-medium">— {reg.participation.center.centerName}</span>
+                                                            )}
                                                         </div>
+                                                        {reg.groupAssignment?.group && (
+                                                            <div className="flex items-center gap-1 mt-0.5">
+                                                                <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md uppercase">
+                                                                    {reg.groupAssignment.group.type}: {reg.groupAssignment.group.name}
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                         <div className="text-[10px] font-medium text-[#94A3B8]">{reg.event?.title}</div>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
                                                     <Badge className={`rounded-full px-4 py-1 text-[10px] font-black border-none uppercase tracking-widest ${reg.status === 'CONFIRMED' ? 'bg-[#E8F5F1] text-[#10B981]' :
-                                                            reg.status === 'CHECKED_IN' ? 'bg-[#F5F3FF] text-[#8B5CF6]' :
-                                                                'bg-[#F1F5F9] text-[#64748B]'
+                                                        reg.status === 'CHECKED_IN' ? 'bg-[#F5F3FF] text-[#8B5CF6]' :
+                                                            'bg-[#F1F5F9] text-[#64748B]'
                                                         }`}>
                                                         {reg.status}
                                                     </Badge>
@@ -257,25 +327,43 @@ export default function PrintTagsPage() {
                                 <div key={reg.id} className="bg-white p-6 active:bg-[#F8FAFC] transition-colors">
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-4">
-                                            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#060CCD] to-[#3B82F6] flex items-center justify-center font-black text-white text-xs">
-                                                {reg.member?.firstName?.[0]}{reg.member?.lastName?.[0]}
-                                            </div>
+                                            {reg.member?.profilePhotoUrl ? (
+                                                <img
+                                                    src={reg.member.profilePhotoUrl}
+                                                    className="h-10 w-10 rounded-xl object-cover shadow-md"
+                                                    alt="profile"
+                                                    onError={(e) => {
+                                                        (e.target as any).src = 'https://ui-avatars.com/api/?name=' + reg.member?.firstName + '+' + reg.member?.lastName;
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#060CCD] to-[#3B82F6] flex items-center justify-center font-black text-white text-xs">
+                                                    {reg.member?.firstName?.[0]}{reg.member?.lastName?.[0]}
+                                                </div>
+                                            )}
                                             <div>
                                                 <h4 className="font-black text-[#0F172A] uppercase text-xs">{reg.member?.firstName} {reg.member?.lastName}</h4>
                                                 <p className="text-[10px] font-mono text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded mt-1 w-fit">{reg.member?.fcsCode}</p>
                                             </div>
                                         </div>
                                         <Badge className={`rounded-full px-3 py-1 text-[9px] font-black uppercase border-none ${reg.status === 'CONFIRMED' ? 'bg-[#E8F5F1] text-[#10B981]' :
-                                                reg.status === 'CHECKED_IN' ? 'bg-[#F5F3FF] text-[#8B5CF6]' :
-                                                    'bg-[#F1F5F9] text-[#64748B]'
+                                            reg.status === 'CHECKED_IN' ? 'bg-[#F5F3FF] text-[#8B5CF6]' :
+                                                'bg-[#F1F5F9] text-[#64748B]'
                                             }`}>
                                             {reg.status}
                                         </Badge>
                                     </div>
                                     <div className="flex items-center justify-between pt-4 border-t border-[#F8FAFC]">
-                                        <div className="text-[10px] font-bold text-[#64748B] uppercase flex items-center gap-1">
-                                            <MapPin size={10} />
-                                            {reg.participation?.participationMode || 'ONSITE'}
+                                        <div className="flex flex-col">
+                                            <div className="text-[10px] font-bold text-[#64748B] uppercase flex items-center gap-1">
+                                                <MapPin size={10} />
+                                                {reg.participation?.participationMode || 'ONSITE'}
+                                            </div>
+                                            {reg.groupAssignment?.group && (
+                                                <div className="text-[9px] font-black text-emerald-600 mt-0.5 uppercase">
+                                                    {reg.groupAssignment.group.type}: {reg.groupAssignment.group.name}
+                                                </div>
+                                            )}
                                         </div>
                                         <Button onClick={() => handlePrint(reg)} size="sm" className="bg-[#060CCD] text-white rounded-xl font-bold text-[10px] px-4">
                                             PRINT BADGE

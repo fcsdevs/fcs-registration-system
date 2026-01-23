@@ -187,16 +187,25 @@ export default function EventDetailsPage() {
                         )}
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                        {event.imageUrl && (
-                            <div className="w-full h-64 relative">
+                    <div className="bg-white rounded-lg shadow-lg overflow-hidden group">
+                        <div className="w-full h-64 relative overflow-hidden">
+                            {event.imageUrl ? (
                                 <img
                                     src={event.imageUrl}
                                     alt={event.title}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
-                            </div>
-                        )}
+                            ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-blue-600 to-indigo-700 flex flex-col items-center justify-center text-white p-8 text-center">
+                                    <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-sm mb-4">
+                                        <Calendar className="w-12 h-12 text-white" />
+                                    </div>
+                                    <h2 className="text-2xl font-bold opacity-90">{event.title}</h2>
+                                    <p className="text-blue-100 mt-2 max-w-md">Join us for this transformative FCS experience</p>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="p-8">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex-1">

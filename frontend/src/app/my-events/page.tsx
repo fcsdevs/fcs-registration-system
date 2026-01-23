@@ -56,12 +56,13 @@ function MyEventsContent() {
                 const eventsData = response.data?.docs || response.data || [];
                 setEvents(Array.isArray(eventsData) ? eventsData : []);
             } else if (activeTab === 'registered') {
-                if (!currentUser?.id) {
+                if (!currentUser?.member?.id) {
                     setRegistrations([]);
                     return;
                 }
-                const response = await api.get<any>(`/registrations?registeredBy=${currentUser.id}`);
-                const regsData = response.data?.docs || response.data || [];
+                // Fetch registrations where the current user is the participant (member)
+                const response = await api.get<any>(`/registrations?memberId=${currentUser.member.id}`);
+                const regsData = response.data?.docs || response.data?.data || response.data || [];
                 setRegistrations(Array.isArray(regsData) ? regsData : []);
             }
         } catch (error) {
@@ -151,83 +152,98 @@ function MyEventsContent() {
                                 </div>
                             ) : (
                                 events.map((event) => (
-                                    <div key={event.id} className="group relative bg-white/70 backdrop-blur-sm border border-white/50 rounded-2xl p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 overflow-hidden flex flex-col h-full">
-                                        {/* Decorative Gradient Background on Hover */}
-                                        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-purple-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-                                        <div className="relative z-10 flex-1">
-                                            <div className="flex justify-between items-start mb-3">
-                                                <div className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wide ${getParticipationModeStyle(event.participationMode)}`}>
+                                    <div key={event.id} className="group relative bg-white/70 backdrop-blur-sm border border-white/50 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 overflow-hidden flex flex-col h-full">
+                                        {/* Top Image Section */}
+                                        <div className="relative h-44 w-full overflow-hidden">
+                                            {event.imageUrl ? (
+                                                <img
+                                                    src={event.imageUrl}
+                                                    alt={event.title}
+                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                                                    <Calendar className="w-10 h-10 text-blue-300" />
+                                                </div>
+                                            )}
+                                            <div className="absolute top-3 right-3">
+                                                <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wide bg-white/90 backdrop-blur-sm shadow-sm ${getParticipationModeStyle(event.participationMode)}`}>
                                                     {event.participationMode}
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors line-clamp-1">
+                                        <div className="p-5 flex-1 flex flex-col relative z-10">
+                                            {/* Decorative Gradient Background on Hover */}
+                                            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-purple-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+                                            <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors line-clamp-1 relative z-10">
                                                 {event.title}
                                             </h3>
 
-                                            <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-2">
-                                                {event.description}
+                                            <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-2 relative z-10">
+                                                {event.description || "Join us for a spiritual experience and build lasting connections within the FCS community."}
                                             </p>
 
-                                            <div className="grid grid-cols-2 gap-2 mb-4">
-                                                <div className="flex flex-col gap-1 text-xs text-gray-600 bg-blue-50/50 p-2 rounded-lg border border-blue-100">
-                                                    <div className="flex items-center gap-1.5 text-blue-700 font-medium">
-                                                        <Calendar className="w-3.5 h-3.5" />
+                                            <div className="grid grid-cols-2 gap-2 mb-4 relative z-10">
+                                                <div className="flex flex-col gap-1 text-[10px] text-gray-600 bg-blue-50/50 p-2 rounded-lg border border-blue-100">
+                                                    <div className="flex items-center gap-1.5 text-blue-700 font-bold uppercase tracking-tight">
+                                                        <Calendar className="w-3 h-3" />
                                                         <span>Event Date</span>
                                                     </div>
-                                                    <span>
+                                                    <span className="font-semibold text-gray-800">
                                                         {new Date(event.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                                     </span>
                                                 </div>
-                                                <div className="flex flex-col gap-1 text-xs text-gray-600 bg-purple-50/50 p-2 rounded-lg border border-purple-100">
-                                                    <div className="flex items-center gap-1.5 text-purple-700 font-medium">
-                                                        <Clock className="w-3.5 h-3.5" />
+                                                <div className="flex flex-col gap-1 text-[10px] text-gray-600 bg-purple-50/50 p-2 rounded-lg border border-purple-100">
+                                                    <div className="flex items-center gap-1.5 text-purple-700 font-bold uppercase tracking-tight">
+                                                        <Clock className="w-3 h-3" />
                                                         <span>Reg Ends</span>
                                                     </div>
-                                                    <span>
+                                                    <span className="font-semibold text-gray-800">
                                                         {new Date(event.registrationEnd).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                                     </span>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <div className="relative z-10 pt-4 border-t border-gray-100 grid grid-cols-2 gap-3 mt-auto">
-                                            {new Date() >= new Date(event.registrationStart) && new Date() <= new Date(event.registrationEnd) ? (
-                                                <>
+                                            <div className="pt-4 border-t border-gray-100 grid grid-cols-2 gap-3 mt-auto relative z-10">
+                                                {new Date() >= new Date(event.registrationStart) && new Date() <= new Date(event.registrationEnd) ? (
+                                                    <>
+                                                        <Link
+                                                            href={`/my-events/${event.id}/register`}
+                                                            className="flex items-center justify-center gap-2 px-3 py-2.5 bg-[#060CCD] text-white rounded-xl font-semibold hover:bg-blue-800 transition-colors shadow-md shadow-blue-900/10 text-xs"
+                                                        >
+                                                            <span>Register</span>
+                                                            <ArrowRight className="w-3" />
+                                                        </Link>
+
+                                                        <Link
+                                                            href={`/my-events/${event.id}/register-others`}
+                                                            className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 hover:border-gray-300 transition-all text-xs"
+                                                        >
+                                                            <Users className="w-3.5 h-3.5" />
+                                                            <span>Others</span>
+                                                        </Link>
+                                                    </>
+                                                ) : (
+                                                    <div className="col-span-2 flex items-center justify-center px-3 py-2.5 bg-gray-50 border border-gray-100 text-gray-400 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-not-allowed">
+                                                        {new Date() > new Date(event.registrationEnd) ? "Registration Closed" : "Opens Soon"}
+                                                    </div>
+                                                )}
+
+                                                {currentUser?.roles?.some((r: any) => r.name === 'Registrar') && (
                                                     <Link
-                                                        href={`/my-events/${event.id}/register`}
-                                                        className="flex items-center justify-center gap-2 px-3 py-2.5 bg-[#060CCD] text-white rounded-xl font-semibold hover:bg-blue-800 transition-colors shadow-md shadow-blue-900/10 text-sm"
+                                                        href={`/my-events/${event.id}/registrar`}
+                                                        className="flex items-center justify-center gap-2 px-3 py-2.5 bg-purple-50 text-purple-700 border border-purple-100 rounded-xl font-medium hover:bg-purple-100 transition-colors"
+                                                        title="Registrar Dashboard"
                                                     >
-                                                        <span>Register</span>
-                                                        <ArrowRight className="w-3.5 h-3.5" />
+                                                        <LayoutDashboard className="w-4 h-4" />
                                                     </Link>
-
-                                                    <Link
-                                                        href={`/my-events/${event.id}/register-others`}
-                                                        className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 hover:border-gray-300 transition-all text-sm"
-                                                    >
-                                                        <Users className="w-4 h-4" />
-                                                        <span>Register Others</span>
-                                                    </Link>
-                                                </>
-                                            ) : (
-                                                <div className="col-span-2 flex items-center justify-center px-3 py-2.5 bg-gray-50 border border-gray-100 text-gray-400 rounded-xl text-sm font-medium cursor-not-allowed">
-                                                    {new Date() > new Date(event.registrationEnd) ? "Registration Closed" : "Opens Soon"}
-                                                </div>
-                                            )}
-
-                                            {currentUser?.roles?.some((r: any) => r.name === 'Registrar') && (
-                                                <Link
-                                                    href={`/my-events/${event.id}/registrar`}
-                                                    className="flex items-center justify-center gap-2 px-3 py-2.5 bg-purple-50 text-purple-700 border border-purple-100 rounded-xl font-medium hover:bg-purple-100 transition-colors"
-                                                    title="Registrar Dashboard"
-                                                >
-                                                    <LayoutDashboard className="w-4 h-4" />
-                                                </Link>
-                                            )}
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
+
                                 ))
                             )}
                         </div>
