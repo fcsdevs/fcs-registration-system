@@ -35,6 +35,8 @@ export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOth
     const [error, setError] = useState<string | null>(null);
     const [isRegistering, setIsRegistering] = useState(false);
 
+    const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false);
+
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!searchCode.trim()) return;
@@ -42,6 +44,7 @@ export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOth
         setLoading(true);
         setError(null);
         setFoundMember(null);
+        setIsAlreadyRegistered(false);
 
         try {
             // Using general search which supports both email and FCS code
@@ -55,8 +58,23 @@ export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOth
             }
 
             if (members && members.length > 0) {
-                // If we found exactly one or just take the first hit
-                setFoundMember(members[0]);
+                const member = members[0];
+                setFoundMember(member);
+
+                // Check if already registered for this event
+                try {
+                    const regResponse = await api.get<any>(`/registrations/member/${member.id}?eventId=${event.id}`);
+                    const registrations = regResponse.data || regResponse;
+
+                    if (registrations && registrations.length > 0) {
+                        setIsAlreadyRegistered(true);
+                        setError(`${member.firstName} ${member.lastName} is already registered for this event.`);
+                    }
+                } catch (regErr) {
+                    console.error('Failed to check registration status:', regErr);
+                    // We'll continue even if check fails, but ideally it shouldn't
+                }
+
             } else {
                 setError('No member found with that FCS Code or Email Address.');
             }
@@ -69,7 +87,7 @@ export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOth
     };
 
     const handleProceed = () => {
-        if (foundMember) {
+        if (foundMember && !isAlreadyRegistered) {
             setIsRegistering(true);
         }
     };
@@ -180,10 +198,18 @@ export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOth
 
                             <button
                                 onClick={handleProceed}
-                                className="flex items-center justify-center gap-2 px-6 py-3 bg-[#1F7A63] text-white rounded-lg font-medium hover:bg-[#18614f] transition-colors w-full sm:w-auto shadow-md hover:shadow-lg transform active:scale-95 duration-200"
+                                disabled={isAlreadyRegistered}
+                                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors w-full sm:w-auto shadow-md hover:shadow-lg transform active:scale-95 duration-200 ${isAlreadyRegistered
+                                        ? 'bg-gray-400 cursor-not-allowed text-white'
+                                        : 'bg-[#1F7A63] text-white hover:bg-[#18614f]'
+                                    }`}
                             >
-                                Proceed
-                                <ArrowRight className="w-5 h-5" />
+                                {isAlreadyRegistered ? 'Already Registered' : (
+                                    <>
+                                        Proceed
+                                        <ArrowRight className="w-5 h-5" />
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

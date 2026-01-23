@@ -45,6 +45,8 @@ interface Registration {
     email: string;
     phone: string;
     participationMode: string;
+    fcsCode?: string;
+    profilePhotoUrl?: string;
     qrCode?: string;
     sac?: string;
     event: {
@@ -269,10 +271,13 @@ export default function PublicRegistrationDashboard() {
                                         <QRCodeDisplay
                                             qrCode={qrCode}
                                             sac={sac}
+                                            fcsCode={registration.fcsCode}
                                             eventName={registration.event.title}
                                             participantName={`${registration.firstName} ${registration.lastName}`}
+                                            profilePhotoUrl={registration.profilePhotoUrl}
                                             centerName={registration.center?.name}
                                             groupName={registration.group?.name}
+                                            participationMode={registration.participationMode}
                                             dates={`${new Date(registration.event.startDate).toLocaleDateString()} - ${new Date(registration.event.endDate).toLocaleDateString()}`}
                                             showDownload={true}
                                             showPrint={true}

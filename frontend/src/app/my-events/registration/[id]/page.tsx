@@ -130,10 +130,10 @@ export default function RegistrationDetailsPage() {
                                     <h2 className="text-2xl font-bold text-gray-900 leading-tight mb-4">{registration.event?.title || 'Event'}</h2>
                                     <div className="flex flex-wrap items-center gap-3">
                                         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${registration.status === 'CONFIRMED'
-                                                ? 'bg-green-50 text-green-700 border-green-200'
-                                                : registration.status === 'PENDING'
-                                                    ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                                                    : 'bg-gray-50 text-gray-700 border-gray-200'
+                                            ? 'bg-green-50 text-green-700 border-green-200'
+                                            : registration.status === 'PENDING'
+                                                ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                                : 'bg-gray-50 text-gray-700 border-gray-200'
                                             }`}>
                                             {registration.status === 'CONFIRMED' ? <CheckCircle className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
                                             {registration.status}
@@ -233,11 +233,14 @@ export default function RegistrationDetailsPage() {
                                     <QRCodeDisplay
                                         qrCode={mockQRCode}
                                         sac={mockSAC}
+                                        fcsCode={registration.member?.fcsCode}
                                         eventName={registration.event?.title || 'Event'}
                                         participantName={`${registration.member?.firstName} ${registration.member?.lastName}` || 'Participant'}
+                                        profilePhotoUrl={registration.member?.profilePhotoUrl}
                                         centerName={registration.participation?.center?.centerName || registration.center?.centerName}
                                         groupName={registration.groupAssignment?.group?.name || registration.group?.name}
                                         category={registration.participation?.participationMode || registration.event?.participationMode || 'Delegate'}
+                                        participationMode={registration.participation?.participationMode || registration.participationMode || registration.event?.participationMode}
                                         dates={registration.event?.startDate ? `${new Date(registration.event.startDate).toLocaleDateString()}` : undefined}
                                         showDownload={true}
                                         showPrint={true}

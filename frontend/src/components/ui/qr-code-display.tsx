@@ -6,11 +6,14 @@ import { Download, Printer } from 'lucide-react';
 export interface QRCodeDisplayProps {
   qrCode: string; // Base64 or URL
   sac?: string; // Simple Attendance Code
+  fcsCode?: string; // FCS Member Code
   eventName: string;
   participantName: string;
+  profilePhotoUrl?: string;
   centerName?: string;
   groupName?: string;
   category?: string; // e.g. "Delegate", "Official"
+  participationMode?: string; // "ONLINE" | "ONSITE"
   dates?: string;
   showDownload?: boolean;
   showPrint?: boolean;
@@ -19,11 +22,14 @@ export interface QRCodeDisplayProps {
 export function QRCodeDisplay({
   qrCode,
   sac,
+  fcsCode,
   eventName,
   participantName,
+  profilePhotoUrl,
   centerName,
   groupName,
   category = "Delegate",
+  participationMode,
   dates,
   showDownload = true,
   showPrint = true,
@@ -126,18 +132,27 @@ export function QRCodeDisplay({
       }
 
 
-      // --- VENUE ---
-      let yPos = headerHeight + 8;
+      // --- VENUE & MODE ---
+      let yPos = headerHeight + 6;
+
+      // Attendance Mode
+      const modeText = participationMode || category;
+      doc.setTextColor(ACCENT_COLOR[0], ACCENT_COLOR[1], ACCENT_COLOR[2]);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.text(`ATTENDANCE: ${modeText.toUpperCase()}`, 105 / 2, yPos, { align: 'center' });
+      yPos += 5;
+
       if (centerName) {
         doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8);
+        doc.setFontSize(7);
         doc.text("VENUE / CENTER", 105 / 2, yPos, { align: 'center' });
         yPos += 4;
-        doc.setFontSize(10);
+        doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.text(centerName, 105 / 2, yPos, { align: 'center' });
-        yPos += 8;
+        yPos += 6;
       }
 
       doc.setDrawColor(230, 230, 230);
@@ -151,18 +166,31 @@ export function QRCodeDisplay({
       const avatarY = yPos;
       const avatarSize = 30;
 
-      // Avatar Circle Helper
+      // Avatar Circle/Image
       doc.setFillColor(240, 240, 240);
       doc.circle(avatarX + (avatarSize / 2), avatarY + (avatarSize / 2), avatarSize / 2, 'F');
 
-      // Simple Silhouette
-      doc.setFillColor(200, 200, 210);
-      doc.circle(avatarX + (avatarSize / 2), avatarY + (avatarSize / 3), avatarSize / 5, 'F'); // Head
-      doc.path([
-        { op: 'm', c: [avatarX + 5, avatarY + avatarSize - 2] },
-        { op: 'c', c: [avatarX + 5, avatarY + avatarSize / 2, avatarX + avatarSize - 5, avatarY + avatarSize / 2, avatarX + avatarSize - 5, avatarY + avatarSize - 2] },
-        { op: 'l', c: [avatarX + 5, avatarY + avatarSize - 2] }
-      ], 'F'); // Body
+      let userPhoto = null;
+      if (profilePhotoUrl) {
+        userPhoto = await loadImage(profilePhotoUrl).catch(() => null);
+      }
+
+      if (userPhoto) {
+        try {
+          doc.addImage(userPhoto, 'JPEG', avatarX, avatarY, avatarSize, avatarSize);
+        } catch (e) {
+          console.error("PDF Image add failed", e);
+        }
+      } else {
+        // Simple Silhouette fallback
+        doc.setFillColor(200, 200, 210);
+        doc.circle(avatarX + (avatarSize / 2), avatarY + (avatarSize / 3), avatarSize / 5, 'F'); // Head
+        doc.path([
+          { op: 'm', c: [avatarX + 5, avatarY + avatarSize - 2] },
+          { op: 'c', c: [avatarX + 5, avatarY + avatarSize / 2, avatarX + avatarSize - 5, avatarY + avatarSize / 2, avatarX + avatarSize - 5, avatarY + avatarSize - 2] },
+          { op: 'l', c: [avatarX + 5, avatarY + avatarSize - 2] }
+        ], 'F'); // Body
+      }
 
       // Name Text
       const textX = avatarX + avatarSize + 8;
@@ -188,11 +216,19 @@ export function QRCodeDisplay({
       doc.setFontSize(14);
       doc.text(firstnameDisplay, textX, avatarY + 18, { maxWidth: textWidth });
 
-      // Category Badge
+      // Category Badge/Participation
       doc.setTextColor(ACCENT_COLOR[0], ACCENT_COLOR[1], ACCENT_COLOR[2]); // Green
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(10);
-      doc.text(category.toUpperCase(), textX, avatarY + 26);
+      doc.text((participationMode || category).toUpperCase(), textX, avatarY + 24);
+
+      // FCS Code
+      if (fcsCode) {
+        doc.setTextColor(100, 100, 100);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.text(`FCS CODE: ${fcsCode}`, textX, avatarY + 30);
+      }
 
 
       yPos += avatarSize + 10;
@@ -427,12 +463,16 @@ export function QRCodeDisplay({
 
                   <div class="profile-section">
                      <div class="avatar-circle">
-                         <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                         ${profilePhotoUrl
+          ? `<img src="${profilePhotoUrl}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;" />`
+          : `<svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`
+        }
                      </div>
                      <div class="profile-names">
                         <div class="surname">${participantName.split(' ').slice(1).join(' ') || participantName.split(' ')[0]}</div>
                         <div class="firstname">${participantName.split(' ').slice(1).join(' ') ? participantName.split(' ')[0] : ''}</div>
-                        <div class="category">${category}</div>
+                        <div class="category">${participationMode || category}</div>
+                        ${fcsCode ? `<div class="label" style="margin-top: 5px;">FCS: ${fcsCode}</div>` : ''}
                      </div>
                   </div>
                   
@@ -502,10 +542,14 @@ export function QRCodeDisplay({
 
         {/* Profile Split */}
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
-            <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-            </svg>
+          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0 overflow-hidden border-2 border-white shadow-sm">
+            {profilePhotoUrl ? (
+              <img src={profilePhotoUrl} alt={participantName} className="w-full h-full object-cover" />
+            ) : (
+              <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
+            )}
           </div>
           <div className="text-left overflow-hidden">
             <h3 className="text-2xl font-black text-[#010030] uppercase leading-none truncate w-full">
@@ -514,18 +558,25 @@ export function QRCodeDisplay({
             <p className="text-base text-gray-600 truncate w-full">
               {participantName.split(' ').slice(1).join(' ') ? participantName.split(' ')[0] : ''}
             </p>
-            <span className="inline-block mt-1 text-xs font-bold text-[#1F7A63] uppercase bg-green-50 px-2 py-0.5 rounded">
-              {category}
-            </span>
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              <span className="inline-block text-[10px] font-bold text-[#1F7A63] uppercase bg-green-50 px-2 py-0.5 rounded border border-green-100">
+                Attendance: {participationMode || category}
+              </span>
+              {fcsCode && (
+                <span className="inline-block text-[10px] font-bold text-blue-600 uppercase bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                  FCS: {fcsCode}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Details Grid - Only if Group Name exists */}
         {groupName && (
-          <div className="grid grid-cols-1 gap-3 mb-6 bg-gray-50 p-3 rounded-lg text-center">
+          <div className="grid grid-cols-1 gap-3 mb-6 bg-gray-50 p-3 rounded-lg text-center border border-gray-100 shadow-sm">
             <div>
-              <p className="text-[10px] text-gray-500 uppercase">Assigned Group</p>
-              <p className="font-semibold text-gray-900 text-sm">{groupName}</p>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Bible Study Group</p>
+              <p className="font-bold text-gray-900 text-sm">{groupName}</p>
             </div>
           </div>
         )}

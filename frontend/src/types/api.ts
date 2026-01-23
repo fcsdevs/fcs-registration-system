@@ -75,7 +75,7 @@ export interface RegisterRequest {
 }
 
 export interface LoginRequest {
-  phoneNumber: string;
+  identifier: string;
   password: string;
 }
 
@@ -437,6 +437,7 @@ export interface Registration {
     email?: string;
     phoneNumber?: string;
     fcsCode: string;
+    profilePhotoUrl?: string;
   };
   event?: {
     id: string;
