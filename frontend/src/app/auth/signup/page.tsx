@@ -775,6 +775,12 @@ export default function SignupPage() {
                 <p className="text-gray-600 text-sm">
                   We've sent a 6-digit code to <span className="font-semibold text-primary">{watch("email") || watch("phone")}</span>.
                 </p>
+                {watch("email") && (
+                  <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg flex gap-2 text-sm text-amber-800">
+                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <p>Please check your <strong>spam</strong> or <strong>junk</strong> folder if you don't receive the email.</p>
+                  </div>
+                )}
               </div>
 
               <div>
