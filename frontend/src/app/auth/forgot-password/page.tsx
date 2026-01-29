@@ -109,6 +109,12 @@ export default function ForgotPasswordPage() {
                             ? "Enter your Email or FCS Code to receive an OTP"
                             : "Complete the verification by entering the OTP and choosing a secure new password."}
                     </p>
+                    {step === 2 && (
+                        <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg flex gap-2 text-sm text-left text-amber-800">
+                            <ShieldCheck className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <p>Please check your <strong>spam</strong> or <strong>junk</strong> folder if you don't receive the email.</p>
+                        </div>
+                    )}
                 </div>
 
                 <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 space-y-4 border border-gray-100">

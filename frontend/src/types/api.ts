@@ -75,7 +75,7 @@ export interface RegisterRequest {
 }
 
 export interface LoginRequest {
-  phoneNumber: string;
+  identifier: string;
   password: string;
 }
 

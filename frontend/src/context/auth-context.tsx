@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const response = await api.post<any>("/auth/login", {
-        email,
+        identifier: email,
         password,
       });
 
