@@ -30,9 +30,11 @@ export function Header() {
           <Image
             src="/fcs_logo.png"
             alt="FCS Logo"
-            width={40}
-            height={40}
-            className="h-10 w-10"
+            width={128}
+            height={128}
+            quality={100}
+            priority
+            className="h-10 w-10 object-contain"
           />
           <span className="text-xl font-bold text-[#010030]">FCS</span>
         </Link>
@@ -69,7 +71,7 @@ export function Header() {
         <div className="flex items-center gap-4 relative">
           <div className="hidden md:flex items-center gap-2 text-sm">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${user?.gender === 'FEMALE' ? 'bg-pink-600' :
-                user?.gender === 'MALE' ? 'bg-blue-600' : 'bg-[#010030]'
+              user?.gender === 'MALE' ? 'bg-blue-600' : 'bg-[#010030]'
               }`}>
               {user?.firstName?.[0] || "U"}
             </div>

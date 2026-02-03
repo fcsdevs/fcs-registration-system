@@ -133,4 +133,23 @@ export const registrationsApi = {
   downloadTag: async (id: string): Promise<Blob> => {
     return api.getBlob(`/registrations/${id}/tag-pdf`);
   },
+
+  /**
+   * GET /api/registrations/export/csv
+   * Export registrations to CSV
+   */
+  exportToCSV: async (params?: ListRegistrationsParams): Promise<Blob> => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.eventId) queryParams.append('eventId', params.eventId);
+    if (params?.memberId) queryParams.append('memberId', params.memberId);
+    if (params?.centerId) queryParams.append('centerId', params.centerId);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.registeredBy) queryParams.append('registeredBy', params.registeredBy);
+
+    const query = queryParams.toString();
+    return api.getBlob(`/registrations/export/csv${query ? `?${query}` : ''}`);
+  },
 };

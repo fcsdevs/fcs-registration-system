@@ -17,12 +17,14 @@ import {
   Sparkles,
   LayoutGrid,
   Users,
-  ArrowUpDown
+  ArrowUpDown,
+  Download
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { registrationsApi } from "@/lib/api/registrations";
 
 export default function RegistrationPage() {
   const [registrations, setRegistrations] = useState<any[]>([]);
@@ -41,6 +43,7 @@ export default function RegistrationPage() {
     pending: 0,
     checkedIn: 0
   });
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     fetchEvents();
@@ -128,6 +131,35 @@ export default function RegistrationPage() {
     fetchRegistrations();
   };
 
+  const handleExportCSV = async () => {
+    try {
+      setExporting(true);
+      const blob = await registrationsApi.exportToCSV({
+        eventId: selectedEvent !== "all" ? selectedEvent : undefined,
+        search: searchQuery || undefined,
+      });
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const timestamp = new Date().toISOString().split('T')[0];
+      const eventName = selectedEvent !== "all"
+        ? events.find(e => e.id === selectedEvent)?.title || selectedEvent
+        : "all";
+      a.download = `registrations-${eventName}-${timestamp}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Failed to export CSV:", error);
+      alert("Failed to export registrations. Please try again.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 pb-12">
@@ -144,6 +176,14 @@ export default function RegistrationPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <Button
+                onClick={handleExportCSV}
+                disabled={exporting || loading}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold shadow-md flex items-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                {exporting ? "Exporting..." : "Export to CSV"}
+              </Button>
               <Badge variant="outline" className="px-4 py-1.5 border-blue-200 bg-blue-50 text-blue-700 text-sm font-medium">
                 <Clock className="w-4 h-4 mr-2" />
                 Live Updates
@@ -233,7 +273,7 @@ export default function RegistrationPage() {
                   </label>
                   <div className="relative">
                     <Input
-                      placeholder="Search by name, email, phone or FCS code..."
+                      placeholder="Search by name, email, phone, FCS code, birth year..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="h-12 pl-4 pr-10 border-gray-200 focus:ring-blue-500 focus:border-blue-500 rounded-xl"
