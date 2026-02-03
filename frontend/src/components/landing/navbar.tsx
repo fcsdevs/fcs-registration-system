@@ -43,8 +43,10 @@ export function Navbar() {
                                 <Image
                                     src="/fcs_logo.png"
                                     alt="FCS Logo"
-                                    width={40}
-                                    height={40}
+                                    width={128}
+                                    height={128}
+                                    quality={100}
+                                    priority
                                     className="h-full w-full object-contain p-1"
                                 />
                             </div>

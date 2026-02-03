@@ -131,10 +131,14 @@ export default function ProfilePage() {
                         <div className="absolute inset-0 bg-gradient-to-b from-[#010030]/30 to-[#010030]/60 mix-blend-multiply"></div>
                         {/* FCS Logo Watermark */}
                         <div className="absolute top-[35%] left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                            <img
+                            <Image
                                 src="/fcs_logo.png"
                                 alt="FCS"
-                                className="h-56 w-auto opacity-40 grayscale sepia hue-rotate-190 saturate-200 brightness-110 contrast-125"
+                                width={512}
+                                height={512}
+                                quality={100}
+                                priority
+                                className="h-56 w-auto opacity-40 grayscale sepia hue-rotate-190 saturate-200 brightness-110 contrast-125 object-contain"
                             />
                         </div>
                     </div>
@@ -271,7 +275,7 @@ export default function ProfilePage() {
                                 </div>
                                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     <div className="md:col-span-2 lg:col-span-1">
-                                        <ProfileField label="Occupation" value={user.occupation} />
+                                        <ProfileField label={user.membershipCategory === 'STAFF' ? "Office / Position" : "Occupation"} value={user.occupation} />
                                     </div>
                                     <div className="md:col-span-2">
                                         <ProfileField label="Place of Work" value={user.placeOfWork} />
@@ -435,7 +439,7 @@ export default function ProfilePage() {
                                             <h3 className="text-lg font-bold text-slate-800">Professional & Academic</h3>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            <Field label="Occupation" value={formData.occupation} onChange={(v) => setFormData({ ...formData, occupation: v })} />
+                                            <Field label={formData.membershipCategory === 'STAFF' ? "Office / Position" : "Occupation"} value={formData.occupation} onChange={(v) => setFormData({ ...formData, occupation: v })} />
                                             <div className="md:col-span-2">
                                                 <Field label="Place of Work / School" value={formData.placeOfWork} onChange={(v) => setFormData({ ...formData, placeOfWork: v })} />
                                             </div>
@@ -459,7 +463,7 @@ export default function ProfilePage() {
                                             <Field label="Branch" value={formData.branch} onChange={(v) => setFormData({ ...formData, branch: v })} />
                                             <Field label="Zone" value={formData.zone} onChange={(v) => setFormData({ ...formData, zone: v })} />
                                             <Field label="State / Chapter" value={formData.state} onChange={(v) => setFormData({ ...formData, state: v })} />
-                                            <SelectField label="Membership Category" value={formData.membershipCategory} onChange={(v) => setFormData({ ...formData, membershipCategory: v })} options={[{ l: 'Primary', v: 'PRIMARY' }, { l: 'Secondary', v: 'SECONDARY' }, { l: 'Tertiary', v: 'TERTIARY' }, { l: 'Associate', v: 'ASSOCIATE' }]} />
+                                            <SelectField label="Membership Category" value={formData.membershipCategory} onChange={(v) => setFormData({ ...formData, membershipCategory: v })} options={[{ l: 'Primary', v: 'PRIMARY' }, { l: 'Secondary', v: 'SECONDARY' }, { l: 'Tertiary', v: 'TERTIARY' }, { l: 'Associate', v: 'ASSOCIATE' }, { l: 'Staff', v: 'STAFF' }]} />
                                             <Field label="Year Joined" type="number" value={formData.yearJoined} onChange={(v) => setFormData({ ...formData, yearJoined: v })} />
                                         </div>
                                     </div>

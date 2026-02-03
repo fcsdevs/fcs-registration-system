@@ -349,7 +349,7 @@ export default function SignupPage() {
     } else if (step === 3) {
       fieldsToValidate = ["gender", "maritalStatus", "dateOfBirth", "membershipCategory"];
     } else if (step === 4) {
-      if (membershipCategory === "ASSOCIATE") {
+      if (membershipCategory === "ASSOCIATE" || membershipCategory === "STAFF") {
         fieldsToValidate = ["occupation", "placeOfWork"];
       } else {
         fieldsToValidate = ["institutionName", "institutionType", "level"];
@@ -462,9 +462,11 @@ export default function SignupPage() {
             <Image
               src="/fcs_logo.png"
               alt="FCS Logo"
-              width={60}
-              height={60}
-              className="h-16 w-16 mx-auto hover:scale-110 transition-transform duration-300"
+              width={200}
+              height={200}
+              quality={100}
+              priority
+              className="h-20 w-20 mx-auto hover:scale-110 transition-transform duration-300 object-contain"
             />
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
@@ -880,7 +882,7 @@ export default function SignupPage() {
                   Membership Category
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  {["PRIMARY", "SECONDARY", "TERTIARY", "ASSOCIATE"].map((cat) => (
+                  {["PRIMARY", "SECONDARY", "TERTIARY", "ASSOCIATE", "STAFF"].map((cat) => (
                     <button
                       key={cat}
                       type="button"
@@ -888,7 +890,7 @@ export default function SignupPage() {
                       className={`px-3 py-2.5 border rounded-lg text-xs font-bold transition-all ${membershipCategory === cat
                         ? "bg-primary text-white border-primary shadow-md scale-[1.02]"
                         : "bg-gray-50 text-gray-600 border-gray-200 hover:border-primary/50"
-                        }`}
+                        } ${cat === "STAFF" ? "col-span-2" : ""}`}
                     >
                       {cat}
                     </button>
@@ -921,22 +923,24 @@ export default function SignupPage() {
 
           {step === 4 && (
             <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
-              {membershipCategory === "ASSOCIATE" ? (
+              {(membershipCategory === "ASSOCIATE" || membershipCategory === "STAFF") ? (
                 <div className="space-y-5">
                   <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100/50">
-                    <p className="text-blue-800 text-[10px] font-bold uppercase tracking-wider mb-1">Associate / Senior Friend</p>
+                    <p className="text-blue-800 text-[10px] font-bold uppercase tracking-wider mb-1">
+                      {membershipCategory === "STAFF" ? "FCS Staff Member" : "Associate / Senior Friend"}
+                    </p>
                     <p className="text-blue-600 text-xs">Please provide your professional background.</p>
                   </div>
-                  {/* Occupation */}
+                  {/* Office / Position (was Occupation) */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-2">
                       <Briefcase className="w-4 h-4 text-blue-500" />
-                      Occupation
+                      {membershipCategory === "STAFF" ? "Office / Position" : "Occupation"}
                     </label>
                     <input
                       {...register("occupation")}
                       type="text"
-                      placeholder="e.g. Software Engineer"
+                      placeholder={membershipCategory === "STAFF" ? "e.g. Training Secretary" : "e.g. Software Engineer"}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
                     />
                   </div>
@@ -949,7 +953,7 @@ export default function SignupPage() {
                     <input
                       {...register("placeOfWork")}
                       type="text"
-                      placeholder="e.g. Google Nigeria"
+                      placeholder={membershipCategory === "STAFF" ? "e.g. FCS National HQ" : "e.g. Google Nigeria"}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
                     />
                   </div>

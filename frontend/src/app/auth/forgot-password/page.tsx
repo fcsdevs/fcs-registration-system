@@ -96,9 +96,11 @@ export default function ForgotPasswordPage() {
                         <Image
                             src="/fcs_logo.png"
                             alt="FCS Logo"
-                            width={60}
-                            height={60}
-                            className="h-16 w-16 mx-auto hover:scale-110 transition-transform duration-300"
+                            width={180}
+                            height={180}
+                            quality={100}
+                            priority
+                            className="h-16 w-16 mx-auto hover:scale-110 transition-transform duration-300 object-contain"
                         />
                     </Link>
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">
