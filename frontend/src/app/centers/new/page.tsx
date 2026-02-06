@@ -3,18 +3,20 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ProtectedRoute } from "@/components/common/route-guards";
-import { Header } from "@/components/layout/header";
-import { api } from "@/lib/api/client";
-import { MapPin, ArrowLeft, Save } from "lucide-react";
+import { centersApi } from "@/lib/api/centers";
+import { unitsApi } from "@/lib/api/units";
+import { eventsApi } from "@/lib/api/events";
+import { MapPin, ArrowLeft, Save, Loader2, Sparkles, Building2, Globe2 } from "lucide-react";
 import Link from "next/link";
+import { Unit, Event } from "@/types/api";
 
 export default function NewCenterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [events, setEvents] = useState<any[]>([]);
-  const [units, setUnits] = useState<any[]>([]);
-  const [loadingData, setLoadingData] = useState(true);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [loadingInitialData, setLoadingInitialData] = useState(true);
   const [formData, setFormData] = useState({
     eventId: "",
     centerName: "",
@@ -26,20 +28,18 @@ export default function NewCenterPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoadingInitialData(true);
         const [eventsRes, unitsRes] = await Promise.all([
-          api.get<any>("/events"),
-          api.get<any>("/units"),
+          eventsApi.list({ isPublished: true, limit: 100 }),
+          unitsApi.list({ type: 'State', limit: 300 }),
         ]);
 
-        const eventsData = (eventsRes as any).data?.data || (eventsRes as any).data || [];
-        const unitsData = (unitsRes as any).data?.data || (unitsRes as any).data || [];
-
-        setEvents(Array.isArray(eventsData) ? eventsData : []);
-        setUnits(Array.isArray(unitsData) ? unitsData : []);
+        setEvents(eventsRes.data?.data || []);
+        setUnits(unitsRes.data?.data || []);
       } catch (err) {
-        console.error("Failed to fetch data:", err);
+        console.error("Failed to fetch initial data:", err);
       } finally {
-        setLoadingData(false);
+        setLoadingInitialData(false);
       }
     };
     fetchData();
@@ -51,11 +51,14 @@ export default function NewCenterPage() {
     setLoading(true);
 
     try {
-      await api.post("/centers", {
+      if (!formData.eventId) throw new Error("Please select an event");
+      if (!formData.stateId) throw new Error("Please select a state");
+
+      await centersApi.create({
         eventId: formData.eventId,
         centerName: formData.centerName,
         country: formData.country,
-        stateId: formData.stateId || undefined,
+        stateId: formData.stateId,
         address: formData.address,
       });
       router.push("/centers");
@@ -68,85 +71,100 @@ export default function NewCenterPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Link href="/centers" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Centers
+      <div className="min-h-screen bg-[#F8FAFC]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <Link
+            href="/centers"
+            className="inline-flex items-center gap-2 text-slate-500 hover:text-primary transition-all mb-8 group"
+          >
+            <div className="p-2 bg-white rounded-lg shadow-sm group-hover:bg-primary group-hover:text-white transition-all">
+              <ArrowLeft className="w-4 h-4" />
+            </div>
+            <span className="font-bold text-sm tracking-tight uppercase">Back to Directory</span>
           </Link>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <MapPin className="w-8 h-8 text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Create New Event Center</h1>
+          <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+            {/* Header Content */}
+            <div className="relative px-10 py-12 bg-slate-900 overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <Sparkles className="w-32 h-32 text-white" />
+              </div>
+              <div className="relative z-10 flex items-center gap-5">
+                <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+                  <Building2 className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-black text-white">Create New Center</h1>
+                  <p className="text-slate-400 mt-1 font-medium">Define a new physical location for event registrations.</p>
+                </div>
+              </div>
             </div>
 
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg">
-                {error}
+              <div className="mx-10 mt-10 p-5 bg-red-50 border-l-4 border-red-500 text-red-800 rounded-r-xl flex items-center gap-4 animate-in slide-in-from-top-4 duration-500">
+                <div className="p-2 bg-white rounded-full">
+                  <Loader2 className="w-5 h-5 text-red-500" />
+                </div>
+                <div>
+                  <p className="font-bold text-sm">Action Failed</p>
+                  <p className="text-xs opacity-80">{error}</p>
+                </div>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Event *
+            <form onSubmit={handleSubmit} className="p-10 space-y-10">
+
+              {/* Event Selection */}
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                  Primary Event Mapping
                 </label>
-                <select
-                  required
-                  value={formData.eventId}
-                  onChange={(e) => setFormData({ ...formData, eventId: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  disabled={loadingData}
-                >
-                  <option value="">Select an event</option>
-                  {events.map((event) => (
-                    <option key={event.id} value={event.id}>
-                      {event.title}
-                    </option>
-                  ))}
-                </select>
+                <div className="grid grid-cols-1 gap-4">
+                  <select
+                    required
+                    value={formData.eventId}
+                    onChange={(e) => setFormData({ ...formData, eventId: e.target.value })}
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none font-bold text-slate-700"
+                    disabled={loadingInitialData}
+                  >
+                    <option value="">Select the target event</option>
+                    {events.map((event) => (
+                      <option key={event.id} value={event.id}>
+                        {event.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Center Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.centerName}
-                  onChange={(e) => setFormData({ ...formData, centerName: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="e.g., Lagos Convention Center"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Country
+              {/* Name and State */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                    Center Identification
                   </label>
                   <input
                     type="text"
-                    value={formData.country}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                    value={formData.centerName}
+                    onChange={(e) => setFormData({ ...formData, centerName: e.target.value })}
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none font-bold text-slate-700"
+                    placeholder="e.g., Lagos State Poly Hub"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    State/Unit
+                <div className="space-y-3">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                    State / Unit Assignment
                   </label>
                   <select
+                    required
                     value={formData.stateId}
                     onChange={(e) => setFormData({ ...formData, stateId: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    disabled={loadingData}
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none font-bold text-slate-700"
+                    disabled={loadingInitialData}
                   >
-                    <option value="">Select a state/unit</option>
+                    <option value="">Select a state</option>
                     {units.map((unit) => (
                       <option key={unit.id} value={unit.id}>
                         {unit.name}
@@ -156,45 +174,62 @@ export default function NewCenterPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Address *
-                </label>
-                <textarea
-                  rows={3}
-                  required
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Full address of the event center"
-                />
+              {/* Country and Address */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="space-y-3">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                    Country
+                  </label>
+                  <div className="relative">
+                    <Globe2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                    <input
+                      type="text"
+                      value={formData.country}
+                      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                      className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700"
+                    />
+                  </div>
+                </div>
+
+                <div className="lg:col-span-2 space-y-3">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                    Physical Address
+                  </label>
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-5 w-5 h-5 text-slate-300" />
+                    <textarea
+                      rows={1}
+                      required
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none font-bold text-slate-700 resize-none"
+                      placeholder="Complete street address..."
+                    />
+                  </div>
+                </div>
               </div>
 
-
-
-              <div className="flex items-center gap-4 pt-6 border-t">
+              {/* Submit Buttons */}
+              <div className="flex items-center gap-5 pt-10 border-t border-slate-100">
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  disabled={loading || loadingInitialData}
+                  className="flex-[2] py-5 bg-primary text-white rounded-[1.5rem] font-black text-lg shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                 >
                   {loading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      Creating...
-                    </>
+                    <Loader2 className="w-6 h-6 animate-spin" />
                   ) : (
                     <>
-                      <Save className="w-5 h-5" />
-                      Create Center
+                      <Save className="w-6 h-6" />
+                      Create Event Center
                     </>
                   )}
                 </button>
                 <Link
                   href="/centers"
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 py-5 bg-slate-100 text-slate-600 rounded-[1.5rem] font-black text-lg text-center hover:bg-slate-200 transition-all active:scale-[0.98]"
                 >
-                  Cancel
+                  Discard
                 </Link>
               </div>
             </form>

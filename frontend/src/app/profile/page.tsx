@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { membersApi } from "@/lib/api/members";
+import Image from "next/image";
 
 export default function ProfilePage() {
     const { user, login } = useAuth(); // login is needed to refresh user data? No, login expects credentials. 
