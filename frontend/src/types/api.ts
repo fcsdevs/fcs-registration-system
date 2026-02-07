@@ -356,13 +356,22 @@ export interface EventCenter {
   updatedAt: string;
   event?: {
     id: string;
-    name: string;
+    title: string;
+    participationMode: string;
   };
   admins?: Array<{
     id: string;
-    name: string;
-    email: string;
+    user?: {
+      id: string;
+      email: string;
+      phoneNumber: string;
+    };
   }>;
+  _count?: {
+    registrations: number;
+    attendances: number;
+    participations: number;
+  };
 }
 
 export interface CreateCenterRequest {
@@ -376,31 +385,15 @@ export interface CreateCenterRequest {
 export interface UpdateCenterRequest {
   centerName?: string;
   address?: string;
+  isActive?: boolean;
 }
 
 export interface CenterStatistics {
-  center: {
-    id: string;
-    name: string;
-    state: string;
-  };
-  event: {
-    id: string;
-    name: string;
-  };
-  statistics: {
-    totalRegistrations: number;
-    totalAttendance: number;
-    attendanceRate: number;
-  };
-  registrationsByMode: Array<{
-    mode: string;
-    count: number;
-  }>;
-  attendanceByMode: Array<{
-    mode: string;
-    count: number;
-  }>;
+  centerId: string;
+  centerName: string;
+  registrations: number;
+  attendance: number;
+  groups: number;
 }
 
 export interface ListCentersParams extends PaginationParams {

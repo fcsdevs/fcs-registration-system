@@ -20,7 +20,9 @@ import {
 import { NIGERIAN_STATES } from "@/lib/constants/states";
 import { authApi } from "@/lib/api/auth";
 import { unitsApi } from "@/lib/api/units";
-import { Unit } from "@/types/api";
+import { centersApi } from "@/lib/api/centers";
+import { eventsApi } from "@/lib/api/events";
+import { Unit, EventCenter } from "@/types/api";
 
 // Area-State Mapping for automatic zone/area assignment
 const AREA_STATE_MAPPING: Record<string, string[]> = {
@@ -145,9 +147,10 @@ export default function SignupPage() {
 
   // Location Data States
   const [states, setStates] = useState<Unit[]>([]);
-  const [branches, setBranches] = useState<Unit[]>([]);
+  const [centers, setCenters] = useState<EventCenter[]>([]);
+  const [latestEventId, setLatestEventId] = useState<string | null>(null);
   const [isLoadingLocations, setIsLoadingLocations] = useState(false);
-  const [isLoadingBranches, setIsLoadingBranches] = useState(false);
+  const [isLoadingCenters, setIsLoadingCenters] = useState(false);
 
   // Watch password fields for real-time validation
   const [passwordValue, setPasswordValue] = useState("");
@@ -224,29 +227,25 @@ export default function SignupPage() {
 
   }, [watch, passwordValue, confirmPasswordValue]);
 
-  // Fetch States on Mount
+  // Fetch States and Latest Event on Mount
   useEffect(() => {
-    const fetchStates = async () => {
+    const fetchInitialData = async () => {
       try {
         setIsLoadingLocations(true);
-        console.log('[Signup] Starting states fetch...');
-        const response = await unitsApi.list({ type: 'State', limit: 300 }); // Increased limit
-        console.log('[Signup] Full States API Response:', response);
-        console.log('[Signup] response.data:', response.data);
-        console.log('[Signup] response.data?.data:', response.data?.data);
+        console.log('[Signup] Starting initial data fetch...');
 
-        // Handle paginated response: response.data is the PaginatedResponse
-        const statesData = response.data?.data || response?.data || [];
-        console.log('[Signup] Extracted statesData:', statesData);
-        console.log('[Signup] Is array?', Array.isArray(statesData));
-        console.log('[Signup] Array length:', Array.isArray(statesData) ? statesData.length : 'N/A');
+        const [statesRes, eventsRes] = await Promise.all([
+          unitsApi.list({ type: 'State', limit: 300 }),
+          eventsApi.list({ isPublished: true, limit: 1 })
+        ]);
 
+        // Process States
+        const statesData = statesRes.data?.data || statesRes?.data || [];
         if (Array.isArray(statesData) && statesData.length > 0) {
           setStates(statesData);
-          console.log(`[Signup] ✅ Loaded ${statesData.length} states from API`);
+          console.log(`[Signup] ✅ Loaded ${statesData.length} states`);
         } else {
-          console.warn('[Signup] ⚠️ States data is empty or malformed, using fallback', { response, statesData });
-          // Fallback: Convert NIGERIAN_STATES to Unit objects
+          // Fallback states logic
           const fallbackStates: Unit[] = NIGERIAN_STATES.map((stateName, idx) => ({
             id: `state-${idx}`,
             name: stateName === 'FCT' ? 'Abuja (FCT)' : stateName,
@@ -260,11 +259,18 @@ export default function SignupPage() {
             updatedAt: new Date().toISOString(),
           }));
           setStates(fallbackStates);
-          console.log(`[Signup] ✅ Loaded ${fallbackStates.length} states from fallback`);
         }
+
+        // Process Latest Event
+        const latestEvent = eventsRes.data?.data?.[0];
+        if (latestEvent) {
+          setLatestEventId(latestEvent.id);
+          console.log(`[Signup] ✅ Targeting Latest Event: ${latestEvent.title} (${latestEvent.id})`);
+        }
+
       } catch (err) {
-        console.error("[Signup] ❌ Failed to fetch states", err);
-        // Fallback: Use hardcoded states
+        console.error("[Signup] ❌ Failed to fetch initial data", err);
+        // Fallback for states
         const fallbackStates: Unit[] = NIGERIAN_STATES.map((stateName, idx) => ({
           id: `state-${idx}`,
           name: stateName === 'FCT' ? 'Abuja (FCT)' : stateName,
@@ -278,20 +284,19 @@ export default function SignupPage() {
           updatedAt: new Date().toISOString(),
         }));
         setStates(fallbackStates);
-        console.log(`[Signup] ✅ Loaded ${fallbackStates.length} states from error fallback`);
       } finally {
         setIsLoadingLocations(false);
       }
     };
-    fetchStates();
+    fetchInitialData();
   }, []);
 
-  // Watch State to Fetch Branches & Derive Area
+  // Watch State to Fetch Centers & Derive Area
   const selectedStateName = watch("state");
   useEffect(() => {
-    const fetchBranchesAndArea = async () => {
+    const fetchCentersAndArea = async () => {
       if (!selectedStateName) {
-        setBranches([]);
+        setCenters([]);
         setValue("branch", "");
         setValue("branchId", "");
         setValue("zone", "");
@@ -300,24 +305,26 @@ export default function SignupPage() {
 
       // Find the State Unit Object
       const stateUnit = states.find(s => s.name === selectedStateName);
-      if (!stateUnit) return;
 
       try {
-        setIsLoadingBranches(true);
+        setIsLoadingCenters(true);
 
-        // 1. Fetch Branches for this State
-        const response = await unitsApi.list({
-          parentUnitId: stateUnit.id,
-          type: 'Branch',
-          recursive: true, // Use recursive to find nested branches (State -> Zone -> Branch)
-          limit: 300
-        });
+        // 1. Fetch Centers for this State
+        if (latestEventId) {
+          const response = await centersApi.listActive({
+            eventId: latestEventId,
+            state: stateUnit?.id
+          });
 
-        // Handle paginated response
-        const branchesData = response.data?.data || response?.data || [];
-        if (Array.isArray(branchesData)) {
-          setBranches(branchesData);
-          console.log(`Loaded ${branchesData.length} branches for state ${selectedStateName}`);
+          // listActive returns ApiResponse<EventCenter[]>
+          const centersData = response.data;
+          if (Array.isArray(centersData)) {
+            setCenters(centersData);
+            console.log(`[Signup] Loaded ${centersData.length} centers for state ${selectedStateName}`);
+          }
+        } else {
+          console.warn('[Signup] No active event found to load centers');
+          setCenters([]);
         }
 
         // 2. Derive Area using client-side mapping
@@ -325,20 +332,19 @@ export default function SignupPage() {
         if (area) {
           setValue("zone", area);
         } else {
-          // Fallback if state not in mapping
           setValue("zone", "Unassigned Area");
         }
 
       } catch (err) {
-        console.error("Failed to fetch branches/area details", err);
-        setBranches([]);
+        console.error("Failed to fetch centers/area details", err);
+        setCenters([]);
       } finally {
-        setIsLoadingBranches(false);
+        setIsLoadingCenters(false);
       }
     };
 
-    fetchBranchesAndArea();
-  }, [selectedStateName, states, setValue]);
+    fetchCentersAndArea();
+  }, [selectedStateName, states, latestEventId, setValue]);
 
   const onNextStep = async () => {
     if (isChecking) return;
@@ -1073,36 +1079,36 @@ export default function SignupPage() {
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">
-                    FCS Branch {isLoadingBranches && <Loader2 className="inline w-3 h-3 animate-spin" />}
+                    FCS Center {isLoadingCenters && <Loader2 className="inline w-3 h-3 animate-spin" />}
                   </label>
 
-                  {branches.length > 0 ? (
-                    // Show dropdown when branches are available
+                  {centers.length > 0 ? (
+                    // Show dropdown when centers are available
                     <select
                       {...register("branch")}
                       onChange={(e) => {
-                        const selectedBranch = branches.find(b => b.name === e.target.value);
+                        const selectedCenter = centers.find(c => c.centerName === e.target.value);
                         setValue("branch", e.target.value);
-                        if (selectedBranch) {
-                          setValue("branchId", selectedBranch.id);
+                        if (selectedCenter && selectedCenter.stateId) {
+                          setValue("branchId", selectedCenter.stateId);
                         } else {
                           setValue("branchId", undefined);
                         }
                       }}
                       className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-primary/20"
                     >
-                      <option value="">Select Branch</option>
-                      {branches.map(b => (
-                        <option key={b.id} value={b.name}>{b.name}</option>
+                      <option value="">Select Center</option>
+                      {centers.map(c => (
+                        <option key={c.id} value={c.centerName}>{c.centerName}</option>
                       ))}
                     </select>
                   ) : selectedStateName ? (
-                    // Show text input when state is selected but no branches found
+                    // Show text input when state is selected but no centers found
                     <>
                       <input
                         {...register("branch")}
                         type="text"
-                        placeholder="Enter your branch name"
+                        placeholder="Enter your center or branch name"
                         onChange={(e) => {
                           setValue("branch", e.target.value);
                           // Clear branchId since it's a manual entry
@@ -1111,7 +1117,7 @@ export default function SignupPage() {
                         className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-primary/20"
                       />
                       <p className="text-xs text-gray-500 mt-1">
-                        No branches found for {selectedStateName}. Please enter your branch name.
+                        No centers found for {selectedStateName}. Please enter your center/branch name.
                       </p>
                     </>
                   ) : (

@@ -82,15 +82,14 @@ export type EventStatus = "draft" | "published" | "active" | "completed" | "canc
 
 export interface EventCenter {
   id: string;
-  name: string;
+  centerName: string;
   state: string;
-  area?: string;
-  zone?: string;
   address: string;
-  adminIds: string[];
   isActive: boolean;
-  latitude?: number;
-  longitude?: number;
+  _count?: {
+    registrations: number;
+    attendances: number;
+  };
 }
 
 export interface BibleStudyGroup {
