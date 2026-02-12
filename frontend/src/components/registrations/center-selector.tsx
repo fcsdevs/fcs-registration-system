@@ -148,23 +148,25 @@ export function CenterSelector({ eventId, selectedCenterId, onSelect, error }: C
                                         </div>
                                     )}
 
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-4">
-                                            <div className={`h-10 w-10 rounded-xl flex items-center justify-center transition-colors ${isSelected ? 'bg-[#060CCD] text-white shadow-md' : 'bg-white text-slate-400 group-hover:text-[#060CCD]'
+                                    <div className="flex-1 w-full">
+                                        <div className="flex items-start gap-3">
+                                            <div className={`h-8 w-8 min-w-[32px] rounded-lg flex items-center justify-center mt-1 transition-colors ${isSelected ? 'bg-[#060CCD] text-white shadow-md' : 'bg-white text-slate-400 group-hover:text-[#060CCD]'
                                                 }`}>
-                                                <MapPin size={20} />
+                                                <MapPin size={16} />
                                             </div>
-                                            <div>
-                                                <h4 className="font-black text-[#0F172A] leading-tight tracking-tight">{center.centerName}</h4>
+                                            <div className="flex-1 overflow-hidden">
+                                                <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-2">
+                                                    <h4 className="font-black text-[#0F172A] text-sm leading-tight tracking-tight truncate shrink-0 max-w-[200px]">{center.centerName}</h4>
+                                                    <span className="hidden sm:inline text-slate-300">•</span>
+                                                    <p className="text-xs font-semibold text-slate-500 truncate leading-tight mt-0.5 sm:mt-0">
+                                                        {center.address}
+                                                    </p>
+                                                </div>
                                                 {center.state?.name && (
-                                                    <p className="text-[10px] font-black text-[#060CCD] uppercase tracking-widest mt-0.5">{center.state.name}</p>
+                                                    <p className="text-[10px] font-black text-[#060CCD] uppercase tracking-widest mt-1">{center.state.name}</p>
                                                 )}
                                             </div>
                                         </div>
-
-                                        <p className="text-xs font-semibold text-slate-500 leading-relaxed truncate px-1">
-                                            {center.address}
-                                        </p>
                                     </div>
 
 

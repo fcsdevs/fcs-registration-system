@@ -24,7 +24,7 @@ interface RegistrationWizardProps {
 type Step = 'mode' | 'center' | 'group' | 'review';
 
 interface RegistrationData {
-    participationMode?: 'ONLINE' | 'ONSITE';
+    participationMode?: 'ONLINE' | 'ONSITE' | 'HYBRID';
     centerId?: string;
     centerName?: string;
     groupId?: string;
@@ -45,7 +45,9 @@ export function EventRegistrationWizard({
 
     // Determine if we need each step based on event configuration
     const needsModeSelection = event.participationMode === 'HYBRID';
-    const needsCenterSelection = formData.participationMode === 'ONSITE' || event.participationMode === 'ONSITE';
+    const needsCenterSelection =
+        event.participationMode === 'ONSITE' ||
+        (formData.participationMode === 'ONSITE' || formData.participationMode === 'HYBRID');
     const needsGroupSelection = true; // Assuming all events have groups
 
     const steps: Step[] = [];

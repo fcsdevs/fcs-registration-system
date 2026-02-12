@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProtectedRoute } from "@/components/common/route-guards";
 import { useAuth } from "@/context/auth-context";
 import {
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { membersApi } from "@/lib/api/members";
 import Image from "next/image";
+import { getAgeBracket } from "@/lib/utils";
 
 export default function ProfilePage() {
     const { user, login } = useAuth(); // login is needed to refresh user data? No, login expects credentials. 
@@ -50,7 +51,26 @@ export default function ProfilePage() {
         emergencyContactName: "",
         emergencyContactPhone: "",
         ageBracket: "",
+        department: "",
+        guardianName: "",
+        guardianPhone: "",
+        guardianEmail: "",
+        guardianRelationship: "" as any,
     });
+
+    // Auto-calculate age bracket and derived minor status
+    useEffect(() => {
+        if (formData.dateOfBirth) {
+            const bracket = getAgeBracket(formData.dateOfBirth);
+            if (formData.ageBracket !== bracket) {
+                setFormData(prev => ({ ...prev, ageBracket: bracket }));
+            }
+        }
+    }, [formData.dateOfBirth]);
+
+    const isMinor = ["0-12", "13-17"].includes(formData.ageBracket);
+    const isTertiary = formData.membershipCategory === "TERTIARY";
+    const isStaff = formData.membershipCategory === "STAFF";
 
     const handleEditClick = () => {
         if (user) {
@@ -80,6 +100,11 @@ export default function ProfilePage() {
                 emergencyContactName: user.emergencyContactName || "",
                 emergencyContactPhone: user.emergencyContactPhone || "",
                 ageBracket: user.ageBracket || "",
+                department: user.department || "",
+                guardianName: user.guardianName || "",
+                guardianPhone: user.guardianPhone || "",
+                guardianEmail: user.guardianEmail || "",
+                guardianRelationship: user.guardianRelationship || "",
             });
             setImageFile(null);
             setImagePreview(user.profilePhotoUrl || null);
@@ -114,6 +139,8 @@ export default function ProfilePage() {
     if (!user) {
         return null;
     }
+
+
 
     const joinedDate = user.createdAt ? new Date(user.createdAt) : new Date();
     const joinedDateString = !isNaN(joinedDate.getTime()) ? joinedDate.toLocaleDateString() : "N/A";
@@ -246,7 +273,7 @@ export default function ProfilePage() {
                                     <ProfileField label="Gender" value={user.gender} capitalize />
                                     <ProfileField label="Marital Status" value={user.maritalStatus} capitalize />
                                     <ProfileField label="Date of Birth" value={user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : null} />
-                                    <ProfileField label="Age Bracket" value={user.ageBracket} />
+                                    <ProfileField label="Age Bracket" value={user.ageBracket || getAgeBracket(user.dateOfBirth || "")} />
                                 </div>
                             </div>
 
@@ -440,15 +467,59 @@ export default function ProfilePage() {
                                             <h3 className="text-lg font-bold text-slate-800">Professional & Academic</h3>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            <Field label={formData.membershipCategory === 'STAFF' ? "Office / Position" : "Occupation"} value={formData.occupation} onChange={(v) => setFormData({ ...formData, occupation: v })} />
+                                            <Field label={isStaff ? "Office / Position" : "Occupation"} value={formData.occupation} onChange={(v) => setFormData({ ...formData, occupation: v })} />
+                                            {isStaff && (
+                                                <Field label="Department / Unit" value={formData.department} onChange={(v) => setFormData({ ...formData, department: v })} required />
+                                            )}
                                             <div className="md:col-span-2">
                                                 <Field label="Place of Work / School" value={formData.placeOfWork} onChange={(v) => setFormData({ ...formData, placeOfWork: v })} />
                                             </div>
                                             <Field label="Institution Name" value={formData.institutionName} onChange={(v) => setFormData({ ...formData, institutionName: v })} />
-                                            <SelectField label="Institution Type" value={formData.institutionType} onChange={(v) => setFormData({ ...formData, institutionType: v })} options={[{ l: 'Primary', v: 'PRIMARY' }, { l: 'Secondary', v: 'SECONDARY' }, { l: 'Tertiary', v: 'TERTIARY' }]} />
-                                            <Field label="Level / Class" value={formData.level} onChange={(v) => setFormData({ ...formData, level: v })} />
+
+                                            <SelectField
+                                                label="Institution Type"
+                                                value={formData.institutionType}
+                                                onChange={(v) => setFormData({ ...formData, institutionType: v })}
+                                                options={[
+                                                    { l: 'Primary', v: 'PRIMARY' },
+                                                    { l: 'Secondary', v: 'SECONDARY' },
+                                                    { l: 'Tertiary (General)', v: 'TERTIARY' },
+                                                    { l: 'University', v: 'UNIVERSITY' },
+                                                    { l: 'Polytechnic', v: 'POLYTECHNIC' },
+                                                    { l: 'College of Education', v: 'COLLEGE_OF_EDUCATION' },
+                                                    { l: 'Other', v: 'OTHER' }
+                                                ]}
+                                            />
+
+                                            {isTertiary ? (
+                                                <SelectField
+                                                    label="Level / Year"
+                                                    value={formData.level}
+                                                    onChange={(v) => setFormData({ ...formData, level: v })}
+                                                    options={[
+                                                        { l: '100 / Year 1', v: '100' },
+                                                        { l: '200 / Year 2', v: '200' },
+                                                        { l: '300 / Year 3', v: '300' },
+                                                        { l: '400 / Year 4', v: '400' },
+                                                        { l: '500 / Year 5', v: '500' },
+                                                        { l: '600+ / Year 6+', v: '600' },
+                                                        { l: 'Other', v: 'OTHER' }
+                                                    ]}
+                                                />
+                                            ) : (
+                                                <Field label="Level / Class" value={formData.level} onChange={(v) => setFormData({ ...formData, level: v })} />
+                                            )}
+
                                             <Field label="Course of Study" value={formData.course} onChange={(v) => setFormData({ ...formData, course: v })} />
-                                            <Field label="Graduation Year" type="number" value={formData.graduationYear} onChange={(v) => setFormData({ ...formData, graduationYear: v })} />
+                                            <SelectField
+                                                label="Graduation Year"
+                                                value={formData.graduationYear}
+                                                onChange={(v) => setFormData({ ...formData, graduationYear: v })}
+                                                options={[...Array(21)].map((_, i) => {
+                                                    const year = new Date().getFullYear() - 10 + i;
+                                                    return { l: year.toString(), v: year.toString() };
+                                                })}
+                                            />
                                         </div>
                                     </div>
 
@@ -481,6 +552,29 @@ export default function ProfilePage() {
                                             <Field label="Emergency Contact Name" value={formData.emergencyContactName} onChange={(v) => setFormData({ ...formData, emergencyContactName: v })} />
                                             <Field label="Emergency Contact Phone" value={formData.emergencyContactPhone} onChange={(v) => setFormData({ ...formData, emergencyContactPhone: v })} />
                                         </div>
+                                        {/* Guardian Fields for Minors */}
+                                        {isMinor && (
+                                            <div className="pt-4 border-t border-slate-100 mt-4">
+                                                <p className="text-sm font-semibold text-rose-500 uppercase tracking-wider mb-4">Guardian Information (Required for Minors)</p>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <Field label="Guardian Name" value={formData.guardianName} onChange={(v) => setFormData({ ...formData, guardianName: v })} required />
+                                                    <Field label="Guardian Phone" value={formData.guardianPhone} onChange={(v) => setFormData({ ...formData, guardianPhone: v })} required />
+                                                    <Field label="Guardian Email" value={formData.guardianEmail} onChange={(v) => setFormData({ ...formData, guardianEmail: v })} />
+                                                    <SelectField
+                                                        label="Relationship"
+                                                        value={formData.guardianRelationship}
+                                                        onChange={(v) => setFormData({ ...formData, guardianRelationship: v })}
+                                                        options={[
+                                                            { l: 'Father', v: 'FATHER' },
+                                                            { l: 'Mother', v: 'MOTHER' },
+                                                            { l: 'Guardian', v: 'GUARDIAN' },
+                                                            { l: 'Other', v: 'OTHER' }
+                                                        ]}
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </form>

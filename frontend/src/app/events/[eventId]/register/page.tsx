@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { User, Users, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { User, Users, ArrowLeft, ShieldCheck, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,69 +14,104 @@ export default function RegistrationChoicePage() {
     const eventId = params.eventId as string;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-            {/* Header Section with Dark Background */}
-            <div className="bg-gradient-to-br from-[#060CCD] via-[#010030] to-[#010030] px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-                <div className="max-w-6xl mx-auto">
-                    <Badge className="mb-4 h-8 px-4 py-0 bg-white/20 hover:bg-white/30 text-white border-none rounded-full backdrop-blur-md font-black uppercase text-[10px] tracking-widest w-fit">
+        <div className="min-h-screen bg-gray-50/50 flex flex-col">
+            {/* Header Section - Compact with Branding */}
+            <div className="bg-[#010030] pt-12 pb-24 px-4 sm:px-6 relative overflow-hidden">
+                {/* Abstract background element */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#060CCD] opacity-20 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2"></div>
+
+                <div className="max-w-4xl mx-auto relative z-10 text-center">
+                    <Badge className="mb-4 bg-white/10 hover:bg-white/20 text-blue-100 hover:text-white border-white/10 backdrop-blur-md transition-all">
                         Registration Portal
                     </Badge>
 
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white mb-2 tracking-tighter leading-tight">
+                    <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 tracking-tight">
                         Start Your Registration
                     </h1>
-                    <p className="text-white/70 font-medium text-sm sm:text-base md:text-lg">Select how you would like to proceed</p>
+                    <p className="text-blue-200/80 text-sm sm:text-base max-w-lg mx-auto">
+                        Choose how you would like to verify your identity and proceed with the registration process.
+                    </p>
                 </div>
             </div>
 
-            {/* Content Section */}
-            <div className="px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+            {/* Content Section - Overlapping & Focused */}
+            <div className="flex-1 px-4 sm:px-6 -mt-16 pb-12">
                 <div className="max-w-4xl mx-auto">
-                    {/* Cards Grid - Responsive */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                         {/* Register Myself Card */}
-                        <Link href={`/my-events/${eventId}/register`} className="group">
-                            <Card className="h-full p-6 sm:p-8 rounded-2xl sm:rounded-3xl border-none shadow-lg hover:shadow-2xl bg-white/95 backdrop-blur hover:bg-white transition-all duration-300 hover:scale-[1.02] flex flex-col items-center text-center group-hover:ring-4 ring-blue-500/10">
-                                <div className="h-20 w-20 sm:h-24 sm:w-24 bg-blue-50 rounded-full flex items-center justify-center mb-4 sm:mb-6 group-hover:bg-[#060CCD] transition-colors duration-300">
-                                    <User className="h-8 w-8 sm:h-10 sm:w-10 text-[#060CCD] group-hover:text-white transition-colors duration-300" />
+                        <Link href={`/my-events/${eventId}/register`} className="group outline-none">
+                            <Card className="h-full p-6 sm:p-8 bg-white hover:bg-gray-50/50 border-0 shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:shadow-blue-900/5 transition-all duration-300 relative overflow-hidden group-hover:-translate-y-1 ring-1 ring-gray-100">
+                                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <ChevronRight className="w-5 h-5 text-gray-300" />
                                 </div>
-                                <h2 className="text-lg sm:text-xl lg:text-2xl font-black text-[#0F172A] uppercase tracking-tight">
-                                    Register Myself
-                                </h2>
+
+                                <div className="flex flex-col items-center text-center space-y-4">
+                                    <div className="h-16 w-16 bg-blue-50/80 rounded-2xl flex items-center justify-center group-hover:bg-[#060CCD] group-hover:rotate-3 transition-all duration-300">
+                                        <User className="h-7 w-7 text-[#060CCD] group-hover:text-white transition-colors" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-bold text-gray-900 group-hover:text-[#060CCD] transition-colors">
+                                            Register Myself
+                                        </h2>
+                                        <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                                            Register using your personal profile and manage your own attendance.
+                                        </p>
+                                    </div>
+                                    <div className="pt-2">
+                                        <span className="text-xs font-semibold text-blue-600 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0 inline-flex items-center gap-1">
+                                            Proceed <ArrowLeft className="w-3 h-3 rotate-180" />
+                                        </span>
+                                    </div>
+                                </div>
                             </Card>
                         </Link>
 
                         {/* Register Others Card */}
-                        <Link href={`/my-events/${eventId}/register-others`} className="group">
-                            <Card className="h-full p-6 sm:p-8 rounded-2xl sm:rounded-3xl border-none shadow-lg hover:shadow-2xl bg-white/95 backdrop-blur hover:bg-white transition-all duration-300 hover:scale-[1.02] flex flex-col items-center text-center group-hover:ring-4 ring-emerald-500/10">
-                                <div className="h-20 w-20 sm:h-24 sm:w-24 bg-emerald-50 rounded-full flex items-center justify-center mb-4 sm:mb-6 group-hover:bg-emerald-600 transition-colors duration-300">
-                                    <Users className="h-8 w-8 sm:h-10 sm:w-10 text-emerald-600 group-hover:text-white transition-colors duration-300" />
+                        <Link href={`/my-events/${eventId}/register-others`} className="group outline-none">
+                            <Card className="h-full p-6 sm:p-8 bg-white hover:bg-gray-50/50 border-0 shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:shadow-emerald-900/5 transition-all duration-300 relative overflow-hidden group-hover:-translate-y-1 ring-1 ring-gray-100">
+                                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <ChevronRight className="w-5 h-5 text-gray-300" />
                                 </div>
-                                <h2 className="text-lg sm:text-xl lg:text-2xl font-black text-[#0F172A] uppercase tracking-tight">
-                                    Register Others
-                                </h2>
+
+                                <div className="flex flex-col items-center text-center space-y-4">
+                                    <div className="h-16 w-16 bg-emerald-50/80 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:-rotate-3 transition-all duration-300">
+                                        <Users className="h-7 w-7 text-emerald-600 group-hover:text-white transition-colors" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-bold text-gray-900 group-hover:text-emerald-700 transition-colors">
+                                            Register Others
+                                        </h2>
+                                        <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                                            Register on behalf of a group, family, or other delegates.
+                                        </p>
+                                    </div>
+                                    <div className="pt-2">
+                                        <span className="text-xs font-semibold text-emerald-600 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0 inline-flex items-center gap-1">
+                                            Proceed <ArrowLeft className="w-3 h-3 rotate-180" />
+                                        </span>
+                                    </div>
+                                </div>
                             </Card>
                         </Link>
                     </div>
 
-                    {/* Back Button */}
-                    <div className="mt-8 sm:mt-12 flex justify-center">
+                    {/* Footer Actions */}
+                    <div className="mt-12 flex flex-col items-center gap-6">
                         <Button
                             onClick={() => router.back()}
                             variant="ghost"
-                            className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 uppercase tracking-widest text-xs font-bold transition-colors"
+                            className="text-gray-500 hover:text-gray-900"
                         >
-                            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Event Details
+                            <ArrowLeft className="mr-2 h-4 w-4" /> Return to Event Details
                         </Button>
-                    </div>
-                </div>
-            </div>
 
-            {/* Footer Trust Signal */}
-            <div className="fixed bottom-6 left-0 right-0 flex justify-center pointer-events-none px-4">
-                <div className="flex items-center gap-2 bg-white/90 backdrop-blur px-3 sm:px-4 py-2 rounded-full shadow-sm border border-slate-100/50 text-center">
-                    <ShieldCheck className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Secure Reg Protocol</span>
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-white/50 rounded-full border border-gray-100">
+                            <ShieldCheck className="h-3 w-3 text-emerald-500" />
+                            <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">
+                                Secure Registration Protocol
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
