@@ -195,7 +195,7 @@ export default function RegistrationDetailsPage() {
                                     <div className="col-span-full pt-4 border-t border-gray-100">
                                         <div className="flex items-center gap-2 text-sm text-gray-500">
                                             <Calendar className="w-4 h-4" />
-                                            Registered on {new Date(registration.registrationDate || registration.registeredAt).toLocaleString()}
+                                            Registered on {new Date(registration.registeredAt).toLocaleString()}
                                         </div>
                                     </div>
                                 </div>

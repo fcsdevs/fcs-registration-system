@@ -62,7 +62,7 @@ export default function PublicEventRegistrationPage() {
         phone: user?.phone || '',
         password: '',
         confirmPassword: '',
-        participationMode: undefined as 'ONLINE' | 'ONSITE' | undefined,
+        participationMode: undefined as 'ONLINE' | 'ONSITE' | 'HYBRID' | undefined,
         centerId: '',
         groupId: '',
     });

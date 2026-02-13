@@ -435,6 +435,7 @@ export interface Registration {
     email?: string;
     phoneNumber?: string;
     fcsCode: string;
+    profilePhotoUrl?: string;
   };
   event?: {
     id: string;
