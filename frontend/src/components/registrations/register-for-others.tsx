@@ -9,7 +9,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, UserCheck, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
 import { Event } from '@/types/api';
-import { EventRegistrationWizard } from './event-registration-wizard';
+import { EventRegistrationForm } from './event-registration-form';
 import { api } from '@/lib/api/client';
 
 interface RegisterForOthersWizardProps {
@@ -55,8 +55,9 @@ export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOth
             }
 
             if (members && members.length > 0) {
-                // If we found exactly one or just take the first hit
-                setFoundMember(members[0]);
+                // Fetch full member details to get profile fields for sync
+                const fullMemberRes = await api.get<{ data: any }>(`/members/${members[0].id}`);
+                setFoundMember(fullMemberRes.data || fullMemberRes);
             } else {
                 setError('No member found with that FCS Code or Email Address.');
             }
@@ -105,10 +106,10 @@ export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOth
                     </div>
                 </div>
 
-                <EventRegistrationWizard
+                <EventRegistrationForm
                     event={event}
-                    memberId={foundMember.id}
-                    memberName={`${foundMember.firstName} ${foundMember.lastName}`}
+                    member={foundMember}
+                    isSelf={false}
                     onComplete={handleRegistrationComplete}
                 />
             </div>

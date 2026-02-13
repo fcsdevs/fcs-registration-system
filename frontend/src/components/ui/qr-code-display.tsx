@@ -11,6 +11,8 @@ export interface QRCodeDisplayProps {
   centerName?: string;
   groupName?: string;
   category?: string; // e.g. "Delegate", "Official"
+  fcsCode?: string;
+  profilePhotoUrl?: string;
   dates?: string;
   showDownload?: boolean;
   showPrint?: boolean;
@@ -24,6 +26,8 @@ export function QRCodeDisplay({
   centerName,
   groupName,
   category = "Delegate",
+  fcsCode,
+  profilePhotoUrl,
   dates,
   showDownload = true,
   showPrint = true,
@@ -46,10 +50,10 @@ export function QRCodeDisplay({
       const { jsPDF } = await import('jspdf');
 
       // Load assets
-      // We accept failure if images don't load, so we catch individual promises
-      const [headerBg, fcsLogo] = await Promise.all([
+      const [headerBg, fcsLogo, profileImg] = await Promise.all([
         loadImage('/badge-header-nature.png').catch((e) => null),
         loadImage('/fcs_logo.png').catch((e) => null),
+        profilePhotoUrl ? loadImage(profilePhotoUrl).catch(() => null) : Promise.resolve(null),
       ]);
 
       // A6 dimensions: 105mm x 148mm
@@ -143,7 +147,7 @@ export function QRCodeDisplay({
       doc.setDrawColor(230, 230, 230);
       doc.setLineWidth(0.5);
       doc.line(15, yPos, 90, yPos);
-      yPos += 10;
+      yPos += 6;
 
 
       // --- PROFILE SECTION ---
@@ -152,17 +156,23 @@ export function QRCodeDisplay({
       const avatarSize = 30;
 
       // Avatar Circle Helper
-      doc.setFillColor(240, 240, 240);
-      doc.circle(avatarX + (avatarSize / 2), avatarY + (avatarSize / 2), avatarSize / 2, 'F');
-
-      // Simple Silhouette
-      doc.setFillColor(200, 200, 210);
-      doc.circle(avatarX + (avatarSize / 2), avatarY + (avatarSize / 3), avatarSize / 5, 'F'); // Head
-      doc.path([
-        { op: 'm', c: [avatarX + 5, avatarY + avatarSize - 2] },
-        { op: 'c', c: [avatarX + 5, avatarY + avatarSize / 2, avatarX + avatarSize - 5, avatarY + avatarSize / 2, avatarX + avatarSize - 5, avatarY + avatarSize - 2] },
-        { op: 'l', c: [avatarX + 5, avatarY + avatarSize - 2] }
-      ], 'F'); // Body
+      // Profile Circle
+      if (profileImg) {
+        doc.saveGraphicsState();
+        doc.circle(avatarX + (avatarSize / 2), avatarY + (avatarSize / 2), avatarSize / 2, 'F');
+        doc.clip();
+        doc.addImage(profileImg, 'JPEG', avatarX, avatarY, avatarSize, avatarSize);
+        doc.restoreGraphicsState();
+      } else {
+        // Simple Silhouette
+        doc.setFillColor(200, 200, 210);
+        doc.circle(avatarX + (avatarSize / 2), avatarY + (avatarSize / 3), avatarSize / 5, 'F'); // Head
+        doc.path([
+          { op: 'm', c: [avatarX + 5, avatarY + avatarSize - 2] },
+          { op: 'c', c: [avatarX + 5, avatarY + avatarSize / 2, avatarX + avatarSize - 5, avatarY + avatarSize / 2, avatarX + avatarSize - 5, avatarY + avatarSize - 2] },
+          { op: 'l', c: [avatarX + 5, avatarY + avatarSize - 2] }
+        ], 'F'); // Body
+      }
 
       // Name Text
       const textX = avatarX + avatarSize + 8;
@@ -188,14 +198,22 @@ export function QRCodeDisplay({
       doc.setFontSize(14);
       doc.text(firstnameDisplay, textX, avatarY + 18, { maxWidth: textWidth });
 
-      // Category Badge
+      // Mode String
       doc.setTextColor(ACCENT_COLOR[0], ACCENT_COLOR[1], ACCENT_COLOR[2]); // Green
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(10);
-      doc.text(category.toUpperCase(), textX, avatarY + 26);
+      doc.text(`MODE: ${category.toUpperCase()}`, textX, avatarY + 24);
+
+      // FCS Code
+      if (fcsCode) {
+        doc.setTextColor(30, 30, 30);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.text(fcsCode, textX, avatarY + 30);
+      }
 
 
-      yPos += avatarSize + 10;
+      yPos += avatarSize + 6;
 
       // --- INFO GRID ---
       // Group
@@ -212,7 +230,7 @@ export function QRCodeDisplay({
         doc.setTextColor(0, 0, 0);
         doc.text(groupName, 105 / 2, yPos + 9, { align: 'center' });
 
-        yPos += 18;
+        yPos += 14;
       } else {
         yPos += 5;
       }
@@ -427,12 +445,15 @@ export function QRCodeDisplay({
 
                   <div class="profile-section">
                      <div class="avatar-circle">
+                         ${profilePhotoUrl ? `<img src="${profilePhotoUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" />` : `
                          <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                         `}
                      </div>
                      <div class="profile-names">
                         <div class="surname">${participantName.split(' ').slice(1).join(' ') || participantName.split(' ')[0]}</div>
                         <div class="firstname">${participantName.split(' ').slice(1).join(' ') ? participantName.split(' ')[0] : ''}</div>
-                        <div class="category">${category}</div>
+                        <div class="category">Mode: ${category}</div>
+                        ${fcsCode ? `<div class="fcs-code" style="font-size: 8pt; font-weight: bold; color: #666; font-family: monospace; margin-top:2px;">${fcsCode}</div>` : ''}
                      </div>
                   </div>
                   
@@ -493,39 +514,50 @@ export function QRCodeDisplay({
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-4">
         {/* Venue Info */}
-        <div className="text-center border-b border-gray-100 pb-4 mb-4">
+        <div className="text-center border-b border-gray-100 pb-3 mb-3">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Venue / Center</p>
           <p className="text-sm font-semibold text-gray-800">{centerName || 'Main Auditorium'}</p>
         </div>
 
         {/* Profile Split */}
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
-            <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-            </svg>
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
+            {profilePhotoUrl ? (
+              <img src={profilePhotoUrl} alt={participantName} className="w-full h-full object-cover" />
+            ) : (
+              <svg className="w-10 h-10 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
+            )}
           </div>
           <div className="text-left overflow-hidden">
             <h3 className="text-2xl font-black text-[#010030] uppercase leading-none truncate w-full">
               {participantName.split(' ').slice(1).join(' ') || participantName.split(' ')[0]}
             </h3>
-            <p className="text-base text-gray-600 truncate w-full">
+            <p className="text-sm font-medium text-gray-500 truncate w-full mb-1">
               {participantName.split(' ').slice(1).join(' ') ? participantName.split(' ')[0] : ''}
             </p>
-            <span className="inline-block mt-1 text-xs font-bold text-[#1F7A63] uppercase bg-green-50 px-2 py-0.5 rounded">
-              {category}
-            </span>
+            <div className="flex flex-col gap-1">
+              <span className="inline-block text-[10px] font-bold text-[#1F7A63] uppercase bg-green-50 px-2 py-0.5 rounded border border-green-100 w-fit">
+                Mode: {category}
+              </span>
+              {fcsCode && (
+                <span className="text-[10px] font-bold text-gray-500 font-mono bg-gray-50 px-2 py-0.5 rounded border border-gray-100 w-fit">
+                  {fcsCode}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Details Grid - Only if Group Name exists */}
         {groupName && (
-          <div className="grid grid-cols-1 gap-3 mb-6 bg-gray-50 p-3 rounded-lg text-center">
+          <div className="grid grid-cols-1 gap-2 mb-4 bg-gray-50 p-2 rounded-lg text-center">
             <div>
-              <p className="text-[10px] text-gray-500 uppercase">Assigned Group</p>
-              <p className="font-semibold text-gray-900 text-sm">{groupName}</p>
+              <p className="text-[10px] text-gray-500 uppercase leading-none mb-1">Assigned Group</p>
+              <p className="font-semibold text-gray-900 text-sm leading-tight">{groupName}</p>
             </div>
           </div>
         )}
@@ -533,11 +565,11 @@ export function QRCodeDisplay({
         {/* Footer QR */}
         <div className="text-center">
           <div className="inline-block p-1 border rounded bg-white">
-            <img src={qrCode} alt="QR" className="w-28 h-28" />
+            <img src={qrCode} alt="QR" className="w-24 h-24" />
           </div>
           {sac && (
-            <div className="mt-3">
-              <p className="font-mono font-bold text-lg text-[#1F7A63] bg-gray-50 inline-block px-3 py-1 rounded border border-gray-200">
+            <div className="mt-2">
+              <p className="font-mono font-bold text-base text-[#1F7A63] bg-gray-50 inline-block px-2 py-0.5 rounded border border-gray-200">
                 {sac}
               </p>
             </div>
@@ -545,7 +577,7 @@ export function QRCodeDisplay({
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 justify-center mt-6 pt-4 border-t border-gray-100">
+        <div className="flex gap-2 justify-center mt-4 pt-4 border-t border-gray-100">
           {showDownload && (
             <button
               onClick={handleDownload}

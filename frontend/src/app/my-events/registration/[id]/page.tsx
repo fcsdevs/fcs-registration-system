@@ -130,10 +130,10 @@ export default function RegistrationDetailsPage() {
                                     <h2 className="text-2xl font-bold text-gray-900 leading-tight mb-4">{registration.event?.title || 'Event'}</h2>
                                     <div className="flex flex-wrap items-center gap-3">
                                         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${registration.status === 'CONFIRMED'
-                                                ? 'bg-green-50 text-green-700 border-green-200'
-                                                : registration.status === 'PENDING'
-                                                    ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                                                    : 'bg-gray-50 text-gray-700 border-gray-200'
+                                            ? 'bg-green-50 text-green-700 border-green-200'
+                                            : registration.status === 'PENDING'
+                                                ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                                : 'bg-gray-50 text-gray-700 border-gray-200'
                                             }`}>
                                             {registration.status === 'CONFIRMED' ? <CheckCircle className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
                                             {registration.status}
@@ -158,8 +158,7 @@ export default function RegistrationDetailsPage() {
                                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Mode</p>
                                         <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg font-semibold text-sm ${registration.participationMode === 'ONLINE' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
                                             }`}>
-                                            {registration.participationMode === 'ONLINE' ? '💻' : '🏛️'}
-                                            {registration.participationMode}
+                                            {registration.participationMode === 'ONLINE' ? '💻 Online' : registration.participationMode === 'HYBRID' ? '🌐 Hybrid' : '🏛️ On-site'}
                                         </div>
                                     </div>
 
@@ -220,8 +219,8 @@ export default function RegistrationDetailsPage() {
 
                         {/* RIGHT COLUMN: Badge (Span 5) */}
                         <div className="lg:col-span-5 space-y-6">
-                            <div className="bg-white/60 backdrop-blur-sm rounded-[2rem] p-6 md:p-8 border border-white/50 shadow-lg relative">
-                                <div className="flex items-center justify-between mb-6">
+                            <div className="bg-white/60 backdrop-blur-sm rounded-[2rem] p-4 md:p-6 border border-white/50 shadow-lg relative">
+                                <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                                         <Sparkles className="w-5 h-5 text-blue-600" />
                                         Official Badge
@@ -236,8 +235,10 @@ export default function RegistrationDetailsPage() {
                                         eventName={registration.event?.title || 'Event'}
                                         participantName={`${registration.member?.firstName} ${registration.member?.lastName}` || 'Participant'}
                                         centerName={registration.participation?.center?.centerName || registration.center?.centerName}
-                                        groupName={registration.groupAssignment?.group?.name || registration.group?.name}
+                                        groupName={registration.groupAssignments?.[0]?.group?.name || registration.group?.name}
                                         category={registration.participation?.participationMode || registration.event?.participationMode || 'Delegate'}
+                                        fcsCode={registration.member?.fcsCode}
+                                        profilePhotoUrl={registration.member?.profilePhotoUrl}
                                         dates={registration.event?.startDate ? `${new Date(registration.event.startDate).toLocaleDateString()}` : undefined}
                                         showDownload={true}
                                         showPrint={true}

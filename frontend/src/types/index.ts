@@ -38,6 +38,7 @@ export interface User {
   maritalStatus?: string;
   dateOfBirth?: string;
   occupation?: string;
+  department?: string;
   placeOfWork?: string;
   institutionName?: string;
   institutionType?: string;

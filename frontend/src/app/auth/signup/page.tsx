@@ -89,57 +89,14 @@ const passwordRequirements: PasswordRequirement[] = [
   { label: "Contains special character (recommended)", test: (p) => /[^a-zA-Z0-9]/.test(p) },
 ];
 
-// Resend OTP Component with Countdown
-const ResendOTPButton = ({ onResend }: { onResend: () => Promise<void> }) => {
-  const [countdown, setCountdown] = useState(0);
-  const [isResending, setIsResending] = useState(false);
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (countdown > 0) {
-      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-    }
-    return () => clearTimeout(timer);
-  }, [countdown]);
-
-  const handleResend = async () => {
-    setIsResending(true);
-    try {
-      await onResend();
-      setCountdown(60); // Start 60s countdown
-    } catch (error) {
-      console.error("Resend failed", error);
-    } finally {
-      setIsResending(false);
-    }
-  };
-
-  if (countdown > 0) {
-    return (
-      <p className="text-xs text-gray-400 mt-2">
-        Resend code in <span className="font-mono font-bold text-primary">{countdown}s</span>
-      </p>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleResend}
-      disabled={isResending}
-      className="text-sm font-bold text-primary hover:text-primary/80 transition-colors disabled:opacity-50 mt-2"
-    >
-      {isResending ? "Resending..." : "Resend Code"}
-    </button>
-  );
-};
 
 export default function SignupPage() {
   const router = useRouter();
-  const [otpValue, setOtpValue] = useState("");
-  const { signup, login, isLoading, sendOTP } = useAuth();
+
+  const { signup, login, isLoading } = useAuth();
   const [error, setError] = useState<string | null>(null);
-  const [step, setStep] = useState(1); // 1: Acc/Security, 2: OTP, 3: Profile, 4: Membership, 5: Placement & Consent
+  const [step, setStep] = useState(1); // 1: Acc/Security, 2: Profile, 3: Membership, 4: Placement & Consent
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -291,6 +248,13 @@ export default function SignupPage() {
     fetchInitialData();
   }, []);
 
+  // Sync Institution Type with Membership Category
+  useEffect(() => {
+    if (membershipCategory === "PRIMARY" || membershipCategory === "SECONDARY" || membershipCategory === "TERTIARY") {
+      setValue("institutionType", membershipCategory);
+    }
+  }, [membershipCategory, setValue]);
+
   // Watch State to Fetch Centers & Derive Area
   const selectedStateName = watch("state");
   useEffect(() => {
@@ -348,13 +312,15 @@ export default function SignupPage() {
 
   const onNextStep = async () => {
     if (isChecking) return;
-    let fieldsToValidate: any[] = [];
+    setIsChecking(true);
+    setError(null);
 
+    let fieldsToValidate: any[] = [];
     if (step === 1) {
-      fieldsToValidate = ["firstName", "lastName", "phone", "password", "confirmPassword"];
-    } else if (step === 3) {
+      fieldsToValidate = ["firstName", "lastName", "phone", "email", "password", "confirmPassword"];
+    } else if (step === 2) {
       fieldsToValidate = ["gender", "maritalStatus", "dateOfBirth", "membershipCategory"];
-    } else if (step === 4) {
+    } else if (step === 3) {
       if (membershipCategory === "ASSOCIATE" || membershipCategory === "STAFF") {
         fieldsToValidate = ["occupation", "placeOfWork"];
       } else {
@@ -363,64 +329,33 @@ export default function SignupPage() {
       }
     }
 
-    const isValid = fieldsToValidate.length > 0 ? await trigger(fieldsToValidate as any[]) : true;
-
-    if (isValid) {
-      if (step === 1) {
-        setIsChecking(true);
-        try {
-          const response = await authApi.checkExistence({ email, phoneNumber: phone });
-
-          if (response.data && response.data.exists) {
-            const { field, message } = response.data;
-            if (field === 'email') {
-              setFormError("email", { type: "manual", message });
-            } else if (field === 'phoneNumber') {
-              setFormError("phone", { type: "manual", message });
-            }
-            setIsChecking(false);
-            return;
-          }
-
-          // Send OTP
-          await sendOTP(email || phone, 'REGISTRATION');
-          setStep(2);
-        } catch (error: any) {
-          console.error("Failed to check user existence or send OTP", error);
-          setError(error.message || "Failed to proceed to next step");
-        } finally {
-          setIsChecking(false);
-        }
-      } else {
-        setStep(prev => prev + 1);
-      }
-    }
-  };
-
-  const verifyAndGoToStep3 = async () => {
-    if (!otpValue || otpValue.length < 6) {
-      setError("Please enter a valid 6-digit OTP");
-      return;
-    }
-
     try {
-      setIsChecking(true);
-      setError(null);
+      const isValid = fieldsToValidate.length > 0 ? await trigger(fieldsToValidate as any[]) : true;
 
-      const response = await authApi.verifyOTP({
-        phoneNumber: phone,
-        email: email || undefined,
-        code: otpValue,
-        purpose: 'REGISTRATION'
-      });
-
-      if (response.data?.verified) {
-        setStep(3);
-      } else {
-        setError("Invalid or expired OTP");
+      if (!isValid) {
+        setIsChecking(false);
+        return;
       }
+
+      if (step === 1) {
+        const response = await authApi.checkExistence({
+          email: email || undefined,
+          phoneNumber: phone
+        });
+
+        if (response.data?.exists) {
+          const { field, message } = response.data;
+          if (field === 'email') setFormError("email", { type: "manual", message });
+          else if (field === 'phoneNumber') setFormError("phone", { type: "manual", message });
+          setIsChecking(false);
+          return;
+        }
+      }
+
+      setStep(prev => prev + 1);
     } catch (err: any) {
-      setError(err.message || "OTP verification failed");
+      console.error("Step navigation error:", err);
+      setError(err.message || "Failed to proceed. Please try again.");
     } finally {
       setIsChecking(false);
     }
@@ -478,16 +413,15 @@ export default function SignupPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
           <p className="text-gray-600">
             {step === 1 && "Account Identity"}
-            {step === 2 && "Verification"}
-            {step === 3 && "Personal Profile"}
-            {step === 4 && "Membership Details"}
-            {step === 5 && "Placement & Consent"}
+            {step === 2 && "Personal Profile"}
+            {step === 3 && "Membership Details"}
+            {step === 4 && "Placement & Consent"}
           </p>
         </div>
 
         {/* Steps Indicator */}
         <div className="flex justify-center mb-6 space-x-1.5">
-          {[1, 2, 3, 4, 5].map((s) => (
+          {[1, 2, 3, 4].map((s) => (
             <div
               key={s}
               className={`h-1.5 rounded-full transition-all duration-300 ${step === s ? "w-10 bg-primary" : step > s ? "w-4 bg-primary/40" : "w-4 bg-gray-200"
@@ -775,65 +709,9 @@ export default function SignupPage() {
             </>
           )}
 
+
+
           {step === 2 && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <ShieldCheck className="w-12 h-12 text-primary mx-auto mb-3" />
-                <h3 className="text-xl font-bold text-gray-900">Verify Your Identity</h3>
-                <p className="text-gray-600 text-sm">
-                  We've sent a 6-digit code to <span className="font-semibold text-primary">{watch("email") || watch("phone")}</span>.
-                </p>
-                {watch("email") && (
-                  <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg flex gap-2 text-sm text-amber-800">
-                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <p>Please check your <strong>spam</strong> or <strong>junk</strong> folder if you don't receive the email.</p>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Enter 6-digit OTP
-                </label>
-                <input
-                  type="text"
-                  value={otpValue}
-                  onChange={(e) => setOtpValue(e.target.value)}
-                  maxLength={6}
-                  placeholder="000000"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent tracking-[0.5em] font-mono text-center text-xl"
-                />
-              </div>
-
-              <div className="text-center space-y-2">
-                <p className="text-sm text-gray-500">Didn't receive the code?</p>
-                <ResendOTPButton
-                  onResend={() => sendOTP(watch("email") || watch("phone"), 'REGISTRATION')}
-                />
-              </div>
-
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="w-1/3 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all font-medium"
-                >
-                  Edit details
-                </button>
-                <button
-                  type="button"
-                  onClick={verifyAndGoToStep3}
-                  disabled={isChecking || otpValue.length < 6}
-                  className="flex-1 bg-primary text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md"
-                >
-                  {isChecking && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Verify Code
-                </button>
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
             <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
               <div className="grid grid-cols-2 gap-4">
                 {/* Gender */}
@@ -910,7 +788,7 @@ export default function SignupPage() {
               <div className="flex gap-4 pt-4">
                 <button
                   type="button"
-                  onClick={() => setStep(2)}
+                  onClick={() => setStep(1)}
                   className="w-1/3 bg-gray-50 text-gray-600 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all border border-gray-200"
                 >
                   Back
@@ -927,7 +805,7 @@ export default function SignupPage() {
             </div>
           )}
 
-          {step === 4 && (
+          {step === 3 && (
             <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
               {(membershipCategory === "ASSOCIATE" || membershipCategory === "STAFF") ? (
                 <div className="space-y-5">
@@ -980,7 +858,11 @@ export default function SignupPage() {
                     <input
                       {...register("institutionName")}
                       type="text"
-                      placeholder="e.g. University of Lagos"
+                      placeholder={
+                        membershipCategory === "PRIMARY" ? "e.g. Grace Primary School" :
+                          membershipCategory === "SECONDARY" ? "e.g. Federal Government College" :
+                            "e.g. University of Lagos"
+                      }
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
                     />
                   </div>
@@ -1004,7 +886,11 @@ export default function SignupPage() {
                       <input
                         {...register("level")}
                         type="text"
-                        placeholder="e.g. 300L / SS3"
+                        placeholder={
+                          membershipCategory === "PRIMARY" ? "e.g. Primary 5" :
+                            membershipCategory === "SECONDARY" ? "e.g. SS3" :
+                              "e.g. 300L"
+                        }
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
                       />
                     </div>
@@ -1027,7 +913,7 @@ export default function SignupPage() {
               <div className="flex gap-4 pt-4">
                 <button
                   type="button"
-                  onClick={() => setStep(3)}
+                  onClick={() => setStep(2)}
                   className="w-1/3 bg-gray-50 text-gray-600 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all border border-gray-200"
                 >
                   Back
@@ -1044,7 +930,7 @@ export default function SignupPage() {
             </div>
           )}
 
-          {step === 5 && (
+          {step === 4 && (
             <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
               <div className="space-y-4 p-5 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
@@ -1177,7 +1063,7 @@ export default function SignupPage() {
               <div className="flex gap-4 pt-4">
                 <button
                   type="button"
-                  onClick={() => setStep(4)}
+                  onClick={() => setStep(3)}
                   className="w-1/3 bg-gray-50 text-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-all border border-gray-200"
                 >
                   Back

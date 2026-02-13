@@ -50,6 +50,7 @@ export interface RegisterRequest {
   dateOfBirth?: string | null;
   maritalStatus?: string | null;
   occupation?: string | null;
+  department?: string | null;
   placeOfWork?: string | null;
   institutionName?: string | null;
   institutionType?: string | null;
@@ -143,6 +144,7 @@ export interface Member {
   gender?: 'MALE' | 'FEMALE' | 'OTHER';
   maritalStatus?: 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED';
   occupation?: string;
+  department?: string;
   state?: string;
   profilePhotoUrl?: string;
   isActive: boolean;
@@ -162,6 +164,7 @@ export interface CreateMemberRequest {
   gender?: 'MALE' | 'FEMALE' | 'OTHER';
   maritalStatus?: 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED';
   occupation?: string;
+  department?: string;
   state?: string;
 }
 
@@ -177,13 +180,14 @@ export interface UpdateMemberRequest {
   gender?: 'MALE' | 'FEMALE' | 'OTHER';
   maritalStatus?: 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED';
   occupation?: string | null;
+  department?: string | null;
   placeOfWork?: string | null;
   institutionName?: string | null;
-  institutionType?: 'PRIMARY' | 'SECONDARY' | 'TERTIARY' | null;
+  institutionType?: 'PRIMARY' | 'SECONDARY' | 'TERTIARY' | 'UNIVERSITY' | 'POLYTECHNIC' | 'COLLEGE_OF_EDUCATION' | 'OTHER' | null;
   level?: string | null;
   course?: string | null;
   graduationYear?: number | null;
-  membershipCategory?: 'PRIMARY' | 'SECONDARY' | 'TERTIARY' | 'ASSOCIATE';
+  membershipCategory?: 'PRIMARY' | 'SECONDARY' | 'TERTIARY' | 'ASSOCIATE' | 'STAFF';
   yearJoined?: number | null;
   state?: string | null;
   zone?: string | null;
@@ -416,7 +420,8 @@ export interface Registration {
   memberId: string;
   centerId?: string;
   groupId?: string;
-  participationMode: 'ONLINE' | 'ONSITE';
+  attendanceIntent?: 'CONFIRMED' | 'TENTATIVE';
+  participationMode: 'ONLINE' | 'ONSITE' | 'HYBRID';
   status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'WAITLISTED' | 'CHECKED_IN';
   registeredBy: string;
   registeredAt: string;
@@ -430,6 +435,7 @@ export interface Registration {
     email?: string;
     phoneNumber?: string;
     fcsCode: string;
+    profilePhotoUrl?: string;
   };
   event?: {
     id: string;
@@ -455,20 +461,21 @@ export interface Registration {
     };
     participationMode?: string;
   };
-  groupAssignment?: {
+  groupAssignments?: {
     group?: {
       id: string;
       name: string;
       type?: string;
     };
-  };
+  }[];
 }
 
 export interface CreateRegistrationRequest {
   eventId: string;
   memberId: string;
   centerId?: string;
-  participationMode?: 'ONLINE' | 'ONSITE';
+  participationMode?: 'ONLINE' | 'ONSITE' | 'HYBRID';
+  attendanceIntent?: 'CONFIRMED' | 'TENTATIVE';
 }
 
 export interface UpdateRegistrationStatusRequest {
@@ -478,7 +485,7 @@ export interface UpdateRegistrationStatusRequest {
 
 export interface AssignCenterRequest {
   centerId: string;
-  participationMode: 'ONLINE' | 'ONSITE';
+  participationMode: 'ONLINE' | 'ONSITE' | 'HYBRID';
 }
 
 export interface AssignGroupRequest {
@@ -506,7 +513,7 @@ export interface AttendanceRecord {
   checkInTime: string;
   checkOutTime?: string;
   checkInMethod: 'QR' | 'SAC' | 'MANUAL' | 'KIOSK';
-  participationMode: 'ONLINE' | 'ONSITE';
+  participationMode: 'ONLINE' | 'ONSITE' | 'HYBRID';
   isVerified: boolean;
   verifiedBy?: string;
   verifiedAt?: string;
@@ -587,7 +594,7 @@ export interface ValidateCodeRequest {
 export interface GetAttendanceParams extends PaginationParams {
   centerId?: string;
   verified?: boolean;
-  participationMode?: 'ONLINE' | 'ONSITE';
+  participationMode?: 'ONLINE' | 'ONSITE' | 'HYBRID';
   eventId?: string;
   fromDate?: string;
   toDate?: string;
@@ -601,7 +608,7 @@ export interface EventGroup {
   id: string;
   eventId: string;
   name: string;
-  type: 'BIBLE_STUDY' | 'WORKSHOP' | 'BREAKOUT';
+  type: 'BIBLE_STUDY' | 'WORKSHOP' | 'SEMINAR';
   description?: string;
   isActive: boolean;
   createdAt: string;
@@ -612,7 +619,7 @@ export interface EventGroup {
 export interface CreateGroupRequest {
   eventId: string;
   name: string;
-  type: 'BIBLE_STUDY' | 'WORKSHOP' | 'BREAKOUT';
+  type: 'BIBLE_STUDY' | 'WORKSHOP' | 'SEMINAR';
   description?: string;
 }
 
@@ -673,7 +680,7 @@ export interface GroupStatistics {
 }
 
 export interface ListGroupsParams extends PaginationParams {
-  type?: 'BIBLE_STUDY' | 'WORKSHOP' | 'BREAKOUT';
+  type?: 'BIBLE_STUDY' | 'WORKSHOP' | 'SEMINAR';
   isActive?: boolean;
 }
 

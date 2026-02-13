@@ -285,10 +285,10 @@ export default function PrintTagsPage() {
                                                                 <span className="text-[#94A3B8] font-medium">— {reg.participation.center.centerName}</span>
                                                             )}
                                                         </div>
-                                                        {reg.groupAssignment?.group && (
+                                                        {reg.groupAssignments && reg.groupAssignments.length > 0 && (
                                                             <div className="flex items-center gap-1 mt-0.5">
                                                                 <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md uppercase">
-                                                                    {reg.groupAssignment.group.type}: {reg.groupAssignment.group.name}
+                                                                    {reg.groupAssignments.map((a: any) => `${a.group?.type}: ${a.group?.name}`).join(', ')}
                                                                 </span>
                                                             </div>
                                                         )}
@@ -359,9 +359,9 @@ export default function PrintTagsPage() {
                                                 <MapPin size={10} />
                                                 {reg.participation?.participationMode || 'ONSITE'}
                                             </div>
-                                            {reg.groupAssignment?.group && (
+                                            {reg.groupAssignments && reg.groupAssignments.length > 0 && (
                                                 <div className="text-[9px] font-black text-emerald-600 mt-0.5 uppercase">
-                                                    {reg.groupAssignment.group.type}: {reg.groupAssignment.group.name}
+                                                    {reg.groupAssignments.map((a: any) => `${a.group?.type}: ${a.group?.name}`).join(', ')}
                                                 </div>
                                             )}
                                         </div>
