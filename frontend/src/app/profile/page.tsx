@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { membersApi } from "@/lib/api/members";
 import Image from "next/image";
 import { getAgeBracket } from "@/lib/utils";
+import { useModal } from "@/components/common/modal-provider";
 
 export default function ProfilePage() {
     const { user, login } = useAuth(); // login is needed to refresh user data? No, login expects credentials. 
@@ -112,6 +113,8 @@ export default function ProfilePage() {
         }
     };
 
+    const { alert: modalAlert } = useModal();
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
@@ -126,11 +129,14 @@ export default function ProfilePage() {
             }
 
             await membersApi.updateProfile(payload);
+
+            await modalAlert("Your profile has been updated successfully!", "Update Successful", "success");
+
             // Refresh page to get new data
             window.location.reload();
         } catch (error) {
             console.error("Failed to update profile", error);
-            alert("Failed to update profile. Please try again.");
+            modalAlert("Failed to update profile. Please check your network and try again.", "Update Failed", "danger");
         } finally {
             setIsLoading(false);
         }

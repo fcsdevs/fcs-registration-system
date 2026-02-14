@@ -2,6 +2,7 @@
 
 import React, { useRef } from 'react';
 import { Download, Printer } from 'lucide-react';
+import { useModal } from '@/components/common/modal-provider';
 
 export interface QRCodeDisplayProps {
   qrCode: string; // Base64 or URL
@@ -43,6 +44,8 @@ export function QRCodeDisplay({
       img.onerror = reject;
     });
   };
+
+  const { alert: modalAlert } = useModal();
 
   const generatePDF = async () => {
     try {
@@ -262,7 +265,7 @@ export function QRCodeDisplay({
 
     } catch (error) {
       console.error('Failed to generate PDF:', error);
-      alert('Failed to generate PDF badge. Please check your internet connection for image assets.');
+      modalAlert('Failed to generate PDF badge. Please check your internet connection for image assets.', 'Download Failed', 'danger');
     }
   };
 

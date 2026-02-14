@@ -14,6 +14,7 @@ import { Registration } from '@/types/api';
 import { api } from '@/lib/api/client';
 import { ArrowLeft, Calendar, MapPin, Users, Edit, Trash2, Sparkles, CheckCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
+import { useModal } from '@/components/common/modal-provider';
 
 // Decoration Component
 const AmbientBackground = () => (
@@ -28,6 +29,7 @@ export default function RegistrationDetailsPage() {
     const registrationId = params.id as string;
     const [registration, setRegistration] = useState<Registration | null>(null);
     const [loading, setLoading] = useState(true);
+    const { confirm, alert: modalAlert } = useModal();
 
     useEffect(() => {
         fetchRegistration();
@@ -46,14 +48,19 @@ export default function RegistrationDetailsPage() {
     };
 
     const handleCancelRegistration = async () => {
-        if (!confirm('Are you sure you want to cancel this registration?')) return;
+        const confirmed = await confirm(
+            'Are you sure you want to cancel this registration? This action cannot be undone.',
+            'Cancel Registration',
+            'danger'
+        );
+        if (!confirmed) return;
 
         try {
             await api.delete(`/registrations/${registrationId}`);
             window.location.href = '/my-events?tab=registered';
         } catch (error) {
             console.error('Failed to cancel registration:', error);
-            alert('Failed to cancel registration. Please try again.');
+            modalAlert('Failed to cancel registration. Please try again.', 'Error', 'danger');
         }
     };
 

@@ -405,7 +405,7 @@ export interface ListCentersParams extends PaginationParams {
   isActive?: boolean;
 }
 
-export interface ListActiveCentersParams {
+export interface ListActiveCentersParams extends PaginationParams {
   eventId: string;
   state?: string;
 }

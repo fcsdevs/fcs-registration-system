@@ -277,14 +277,22 @@ export default function SignupPage() {
         if (latestEventId) {
           const response = await centersApi.listActive({
             eventId: latestEventId,
-            state: stateUnit?.id
+            state: stateUnit?.id,
+            limit: 1000
           });
 
-          // listActive returns ApiResponse<EventCenter[]>
-          const centersData = response.data;
-          if (Array.isArray(centersData)) {
+          // listActive returns paginated ApiResponse
+          let centersData: EventCenter[] = [];
+          if (response.data) {
+            if (Array.isArray(response.data)) centersData = response.data;
+            else if ((response.data as any).data) centersData = (response.data as any).data;
+          }
+
+          if (centersData.length > 0) {
             setCenters(centersData);
             console.log(`[Signup] Loaded ${centersData.length} centers for state ${selectedStateName}`);
+          } else {
+            setCenters([]);
           }
         } else {
           console.warn('[Signup] No active event found to load centers');

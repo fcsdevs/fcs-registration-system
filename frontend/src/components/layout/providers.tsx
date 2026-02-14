@@ -23,13 +23,16 @@ const queryClient = new QueryClient({
   },
 });
 
+import { ModalProvider } from "@/components/common/modal-provider";
 import { Toaster } from "react-hot-toast";
 
 export function RootProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        {children}
+        <ModalProvider>
+          {children}
+        </ModalProvider>
       </AuthProvider>
       <Toaster position="top-right" />
     </QueryClientProvider>

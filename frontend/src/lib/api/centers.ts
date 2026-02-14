@@ -30,8 +30,10 @@ export const centersApi = {
    * List active centers for registration
    */
   listActive: async (params: ListActiveCentersParams): Promise<ApiResponse<EventCenter[]>> => {
-    const queryParams = new URLSearchParams({ eventId: params.eventId });
-    if (params.state) queryParams.append('state', params.state);
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) queryParams.append(key, value.toString());
+    });
     return api.get(`/centers/active?${queryParams.toString()}`);
   },
 

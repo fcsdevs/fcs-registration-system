@@ -13,6 +13,7 @@ import {
     AlertCircle
 } from "lucide-react";
 import Link from "next/link";
+import { useModal } from "@/components/common/modal-provider";
 
 interface RoleAssignment {
     id: string;
@@ -178,8 +179,15 @@ export default function MemberRolesPage() {
         }
     };
 
+    const { confirm } = useModal();
+
     const handleRevokeRole = async (roleId: string) => {
-        if (!confirm("Are you sure you want to revoke this role?")) return;
+        const confirmed = await confirm(
+            "Are you sure you want to revoke this role? The user will lose all permissions associated with it.",
+            "Revoke Role",
+            "danger"
+        );
+        if (!confirmed) return;
         if (!member?.authUserId) return;
 
         try {
