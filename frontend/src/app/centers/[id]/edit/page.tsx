@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ProtectedRoute } from "@/components/common/route-guards";
 import { centersApi } from "@/lib/api/centers";
-import { unitsApi } from "@/lib/api/units";
-import { eventsApi } from "@/lib/api/events";
 import { MapPin, ArrowLeft, Save, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { Unit } from "@/types/api";
@@ -15,8 +13,6 @@ export default function EditCenterPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [events, setEvents] = useState<any[]>([]);
-    const [units, setUnits] = useState<Unit[]>([]);
     const [loadingData, setLoadingData] = useState(true);
     const [formData, setFormData] = useState({
         eventId: "",
@@ -25,6 +21,10 @@ export default function EditCenterPage() {
         stateId: "",
         address: "",
         isActive: true
+    });
+    const [displayInfo, setDisplayInfo] = useState({
+        eventName: "",
+        stateName: ""
     });
 
     useEffect(() => {
@@ -36,29 +36,25 @@ export default function EditCenterPage() {
     const fetchInitialData = async () => {
         try {
             setLoadingData(true);
-            const [centerRes, eventsRes, unitsRes] = await Promise.all([
-                centersApi.getById(id as string),
-                eventsApi.list({ isPublished: true, limit: 100 }),
-                unitsApi.list({ type: 'State', limit: 300 })
-            ]);
+            const res = await centersApi.getById(id as string);
+            const centerData = (res as any).data?.data || res.data;
 
-            if (centerRes.data) {
+            if (centerData) {
                 setFormData({
-                    eventId: centerRes.data.eventId,
-                    centerName: centerRes.data.centerName,
-                    country: centerRes.data.country || "Nigeria",
-                    stateId: centerRes.data.stateId || "",
-                    address: centerRes.data.address,
-                    isActive: centerRes.data.isActive
+                    eventId: centerData.eventId,
+                    centerName: centerData.centerName,
+                    country: centerData.country || "Nigeria",
+                    stateId: centerData.stateId || "",
+                    address: centerData.address,
+                    isActive: centerData.isActive
+                });
+
+                // Get nested names directly from the response
+                setDisplayInfo({
+                    eventName: centerData.event?.title || "Unknown Event",
+                    stateName: centerData.state?.name || "National/Unassigned"
                 });
             }
-
-            const eventsData = eventsRes.data?.data || [];
-            const unitsData = unitsRes.data?.data || [];
-
-            setEvents(eventsData);
-            setUnits(unitsData);
-
         } catch (err: any) {
             console.error("Failed to fetch initial data:", err);
             setError(err.message || "Failed to load center data");
@@ -90,9 +86,9 @@ export default function EditCenterPage() {
         <ProtectedRoute>
             <div className="min-h-screen bg-gray-50/30">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <Link href={`/centers/${id}`} className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors mb-6 group">
+                    <Link href="/centers" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors mb-6 group">
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        Back to Center Details
+                        Back to Centers
                     </Link>
 
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -121,7 +117,7 @@ export default function EditCenterPage() {
                                         Associated Event
                                     </label>
                                     <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed">
-                                        {events.find(e => e.id === formData.eventId)?.title || "Loading..."}
+                                        {loadingData ? "Loading..." : displayInfo.eventName}
                                     </div>
                                     <p className="text-[10px] text-gray-400">Event cannot be changed after creation</p>
                                 </div>
@@ -132,7 +128,7 @@ export default function EditCenterPage() {
                                         State / Unit
                                     </label>
                                     <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed">
-                                        {units.find(u => u.id === formData.stateId)?.name || "Loading..."}
+                                        {loadingData ? "Loading..." : displayInfo.stateName}
                                     </div>
                                 </div>
                             </div>
@@ -203,7 +199,7 @@ export default function EditCenterPage() {
                                     )}
                                 </button>
                                 <Link
-                                    href={`/centers/${id}`}
+                                    href="/centers"
                                     className="px-8 py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all active:scale-[0.98]"
                                 >
                                     Cancel

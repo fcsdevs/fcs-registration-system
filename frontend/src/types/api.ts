@@ -410,6 +410,12 @@ export interface ListActiveCentersParams {
   state?: string;
 }
 
+export interface ListAllCentersParams extends PaginationParams {
+  eventId?: string;
+  isActive?: boolean;
+  search?: string;
+}
+
 // ============================================================
 // REGISTRATION MODULE TYPES
 // ============================================================

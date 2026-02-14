@@ -34,6 +34,11 @@ export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOth
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isRegistering, setIsRegistering] = useState(false);
+    const [registrationStatus, setRegistrationStatus] = useState<{
+        isRegistered: boolean;
+        message: string;
+        registration?: any;
+    } | null>(null);
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,6 +47,7 @@ export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOth
         setLoading(true);
         setError(null);
         setFoundMember(null);
+        setRegistrationStatus(null);
 
         try {
             // Using general search which supports both email and FCS code
@@ -57,7 +63,22 @@ export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOth
             if (members && members.length > 0) {
                 // Fetch full member details to get profile fields for sync
                 const fullMemberRes = await api.get<{ data: any }>(`/members/${members[0].id}`);
-                setFoundMember(fullMemberRes.data || fullMemberRes);
+                const memberData = fullMemberRes.data || fullMemberRes;
+                setFoundMember(memberData);
+
+                // Check if member is already registered for this event
+                try {
+                    const statusResponse = await api.get<{ data: any }>(`/registrations/check/${event.id}/${memberData.id}`);
+                    const status = statusResponse.data || statusResponse;
+                    setRegistrationStatus(status);
+                } catch (statusError) {
+                    console.error('Failed to check registration status:', statusError);
+                    // If check fails, allow proceeding (fail open)
+                    setRegistrationStatus({
+                        isRegistered: false,
+                        message: 'Unable to verify registration status'
+                    });
+                }
             } else {
                 setError('No member found with that FCS Code or Email Address.');
             }
@@ -158,7 +179,8 @@ export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOth
 
                 {foundMember && !loading && (
                     <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 animate-fadeIn">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex flex-col gap-4">
+                            {/* Member Info */}
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-lg">
                                     {foundMember.firstName.charAt(0)}{foundMember.lastName.charAt(0)}
@@ -179,13 +201,33 @@ export function RegisterForOthersWizard({ event, currentUserId }: RegisterForOth
                                 </div>
                             </div>
 
-                            <button
-                                onClick={handleProceed}
-                                className="flex items-center justify-center gap-2 px-6 py-3 bg-[#1F7A63] text-white rounded-lg font-medium hover:bg-[#18614f] transition-colors w-full sm:w-auto shadow-md hover:shadow-lg transform active:scale-95 duration-200"
-                            >
-                                Proceed
-                                <ArrowRight className="w-5 h-5" />
-                            </button>
+                            {/* Registration Status */}
+                            {registrationStatus?.isRegistered ? (
+                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-2">
+                                    <div className="flex items-start gap-3">
+                                        <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-amber-900 mb-1">Already Registered</p>
+                                            <p className="text-sm text-amber-700">
+                                                {registrationStatus.message}
+                                            </p>
+                                            {registrationStatus.registration?.registrationDate && (
+                                                <p className="text-xs text-amber-600 mt-2">
+                                                    Registered on: {new Date(registrationStatus.registration.registrationDate).toLocaleDateString()}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={handleProceed}
+                                    className="flex items-center justify-center gap-2 px-6 py-3 bg-[#1F7A63] text-white rounded-lg font-medium hover:bg-[#18614f] transition-colors w-full sm:w-auto shadow-md hover:shadow-lg transform active:scale-95 duration-200 mt-2"
+                                >
+                                    Proceed
+                                    <ArrowRight className="w-5 h-5" />
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}

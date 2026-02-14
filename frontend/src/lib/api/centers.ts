@@ -13,6 +13,7 @@ import type {
   CenterStatistics,
   ListCentersParams,
   ListActiveCentersParams,
+  ListAllCentersParams,
 } from '@/types/api';
 
 export const centersApi = {
@@ -47,6 +48,22 @@ export const centersApi = {
 
     const query = queryParams.toString();
     return api.get(`/centers${query ? `?${query}` : ''}`);
+  },
+
+  /**
+   * GET /api/centers/admin/all
+   * List all centers for admin based on scope
+   */
+  listAllForAdmin: async (params?: ListAllCentersParams): Promise<ApiResponse<PaginatedResponse<EventCenter>>> => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.eventId) queryParams.append('eventId', params.eventId);
+    if (params?.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
+    if (params?.search) queryParams.append('search', params.search);
+
+    const query = queryParams.toString();
+    return api.get(`/centers/admin/all${query ? `?${query}` : ''}`);
   },
 
   /**
