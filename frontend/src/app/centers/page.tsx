@@ -7,8 +7,10 @@ import { eventsApi } from "@/lib/api/events";
 import { MapPin, Plus, Search, Building2, Users, Edit, Trash2, Filter, ChevronRight, Activity, Eye } from "lucide-react";
 import Link from "next/link";
 import { EventCenter, Event } from "@/types/api";
+import { useModal } from "@/components/common/modal-provider";
 
 export default function CentersPage() {
+  const { confirm, alert: modalAlert } = useModal();
   const [centers, setCenters] = useState<EventCenter[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string>("");
@@ -163,13 +165,18 @@ export default function CentersPage() {
                         key={center.id}
                         center={center}
                         onDelete={async () => {
-                          if (window.confirm("Are you sure you want to delete this center? This action cannot be undone.")) {
+                          const confirmed = await confirm(
+                            "Are you sure you want to deactivate this center? This action will prevent new registrations from being assigned to this location.",
+                            "Deactivate Center",
+                            "danger"
+                          );
+                          if (confirmed) {
                             try {
                               await centersApi.deactivate(center.id);
                               fetchCenters(selectedEventId); // Refresh list
                             } catch (err) {
                               console.error("Failed to delete center", err);
-                              alert("Failed to delete center. Please try again.");
+                              modalAlert("Failed to deactivate center. Please ensure no active processes are tied to it and try again.", "Operation Failed", "danger");
                             }
                           }
                         }}

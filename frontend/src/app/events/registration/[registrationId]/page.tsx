@@ -37,6 +37,7 @@ import { api } from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useModal } from "@/components/common/modal-provider";
 
 interface Registration {
     id: string;
@@ -67,6 +68,7 @@ interface Registration {
 }
 
 export default function PublicRegistrationDashboard() {
+    const { alert: modalAlert } = useModal();
     const params = useParams();
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -130,7 +132,7 @@ export default function PublicRegistrationDashboard() {
             setSuccessMessage('Credential Profile updated successfully!');
             setTimeout(() => setSuccessMessage(''), 3000);
         } catch (error: any) {
-            alert(error.message || 'Verification Error: System sync failed');
+            modalAlert(error.message || 'Verification Error: System sync failed', 'Update Failed', 'danger');
         } finally {
             setSaving(false);
         }

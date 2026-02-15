@@ -19,7 +19,7 @@ interface ModalContextType {
     showModal: (options: ModalOptions) => void;
     hideModal: () => void;
     confirm: (message: string, title?: string, type?: 'info' | 'warning' | 'danger') => Promise<boolean>;
-    alert: (message: string, title?: string, type?: 'info' | 'warning' | 'success') => Promise<void>;
+    alert: (message: string, title?: string, type?: 'info' | 'warning' | 'success' | 'danger') => Promise<void>;
 }
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
@@ -59,7 +59,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
         });
     }, []);
 
-    const alert = useCallback((message: string, title: string = 'Notice', type: 'info' | 'warning' | 'success' = 'info'): Promise<void> => {
+    const alert = useCallback((message: string, title: string = 'Notice', type: 'info' | 'warning' | 'success' | 'danger' = 'info'): Promise<void> => {
         setOptions({
             title,
             message,
@@ -151,9 +151,9 @@ function GlobalModalComponent({ options, onConfirm, onCancel, onClose }: {
             <div className="relative w-full max-w-sm bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 border border-slate-100 mt-[-10vh]">
                 {/* Header Gradient */}
                 <div className={`h-1.5 w-full bg-gradient-to-r ${options.type === 'danger' ? 'from-red-500 to-rose-400' :
-                        options.type === 'warning' ? 'from-amber-500 to-orange-400' :
-                            options.type === 'success' ? 'from-emerald-500 to-teal-400' :
-                                'from-[#060CCD] to-indigo-400'
+                    options.type === 'warning' ? 'from-amber-500 to-orange-400' :
+                        options.type === 'success' ? 'from-emerald-500 to-teal-400' :
+                            'from-[#060CCD] to-indigo-400'
                     }`} />
 
                 <div className="p-8">

@@ -8,8 +8,10 @@ import { Users, Plus, Search, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { groupsApi } from "@/lib/api/groups";
 import toast from "react-hot-toast";
+import { useModal } from "@/components/common/modal-provider";
 
 export default function GroupsPage() {
+  const { confirm, alert: modalAlert } = useModal();
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,7 +37,12 @@ export default function GroupsPage() {
   };
 
   const handleDelete = async (groupId: string) => {
-    if (!window.confirm("Are you sure you want to delete this group?")) return;
+    const confirmed = await confirm(
+      "Are you sure you want to delete this group? This action will remove all member assignments but keep the individual registrations.",
+      "Delete Group",
+      "danger"
+    );
+    if (!confirmed) return;
 
     try {
       await groupsApi.deactivate(groupId);

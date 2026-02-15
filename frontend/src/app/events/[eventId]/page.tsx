@@ -23,8 +23,10 @@ import {
 import Link from "next/link";
 import { ProtectedRoute } from "@/components/common/route-guards";
 import { useAuth } from "@/context/auth-context";
+import { useModal } from "@/components/common/modal-provider";
 
 export default function EventDetailsPage() {
+    const { confirm, alert: modalAlert } = useModal();
     const params = useParams();
     const router = useRouter();
     const eventId = params.eventId as string;
@@ -53,7 +55,7 @@ export default function EventDetailsPage() {
             }
         } catch (error) {
             console.error("Failed to fetch event details:", error);
-            alert("Failed to load event details");
+            modalAlert("Failed to load event details. Please check your connection and try again.", "Error", "danger");
         } finally {
             setLoading(false);
         }
@@ -73,18 +75,23 @@ export default function EventDetailsPage() {
     };
 
     const handlePublish = async () => {
-        if (!confirm("Are you sure you want to publish this event? This will make it visible to users and enable registrations.")) {
+        const confirmed = await confirm(
+            "Are you sure you want to publish this event? This will make it visible to users and enable registrations.",
+            "Publish Event",
+            "warning"
+        );
+        if (!confirmed) {
             return;
         }
 
         try {
             setLoading(true);
             await api.post(`/events/${eventId}/publish`);
-            alert("Event published successfully!");
+            await modalAlert("Event has been published successfully and is now live for registrations.", "Event Published", "success");
             await fetchEventDetails();
         } catch (error: any) {
             console.error("Failed to publish event:", error);
-            alert(error.message || "Failed to publish event");
+            modalAlert(error.message || "Failed to publish event. Please ensure all required fields are complete.", "Publish Failed", "danger");
         } finally {
             setLoading(false);
         }

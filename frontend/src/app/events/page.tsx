@@ -19,8 +19,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useModal } from "@/components/common/modal-provider";
 
 export default function EventPage() {
+  const { confirm, alert: modalAlert } = useModal();
   const { user } = useAuth();
   const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
@@ -91,17 +93,20 @@ export default function EventPage() {
   };
 
   const handleDelete = async (eventId: string, eventTitle: string) => {
-    if (!confirm(`Are you sure you want to delete "${eventTitle}"? This action cannot be undone.`)) {
-      return;
-    }
+    const confirmed = await confirm(
+      `Are you sure you want to delete "${eventTitle}"? This action cannot be undone and will remove all associated registrations and center data.`,
+      "Delete Event",
+      "danger"
+    );
+    if (!confirmed) return;
 
     try {
       await api.delete(`/events/${eventId}`);
-      alert('Event deleted successfully');
+      modalAlert('Event has been deleted successfully.', 'Deletion Successful', 'success');
       fetchEvents(); // Refresh the list
     } catch (error) {
       console.error('Failed to delete event:', error);
-      alert('Failed to delete event. Please try again.');
+      modalAlert('Failed to delete event. Please ensure there are no active registrations tied to it and try again.', 'Update Failed', 'danger');
     }
   };
 

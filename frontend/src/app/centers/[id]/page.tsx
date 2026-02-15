@@ -5,10 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 import { ProtectedRoute } from "@/components/common/route-guards";
 import { centersApi } from "@/lib/api/centers";
 import { MapPin, ArrowLeft, Edit, Users, Calendar, Building2, Shield, Trash2, Loader2, CheckCircle2 } from "lucide-react";
+import { useModal } from "@/components/common/modal-provider";
 import Link from "next/link";
 import { EventCenter, CenterStatistics } from "@/types/api";
 
 export default function CenterDetailsPage() {
+    const { confirm, alert: modalAlert } = useModal();
     const { id } = useParams();
     const router = useRouter();
     const [center, setCenter] = useState<EventCenter | null>(null);
@@ -47,15 +49,18 @@ export default function CenterDetailsPage() {
     };
 
     const handleDelete = async () => {
-        if (!window.confirm("Are you sure you want to deactivate this center? It will no longer be available for new registrations.")) {
-            return;
-        }
+        const confirmed = await confirm(
+            "Are you sure you want to deactivate this center? It will no longer be available for new registrations.",
+            "Deactivate Center",
+            "danger"
+        );
+        if (!confirmed) return;
 
         try {
             await centersApi.deactivate(id as string);
             router.push("/centers");
         } catch (err: any) {
-            alert(err.message || "Failed to deactivate center");
+            modalAlert(err.message || "Failed to deactivate center", "Error", "danger");
         }
     };
 
@@ -85,13 +90,14 @@ export default function CenterDetailsPage() {
     };
 
     const handleRemoveAdmin = async (userId: string) => {
-        if (!window.confirm("Are you sure you want to remove this admin?")) return;
+        const confirmed = await confirm("Are you sure you want to remove this admin?", "Remove Admin", "danger");
+        if (!confirmed) return;
 
         try {
             await centersApi.removeAdmin(id as string, userId);
             fetchCenterDetails(); // Refresh
         } catch (err: any) {
-            alert(err.message || "Failed to remove admin");
+            modalAlert(err.message || "Failed to remove admin", "Error", "danger");
         }
     };
 
