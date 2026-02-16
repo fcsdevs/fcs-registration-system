@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ProtectedRoute } from "@/components/common/route-guards";
 import { api } from "@/lib/api/client";
+import { useModal } from "@/components/common/modal-provider";
 import { Calendar, ArrowLeft, Save, Loader2, X } from "lucide-react";
 import Link from "next/link";
 
 export default function EditEventPage() {
+    const { alert: modalAlert } = useModal();
     const router = useRouter();
     const params = useParams();
     const eventId = params.eventId as string;
@@ -108,9 +110,8 @@ export default function EditEventPage() {
             }
 
             await api.put(`/events/${eventId}`, payload);
+            await modalAlert('The event has been successfully updated with the latest parameters.', 'Update Successful', 'success');
             router.push(`/events/${eventId}`);
-            // Use toast instead of alert if possible, or keep inconsistent
-            alert('Event updated successfully!');
         } catch (err: any) {
             setError(err.message || "Failed to update event");
         } finally {

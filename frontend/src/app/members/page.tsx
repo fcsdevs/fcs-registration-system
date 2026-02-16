@@ -24,8 +24,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useModal } from "@/components/common/modal-provider";
 
 export default function MemberPage() {
+  const { confirm, alert: modalAlert } = useModal();
   const router = useRouter();
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,13 +108,18 @@ export default function MemberPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this member? This action cannot be undone.")) return;
+    const confirmed = await confirm(
+      "Are you sure you want to delete this member? This action cannot be undone and will remove all their association data.",
+      "Delete Member",
+      "danger"
+    );
+    if (!confirmed) return;
     try {
       await api.delete(`/members/${id}`);
       fetchMembers(); // Refresh list
     } catch (error) {
       console.error("Failed to delete member:", error);
-      alert("Failed to delete member");
+      modalAlert("Failed to delete member. They may have existing registrations that prevent deletion.", "Deletion Failed", "danger");
     }
   };
 

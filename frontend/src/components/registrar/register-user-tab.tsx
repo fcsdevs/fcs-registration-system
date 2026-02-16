@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { api } from '@/lib/api/client';
 import { Search, UserPlus, MapPin, Check } from 'lucide-react';
 import { Member } from '@/types/api';
+import { useModal } from '@/components/common/modal-provider';
 
 export function RegisterUserTab({ eventId }: { eventId: string }) {
     const [query, setQuery] = useState('');
@@ -25,6 +26,8 @@ export function RegisterUserTab({ eventId }: { eventId: string }) {
             setSearching(false);
         }
     };
+
+    const { alert: modalAlert } = useModal();
 
     const handleRegister = async (memberId: string) => {
         setRegistering(memberId);
@@ -51,10 +54,10 @@ export function RegisterUserTab({ eventId }: { eventId: string }) {
                 participationMode: 'ONSITE',
                 // centerId: ... we need this
             });
-            alert("Registration Successful!");
+            await modalAlert("The member has been successfully registered for this event.", "Registration Successful", "success");
             // Refresh list or update UI
         } catch (err: any) {
-            alert("Registration Failed: " + (err.response?.data?.error?.message || err.message));
+            modalAlert("Registration Failed: " + (err.response?.data?.error?.message || err.message), "Error", "danger");
         } finally {
             setRegistering(null);
         }

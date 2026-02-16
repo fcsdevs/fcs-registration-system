@@ -126,6 +126,13 @@ export interface CurrentUser {
   isActive: boolean;
   emailVerified: boolean;
   phoneVerified: boolean;
+  roles?: string[];
+  unit?: any;
+  centers?: Array<{
+    id: string;
+    centerName: string;
+    eventId: string;
+  }>;
 }
 
 // ============================================================
@@ -405,9 +412,15 @@ export interface ListCentersParams extends PaginationParams {
   isActive?: boolean;
 }
 
-export interface ListActiveCentersParams {
+export interface ListActiveCentersParams extends PaginationParams {
   eventId: string;
   state?: string;
+}
+
+export interface ListAllCentersParams extends PaginationParams {
+  eventId?: string;
+  isActive?: boolean;
+  search?: string;
 }
 
 // ============================================================

@@ -79,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             unitId: authData.unit?.id || authData.unitId || '',
             unitName: authData.unit?.name || '',
             memberCode: authData.member?.fcsCode || '',
+            centers: authData.centers || [],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           };
@@ -151,6 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         unitId: authData.unit?.id || authData.unitId || '',
         unitName: authData.unit?.name || '',
         memberCode: authData.member?.fcsCode || '',
+        centers: authData.centers || [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -279,6 +281,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           unitId: authData.unit?.id || authData.unitId || '',
           unitName: authData.unit?.name || '',
           memberCode: authData.member?.fcsCode || '',
+          centers: authData.centers || [],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };

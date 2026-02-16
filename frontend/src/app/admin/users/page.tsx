@@ -18,7 +18,10 @@ import {
     TableRow,
 } from "@/components/ui/table";
 
+import { useModal } from "@/components/common/modal-provider";
+
 export default function AdminUsersPage() {
+    const { confirm, alert: modalAlert } = useModal();
     const { currentScope, isLoading: isContextLoading } = useAdmin();
     const [admins, setAdmins] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -61,13 +64,18 @@ export default function AdminUsersPage() {
     }, [currentScope, isContextLoading]);
 
     const handleRevoke = async (userId: string) => {
-        if (!confirm("Are you sure you want to revoke admin access for this user?")) return;
+        const confirmed = await confirm(
+            "Are you sure you want to revoke admin access for this user? They will no longer be able to manage events or centers.",
+            "Revoke Admin Access",
+            "danger"
+        );
+        if (!confirmed) return;
 
         try {
             await api.delete(`/users/${userId}/roles/admin`);
             setAdmins(prev => prev.filter(a => a.id !== userId));
         } catch (err: any) {
-            alert("Failed to revoke access: " + err.message);
+            modalAlert("Failed to revoke access: " + err.message, "Revoke Failed", "danger");
         }
     };
 
@@ -87,7 +95,7 @@ export default function AdminUsersPage() {
                             Manage administrators for {currentScope?.unitName} and sub-units.
                         </p>
                     </div>
-                    <Link href="/admin/users/new">
+                    <Link href="/admin/users/new?role=Admin">
                         <Button className="bg-primary text-white">
                             <Plus className="mr-2 h-4 w-4" /> Assign New Admin
                         </Button>
@@ -177,7 +185,7 @@ export default function AdminUsersPage() {
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    <Link href={`/admin/users/${admin.id}/edit`}>
+                                                    <Link href={`/admin/users/${admin.id}/edit?role=Admin`}>
                                                         <Button variant="ghost" size="sm">
                                                             <Edit className="h-4 w-4" />
                                                         </Button>

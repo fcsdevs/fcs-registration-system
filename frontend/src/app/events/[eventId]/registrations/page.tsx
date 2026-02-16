@@ -27,6 +27,7 @@ import {
     MapPin
 } from "lucide-react";
 import { ProtectedRoute } from "@/components/common/route-guards";
+import { useModal } from "@/components/common/modal-provider";
 import {
     Table,
     TableBody,
@@ -38,6 +39,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 export default function EventRegistrationsPage() {
+    const { alert: modalAlert } = useModal();
     const params = useParams();
     const router = useRouter();
     const eventId = params.eventId as string;
@@ -78,7 +80,7 @@ export default function EventRegistrationsPage() {
             window.open(url, '_blank');
         } catch (error) {
             console.error("Print failed:", error);
-            alert("Failed to generate tag");
+            modalAlert("Failed to generate digital credential tag. Please verify your connection and try again.", "Generation Failed", "danger");
         }
     };
 

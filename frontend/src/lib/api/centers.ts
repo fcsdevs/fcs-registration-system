@@ -13,6 +13,7 @@ import type {
   CenterStatistics,
   ListCentersParams,
   ListActiveCentersParams,
+  ListAllCentersParams,
 } from '@/types/api';
 
 export const centersApi = {
@@ -29,8 +30,10 @@ export const centersApi = {
    * List active centers for registration
    */
   listActive: async (params: ListActiveCentersParams): Promise<ApiResponse<EventCenter[]>> => {
-    const queryParams = new URLSearchParams({ eventId: params.eventId });
-    if (params.state) queryParams.append('state', params.state);
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) queryParams.append(key, value.toString());
+    });
     return api.get(`/centers/active?${queryParams.toString()}`);
   },
 
@@ -47,6 +50,22 @@ export const centersApi = {
 
     const query = queryParams.toString();
     return api.get(`/centers${query ? `?${query}` : ''}`);
+  },
+
+  /**
+   * GET /api/centers/admin/all
+   * List all centers for admin based on scope
+   */
+  listAllForAdmin: async (params?: ListAllCentersParams): Promise<ApiResponse<PaginatedResponse<EventCenter>>> => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.eventId) queryParams.append('eventId', params.eventId);
+    if (params?.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
+    if (params?.search) queryParams.append('search', params.search);
+
+    const query = queryParams.toString();
+    return api.get(`/centers/admin/all${query ? `?${query}` : ''}`);
   },
 
   /**

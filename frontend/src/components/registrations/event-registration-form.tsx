@@ -144,7 +144,7 @@ export function EventRegistrationForm({
         try {
             setLoadingData(true);
             const [centersRes, groupsRes, statesRes] = await Promise.all([
-                centersApi.listActive({ eventId: event.id }),
+                centersApi.listActive({ eventId: event.id, limit: 1000 }),
                 groupsApi.listByEvent(event.id, { isActive: true, limit: 100 }),
                 unitsApi.list({ type: 'State', limit: 100 })
             ]);
@@ -189,7 +189,7 @@ export function EventRegistrationForm({
                 );
                 if (memberState) {
                     setSelectedCenterState(memberState.id);
-                    const filtered = fetchedCenters.filter(c => c.stateId === memberState.id);
+                    const filtered = fetchedCenters.filter(c => c.stateId === memberState.id || c.state?.id === memberState.id);
                     setCenters(filtered.length > 0 ? filtered : fetchedCenters);
                 } else {
                     setCenters(fetchedCenters);
@@ -556,9 +556,11 @@ export function EventRegistrationForm({
                                     onValueChange={(val) => {
                                         setSelectedCenterState(val);
                                         setFormData({ ...formData, centerId: '' });
-                                        centersApi.listActive({ eventId: event.id }).then(res => {
+                                        // Use API filtering + frontend fallback filtering for maximum reliability
+                                        centersApi.listActive({ eventId: event.id, state: val, limit: 1000 }).then(res => {
                                             const all = Array.isArray(res.data) ? res.data : (res.data as any).data || [];
-                                            setCenters(all.filter((c: any) => c.stateId === val));
+                                            const filtered = all.filter((c: any) => c.stateId === val || c.state?.id === val);
+                                            setCenters(filtered);
                                         });
                                     }}
                                 >

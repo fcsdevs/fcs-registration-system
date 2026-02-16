@@ -13,6 +13,7 @@ import { Calendar, MapPin, Users, Clock, Plus, CheckCircle, ArrowRight, LayoutDa
 import { Event } from '@/types/api';
 import { api } from '@/lib/api/client';
 import Link from 'next/link';
+import { useModal } from "@/components/common/modal-provider";
 
 // Background Ambience Component
 const AmbientBackground = () => (
@@ -24,6 +25,7 @@ const AmbientBackground = () => (
 );
 
 function MyEventsContent() {
+    const { alert: modalAlert } = useModal();
     const router = useRouter();
     const searchParams = useSearchParams();
     const [activeTab, setActiveTab] = useState<'available' | 'registered'>('available');
@@ -340,8 +342,7 @@ function MyEventsContent() {
                                                                 window.URL.revokeObjectURL(url);
                                                                 document.body.removeChild(a);
                                                             } catch (err) {
-                                                                console.error('Download failed', err);
-                                                                alert('Failed to download tag');
+                                                                modalAlert('Failed to download event tag. Please ensure you have a stable connection and try again.', 'Download Failed', 'danger');
                                                             }
                                                         }}
                                                         className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 text-xs font-bold rounded-lg hover:bg-gray-200 transition-colors"

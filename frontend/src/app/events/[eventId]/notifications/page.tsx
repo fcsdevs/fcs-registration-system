@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { ProtectedRoute } from "@/components/common/route-guards";
 import { useAuth } from "@/context/auth-context";
+import { useModal } from "@/components/common/modal-provider";
 import {
     Dialog,
     DialogContent,
@@ -46,6 +47,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
 export default function EventNotificationsPage() {
+    const { confirm, alert: modalAlert } = useModal();
     const params = useParams();
     const router = useRouter();
     const eventId = params.eventId as string;
@@ -92,7 +94,7 @@ export default function EventNotificationsPage() {
             setTriggers(triggers.map(t => t.id === triggerId ? { ...t, isActive: !currentStatus } : t));
         } catch (error) {
             console.error("Failed to update trigger:", error);
-            alert("Failed to update trigger");
+            modalAlert("Failed to update trigger status. Please verify your connection and permissions.", "Update Failed", "danger");
         } finally {
             setActionLoading(false);
         }
@@ -109,27 +111,34 @@ export default function EventNotificationsPage() {
             if (response.data) {
                 setTriggers([...triggers, response.data]);
                 setIsCreateModalOpen(false);
+                modalAlert("Automated notification trigger has been successfully configured.", "Trigger Created", "success");
             }
         } catch (error: any) {
             console.error("Failed to create trigger:", error);
-            alert(error.response?.data?.message || "Failed to create trigger");
+            modalAlert(error.response?.data?.message || "Failed to create trigger. Please verify system requirements.", "Creation Failed", "danger");
         } finally {
             setActionLoading(false);
         }
     };
 
     const handleTriggerReminder = async () => {
-        if (!confirm("This will send reminder notifications to all registered members. Continue?")) {
+        const confirmed = await confirm(
+            "This will send manual reminder notifications to EVERY registered member of this event. This action is immediate and cannot be recalled. Continue?",
+            "Execute Bulk Reminder",
+            "warning"
+        );
+
+        if (!confirmed) {
             return;
         }
 
         try {
             setActionLoading(true);
             const response = await notificationsApi.triggerEventReminder(eventId);
-            alert(`Reminder sent: ${response.data?.totalSent} delivered, ${response.data?.totalFailed} failed.`);
+            modalAlert(`Batch transmission completed: ${response.data?.totalSent} delivered successfully, ${response.data?.totalFailed} failed to deliver.`, "Transmission Summary", "success");
         } catch (error: any) {
             console.error("Failed to trigger reminder:", error);
-            alert(error.response?.data?.message || "Failed to send reminders");
+            modalAlert(error.response?.data?.message || "Critical failure during batch transmission. Check logs for details.", "Transmission Failed", "danger");
         } finally {
             setActionLoading(false);
         }

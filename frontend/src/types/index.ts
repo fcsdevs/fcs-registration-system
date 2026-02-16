@@ -75,6 +75,11 @@ export interface User {
     level?: string;
   }>;
   updatedAt: string;
+  centers?: Array<{
+    id: string;
+    centerName: string;
+    eventId: string;
+  }>;
 }
 
 // Events & Participation

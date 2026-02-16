@@ -25,8 +25,10 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { registrationsApi } from "@/lib/api/registrations";
+import { useModal } from "@/components/common/modal-provider";
 
 export default function RegistrationPage() {
+  const { alert: modalAlert } = useModal();
   const [registrations, setRegistrations] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -154,7 +156,7 @@ export default function RegistrationPage() {
       document.body.removeChild(a);
     } catch (error) {
       console.error("Failed to export CSV:", error);
-      alert("Failed to export registrations. Please try again.");
+      modalAlert("We were unable to export the registrations at this time. Please check your filters and try again.", "Export Failed", "danger");
     } finally {
       setExporting(false);
     }

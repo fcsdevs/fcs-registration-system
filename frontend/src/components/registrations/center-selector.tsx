@@ -30,7 +30,7 @@ export function CenterSelector({ eventId, selectedCenterId, onSelect, error }: C
 
     const fetchCenters = async () => {
         try {
-            const response = await centersApi.listActive({ eventId });
+            const response = await centersApi.listActive({ eventId, limit: 1000 });
             let fetchedCenters: EventCenter[] = [];
             if (response.data) {
                 if (Array.isArray(response.data)) {
@@ -66,7 +66,7 @@ export function CenterSelector({ eventId, selectedCenterId, onSelect, error }: C
         const normalize = (s: string) => s.toLowerCase().trim();
         const targetState = normalize(selectedState);
         const centerStateName = center.state?.name ? normalize(center.state.name) : '';
-        const centerStateId = center.stateId ? normalize(center.stateId) : '';
+        const centerStateId = center.stateId ? normalize(center.stateId) : (center.state?.id ? normalize(center.state.id) : '');
         const matchesState = centerStateName === targetState || centerStateId === targetState;
         return matchesSearch && matchesState && center.isActive;
     });

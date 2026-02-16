@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Download, X, Calendar, FileText } from "lucide-react";
 import { EventSelectorModal } from "@/components/events/event-selector-modal";
 import { api } from "@/lib/api/client";
+import { useModal } from "@/components/common/modal-provider";
 
 interface ReportConfigModalProps {
     isOpen: boolean;
@@ -30,9 +31,11 @@ export function ReportConfigModal({ isOpen, onClose, reportType }: ReportConfigM
 
     if (!isOpen || !reportType) return null;
 
+    const { alert: modalAlert } = useModal();
+
     const handleGenerate = async () => {
         if (reportType.requiresEvent && !selectedEvent) {
-            alert("Please select an event");
+            modalAlert("Please choose an event to generate this report for.", "Event Required", "warning");
             return;
         }
 
@@ -43,13 +46,11 @@ export function ReportConfigModal({ isOpen, onClose, reportType }: ReportConfigM
                 : "";
 
             if (!url) {
-                // Fallback or alert if no endpoint
-                alert("Report generation not fully configured");
+                modalAlert("Report generation not fully configured for this report type.", "Configuration Error", "danger");
                 return;
             }
 
             const blob = await api.getBlob(url);
-            // const blob = new Blob([response.data], { type: 'text/csv' }); // Not needed if returning blob directly
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
             link.download = `${reportType.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
@@ -60,7 +61,7 @@ export function ReportConfigModal({ isOpen, onClose, reportType }: ReportConfigM
             onClose();
         } catch (error) {
             console.error("Report generation failed", error);
-            alert("Failed to generate report. Please try again.");
+            modalAlert("We encountered an error while generating your report. Please try again later.", "Generation Failed", "danger");
         } finally {
             setIsGenerating(false);
         }

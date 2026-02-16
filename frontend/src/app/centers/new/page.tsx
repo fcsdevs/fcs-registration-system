@@ -30,12 +30,16 @@ export default function NewCenterPage() {
       try {
         setLoadingInitialData(true);
         const [eventsRes, unitsRes] = await Promise.all([
-          eventsApi.list({ isPublished: true, limit: 100 }),
+          eventsApi.list({ limit: 100 }),
           unitsApi.list({ type: 'State', limit: 300 }),
         ]);
 
-        setEvents(eventsRes.data?.data || []);
-        setUnits(unitsRes.data?.data || []);
+        // Handle backend response structure { data: { data: [] } } or { data: [] }
+        const eventsData = Array.isArray(eventsRes.data) ? eventsRes.data : ((eventsRes as any).data?.data || []);
+        const unitsData = Array.isArray(unitsRes.data) ? unitsRes.data : ((unitsRes as any).data?.data || []);
+
+        setEvents(Array.isArray(eventsData) ? eventsData : []);
+        setUnits(Array.isArray(unitsData) ? unitsData : []);
       } catch (err) {
         console.error("Failed to fetch initial data:", err);
       } finally {

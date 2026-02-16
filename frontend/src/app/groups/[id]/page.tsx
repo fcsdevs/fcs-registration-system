@@ -15,6 +15,7 @@ import {
     Edit
 } from "lucide-react";
 import Link from "next/link";
+import { useModal } from "@/components/common/modal-provider";
 
 interface GroupMember {
     id: string;
@@ -43,6 +44,7 @@ interface GroupDetails {
 }
 
 export default function GroupDetailsPage() {
+    const { confirm, alert: modalAlert } = useModal();
     const params = useParams();
     const router = useRouter();
     const groupId = params.id as string;
@@ -83,7 +85,12 @@ export default function GroupDetailsPage() {
     }, [groupId, fetchGroupDetails, fetchMembers]);
 
     const handleRemoveMember = async (memberId: string) => {
-        if (!confirm("Are you sure you want to remove this member from the group?")) return;
+        const confirmed = await confirm(
+            "Are you sure you want to remove this member from the group? This will unassign them but keep their registration intact.",
+            "Remove Member",
+            "danger"
+        );
+        if (!confirmed) return;
 
         setRemovingMember(memberId);
         try {
@@ -91,7 +98,7 @@ export default function GroupDetailsPage() {
             await Promise.all([fetchMembers(), fetchGroupDetails()]);
         } catch (error) {
             console.error("Failed to remove member:", error);
-            alert("Failed to remove member");
+            modalAlert("Failed to remove member. Please try again.", "Error", "danger");
         } finally {
             setRemovingMember(null);
         }
