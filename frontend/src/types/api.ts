@@ -126,6 +126,13 @@ export interface CurrentUser {
   isActive: boolean;
   emailVerified: boolean;
   phoneVerified: boolean;
+  roles?: string[];
+  unit?: any;
+  centers?: Array<{
+    id: string;
+    centerName: string;
+    eventId: string;
+  }>;
 }
 
 // ============================================================

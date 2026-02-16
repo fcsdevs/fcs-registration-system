@@ -58,9 +58,9 @@ export default function RegistrationDetailsPage() {
         try {
             await api.delete(`/registrations/${registrationId}`);
             window.location.href = '/my-events?tab=registered';
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to cancel registration:', error);
-            modalAlert('Failed to cancel registration. Please try again.', 'Error', 'danger');
+            modalAlert(error.message || 'Failed to cancel registration. Please check your network and try again.', 'Error', 'danger');
         }
     };
 

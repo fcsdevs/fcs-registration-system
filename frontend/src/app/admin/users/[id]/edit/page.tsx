@@ -32,8 +32,19 @@ export default function EditAdminPage() {
     const [selectedZoneId, setSelectedZoneId] = useState("");
     const [selectedBranchId, setSelectedBranchId] = useState("");
 
+    const [formData, setFormData] = useState({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+    });
+
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const roleMode = searchParams?.get('role') || 'Admin';
+    const isRegistrarMode = roleMode === 'Registrar';
 
     // 1. Fetch User Data
     useEffect(() => {
@@ -45,9 +56,34 @@ export default function EditAdminPage() {
                 // If the response is the user object, we use it directly.
                 const userData = res.data ? res.data : res;
                 setUser(userData);
+                setFormData({
+                    firstName: userData.firstName || "",
+                    lastName: userData.lastName || "",
+                    email: userData.email || "",
+                    phone: userData.phoneNumber || userData.phone || "",
+                });
 
-                // Pre-fill logic would go here if we had unit hierarchy data attached to user
-                // For now, we allow re-assignment/move
+                if (userData.assignments && userData.assignments.length > 0) {
+                    // Try to find the relevant assignment for the current mode
+                    const relevantRole = isRegistrarMode ? "Registrar" : "Admin";
+                    const assignment = userData.assignments.find((a: any) =>
+                        a.role === relevantRole || a.role.includes(relevantRole)
+                    ) || userData.assignments[0];
+
+                    if (assignment && assignment.unitId) {
+                        const level = assignment.level;
+                        if (level === 'State') {
+                            setSelectedStateId(assignment.unitId);
+                        } else if (level === 'Zone') {
+                            // We need to know the parent State ID to pre-fill it.
+                            // For simplicity, we just set the target ID, 
+                            // though full pre-fill of State -> Zone would require fetching parents.
+                            setSelectedZoneId(assignment.unitId);
+                        } else if (level === 'Branch') {
+                            setSelectedBranchId(assignment.unitId);
+                        }
+                    }
+                }
             } catch (err) {
                 console.error("Failed to fetch user", err);
                 setError("Failed to load user data.");
@@ -63,7 +99,7 @@ export default function EditAdminPage() {
         if (!currentScope) return;
         const loadInitialUnits = async () => {
             if (currentScope.level === 'National') {
-                const res = await unitsApi.list({ type: 'State' });
+                const res = await unitsApi.list({ type: 'State', limit: 100 });
                 // res is { data: Unit[], pagination: ... } so res.data is the array
                 const data = (res as any).data;
                 if (Array.isArray(data)) {
@@ -71,6 +107,9 @@ export default function EditAdminPage() {
                 } else if (data && Array.isArray(data.data)) {
                     setStates(data.data);
                 }
+            } else if (currentScope.level === 'Area' && currentScope.unitId) {
+                const res = await unitsApi.getChildren(currentScope.unitId);
+                if (res.data) setStates(res.data);
             } else if (currentScope.level === 'State' && currentScope.unitId) {
                 const stateRes = await unitsApi.getById(currentScope.unitId);
                 if (stateRes.data) {
@@ -144,33 +183,44 @@ export default function EditAdminPage() {
         if (!user) return;
 
         let targetUnitId = selectedBranchId || selectedZoneId || selectedStateId;
-        // If strictly scoped to Branch, we might not have State/Zone selected, but we have Branch.
-        // It works because selectedBranchId is set.
-
         if (!targetUnitId) { setError("Please select a unit."); return; }
 
         let targetRole = "";
-        if (selectedBranchId) targetRole = "Branch Admin";
-        else if (selectedZoneId) targetRole = "Zone Admin";
-        else if (selectedStateId) targetRole = "State Admin";
-        else targetRole = "State Admin"; // Fallback default
+        if (isRegistrarMode) {
+            targetRole = "Registrar";
+        } else {
+            if (selectedBranchId) targetRole = "Branch Admin";
+            else if (selectedZoneId) targetRole = "Zone Admin";
+            else if (selectedStateId) targetRole = "State Admin";
+            else targetRole = "State Admin";
+        }
 
         setIsSaving(true);
         setSuccessMessage(null);
         setError(null);
         try {
+            // 1. Update Profile Details
+            await api.put(`/users/${user.id}`, {
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                email: formData.email,
+                phoneNumber: formData.phone,
+            });
+
+            // 2. Update Role Assignment
             await api.put(`/users/${user.id}/roles`, {
                 role: targetRole,
                 unitId: targetUnitId,
-                replaceExisting: true, // Force replace of existing assignments
+                replaceExisting: true,
             });
-            setSuccessMessage("Admin role updated successfully!");
+
+            setSuccessMessage(`${roleMode} updated successfully!`);
             setTimeout(() => {
-                router.push("/admin/users");
+                router.push(isRegistrarMode ? "/admin/registrars" : "/admin/users");
             }, 1000);
         } catch (err: any) {
             console.error(err);
-            setError("Failed to update role: " + err.message);
+            setError(`Failed to update ${roleMode.toLowerCase()}: ` + (err.response?.data?.message || err.message));
         } finally {
             setIsSaving(false);
         }
@@ -202,17 +252,56 @@ export default function EditAdminPage() {
         <ProtectedRoute>
             <div className="max-w-2xl mx-auto space-y-6">
                 <div className="flex items-center gap-4">
-                    <Link href="/admin/users">
+                    <Link href={isRegistrarMode ? "/admin/registrars" : "/admin/users"}>
                         <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
                     </Link>
-                    <h1 className="text-2xl font-bold">Edit Admin Role</h1>
+                    <h1 className="text-2xl font-bold">Edit {roleMode}</h1>
                 </div>
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Re-assign Jurisdiction for {user.firstName}</CardTitle>
+                        <CardTitle>{isRegistrarMode ? 'Registrar Details' : `Jurisdiction for ${user.firstName}`}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
+                        {/* Profile Details Section */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">First Name</label>
+                                <input
+                                    type="text"
+                                    className="w-full border rounded-md p-2 text-sm"
+                                    value={formData.firstName}
+                                    onChange={e => setFormData({ ...formData, firstName: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Last Name</label>
+                                <input
+                                    type="text"
+                                    className="w-full border rounded-md p-2 text-sm"
+                                    value={formData.lastName}
+                                    onChange={e => setFormData({ ...formData, lastName: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Email Address</label>
+                                <input
+                                    type="email"
+                                    className="w-full border rounded-md p-2 text-sm"
+                                    value={formData.email}
+                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Phone Number</label>
+                                <input
+                                    type="tel"
+                                    className="w-full border rounded-md p-2 text-sm"
+                                    value={formData.phone}
+                                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                />
+                            </div>
+                        </div>
                         {/* Caution Warning */}
                         <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r">
                             <div className="flex">

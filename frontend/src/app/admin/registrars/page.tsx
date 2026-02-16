@@ -18,7 +18,10 @@ import {
     TableRow,
 } from "@/components/ui/table";
 
+import { useModal } from "@/components/common/modal-provider";
+
 export default function RegistrarsPage() {
+    const { confirm, alert: modalAlert } = useModal();
     const { currentScope, isLoading: isContextLoading } = useAdmin();
     const [registrars, setRegistrars] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -54,6 +57,22 @@ export default function RegistrarsPage() {
 
         fetchRegistrars();
     }, [currentScope, isContextLoading]);
+
+    const handleRemove = async (userId: string) => {
+        const confirmed = await confirm(
+            "Are you sure you want to remove this user from the Registrar role? They will no longer be able to perform registrations.",
+            "Remove Registrar Role",
+            "danger"
+        );
+        if (!confirmed) return;
+
+        try {
+            await api.delete(`/users/${userId}/roles/Registrar`);
+            setRegistrars(prev => prev.filter(r => r.id !== userId));
+        } catch (err: any) {
+            modalAlert("Failed to remove registrar: " + (err.message || "Unknown error"), "Action Failed", "danger");
+        }
+    };
 
     return (
         <ProtectedRoute>
@@ -112,10 +131,17 @@ export default function RegistrarsPage() {
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    <Button variant="ghost" size="sm">
-                                                        <Edit className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                                                    <Link href={`/admin/users/${registrar.id}/edit?role=Registrar`}>
+                                                        <Button variant="ghost" size="sm">
+                                                            <Edit className="h-4 w-4" />
+                                                        </Button>
+                                                    </Link>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleRemove(registrar.id)}
+                                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                    >
                                                         Remove
                                                     </Button>
                                                 </div>

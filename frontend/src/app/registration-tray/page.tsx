@@ -108,8 +108,13 @@ export default function RegistrationTrayPage() {
         try {
             setStatsLoading(true);
 
+            // Find center ID for this event from user's assignments
+            const userCenter = (user as any).centers?.find((c: any) => c.eventId === selectedEventId);
+            const centerId = userCenter?.id;
+
             const statsResponse = await registrationsApi.getStats({
-                eventId: selectedEventId
+                eventId: selectedEventId,
+                centerId: centerId
             });
 
             if (statsResponse.data) {
@@ -120,7 +125,8 @@ export default function RegistrationTrayPage() {
                 page: pagination.page,
                 limit: pagination.limit,
                 eventId: selectedEventId,
-                registeredBy: user.id,
+                centerId: centerId,
+                // registeredBy: user.id, // Removed to show all registrations in the center
                 search: searchTerm
             });
 
@@ -140,6 +146,31 @@ export default function RegistrationTrayPage() {
         } finally {
             setLoading(false);
             setStatsLoading(false);
+        }
+    };
+
+    const handleExport = async () => {
+        if (!selectedEventId) return;
+        try {
+            const userCenter = (user as any).centers?.find((c: any) => c.eventId === selectedEventId);
+            const centerId = userCenter?.id;
+
+            const blob = await registrationsApi.exportToCSV({
+                eventId: selectedEventId,
+                centerId: centerId
+            });
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `registration-tray-${selectedEventId}-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            toast.success("Export started");
+        } catch (error) {
+            console.error("Export failed:", error);
+            toast.error("Failed to export data");
         }
     };
 
@@ -302,7 +333,10 @@ export default function RegistrationTrayPage() {
                             <RefreshCcw size={16} className={statsLoading ? 'animate-spin' : ''} />
                             <span className="hidden sm:inline">Refresh Data</span>
                         </Button>
-                        <Button className="flex-1 sm:flex-none py-5 px-6 h-auto rounded-xl bg-[#060CCD] hover:bg-[#010030] font-bold text-white shadow-xl shadow-blue-200 gap-2">
+                        <Button
+                            className="flex-1 sm:flex-none py-5 px-6 h-auto rounded-xl bg-[#060CCD] hover:bg-[#010030] font-bold text-white shadow-xl shadow-blue-200 gap-2"
+                            onClick={handleExport}
+                        >
                             <Download size={16} />
                             Export Tray
                         </Button>

@@ -87,7 +87,7 @@ function AssignAdminContent() {
         const loadInitialUnits = async () => {
             // If National, load States
             if (currentScope.level === 'National') {
-                const res = await unitsApi.list({ type: 'State' });
+                const res = await unitsApi.list({ type: 'State', limit: 100 });
                 // Handle both paginated and non-paginated responses
                 if (res.data) {
                     const statesList = Array.isArray(res.data)
@@ -95,6 +95,11 @@ function AssignAdminContent() {
                         : (Array.isArray(res.data.data) ? res.data.data : []);
                     setStates(statesList as Unit[]);
                 }
+            }
+            // If Area, load States for this Area
+            else if (currentScope.level === 'Area' && currentScope.unitId) {
+                const res = await unitsApi.getChildren(currentScope.unitId);
+                if (res.data) setStates(res.data);
             }
             // If State, set States to [currentUnit] and load Zones
             else if (currentScope.level === 'State' && currentScope.unitId) {
