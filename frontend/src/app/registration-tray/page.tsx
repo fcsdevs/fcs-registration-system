@@ -89,8 +89,12 @@ export default function RegistrationTrayPage() {
             }
 
             if (allEvents.length > 0) {
-                setEvents(allEvents);
-                setSelectedEventId(allEvents[0].id);
+                // Sort by date descending (latest first)
+                const sortedEvents = [...allEvents].sort((a, b) =>
+                    new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+                );
+                setEvents(sortedEvents);
+                setSelectedEventId(sortedEvents[0].id);
             } else {
                 setEvents([]);
             }
