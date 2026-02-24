@@ -335,16 +335,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const forgotPassword = async (emailOrCode: string) => {
+  const forgotPassword = async (identifier: string) => {
     setIsLoading(true);
     try {
-      // Determine if it's email or phone (simplified)
-      const isEmail = emailOrCode.includes('@');
-      const payload = isEmail
-        ? { email: emailOrCode, purpose: 'PASSWORD_RESET' }
-        : { phoneNumber: emailOrCode, purpose: 'PASSWORD_RESET' };
-
-      await api.post("/auth/send-otp", payload);
+      // Identifier can be Email, Phone, or FCS Code
+      // FCS Code usually starts with something like FCS- or 2026-
+      // For now, let's pass it as the generic "identifier" to the backend
+      // But we use the /forgot-password endpoint which resolves it to an OTP
+      await api.post("/auth/forgot-password", { identifier });
     } catch (error: any) {
       throw new Error(error.message || "Failed to send reset instructions");
     } finally {
@@ -352,12 +350,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const resetPassword = async (emailOrCode: string, otp: string, password: string) => {
+  const resetPassword = async (identifier: string, otp: string, password: string) => {
     setIsLoading(true);
     try {
-      const isEmail = emailOrCode.includes('@');
+      const isEmail = identifier.includes('@');
+      const isPhone = /^(\+?234|0)\d{10}$/.test(identifier.replace(/\s/g, ''));
+
       const payload = {
-        ...(isEmail ? { email: emailOrCode } : { phoneNumber: emailOrCode }),
+        ...(isEmail ? { email: identifier } : isPhone ? { phoneNumber: identifier } : { identifier }),
         code: otp,
         newPassword: password,
         confirmPassword: password
