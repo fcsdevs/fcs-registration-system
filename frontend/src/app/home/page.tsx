@@ -143,7 +143,7 @@ export default function HomePage() {
     <ProtectedRoute>
       {/* DASHBOARD HEADER */}
       <div className="border-b border-[#CBD5E1] bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-[#0F172A]">Dashboard</h1>
@@ -162,9 +162,9 @@ export default function HomePage() {
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* KEY PERFORMANCE INDICATORS */}
-        <section className="mb-12">
+        <section className="mb-8">
           <h2 className="text-tertiary-heading mb-6">Key Metrics</h2>
           {loading ? (
             <div className="flex items-center justify-center py-12">
@@ -180,7 +180,7 @@ export default function HomePage() {
         </section>
 
         {/* UPCOMING EVENTS */}
-        <section className="mb-12">
+        <section className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-tertiary-heading">Events Overview</h2>
             <Link href="/events" className="flex items-center gap-2 font-medium" style={{ color: "var(--color-primary)" }}>

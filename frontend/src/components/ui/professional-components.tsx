@@ -39,7 +39,7 @@ export function StatCard({
   };
 
   return (
-    <div className="bg-white rounded-lg border border-[#CBD5E1] shadow-sm p-6">
+    <div className="bg-white rounded-lg border border-[#CBD5E1] shadow-sm p-4">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-sm font-medium text-[#475569] mb-2">{title}</p>
@@ -122,7 +122,7 @@ export function EventCard({
         </div>
       </div>
 
-      <div className="p-6 space-y-4">
+      <div className="p-4 space-y-3">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -198,7 +198,7 @@ export function MemberCard({
   };
 
   return (
-    <div className="bg-white rounded-lg border border-[#CBD5E1] shadow-sm p-6 space-y-4">
+    <div className="bg-white rounded-lg border border-[#CBD5E1] shadow-sm p-4 space-y-3">
       {/* Avatar & Name */}
       <div className="flex items-start justify-between">
         <div>
