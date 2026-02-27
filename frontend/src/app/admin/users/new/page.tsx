@@ -46,10 +46,14 @@ function AssignAdminContent() {
     }, [preselectedUserId]);
 
     // Assignment State
+    const [nationalUnits, setNationalUnits] = useState<Unit[]>([]);
+    const [areas, setAreas] = useState<Unit[]>([]);
     const [states, setStates] = useState<Unit[]>([]);
     const [zones, setZones] = useState<Unit[]>([]);
     const [branches, setBranches] = useState<Unit[]>([]);
 
+    const [selectedNationalId, setSelectedNationalId] = useState("");
+    const [selectedAreaId, setSelectedAreaId] = useState("");
     const [selectedStateId, setSelectedStateId] = useState("");
     const [selectedZoneId, setSelectedZoneId] = useState("");
     const [selectedBranchId, setSelectedBranchId] = useState("");
@@ -67,17 +71,25 @@ function AssignAdminContent() {
         setSuccessMessage(null);
         setError(null);
         try {
-            // Use the list endpoint with search filter
             const response = await api.get<any>(`/users?search=${encodeURIComponent(searchQuery)}`);
-            // The backend returns a flat array of users
             setSearchResults(Array.isArray(response) ? response : (response.data || []));
         } catch (err) {
             console.error("Search failed", err);
-            // Fallback for demo if API endpoint doesn't exist
             setSearchResults([]);
         } finally {
             setIsSearching(false);
         }
+    };
+
+    // Helper to get target role name for display
+    const getTargetRoleMessage = () => {
+        if (isRegistrarMode) return "Registrar";
+        if (selectedBranchId) return "Branch Admin";
+        if (selectedZoneId) return "Zone Admin";
+        if (selectedStateId) return "State Admin";
+        if (selectedAreaId) return "Area Admin";
+        if (selectedNationalId) return "National Admin";
+        return null;
     };
 
     // Unit Fetching Logic (Matched to Signup Page logic but scoped)
@@ -85,54 +97,74 @@ function AssignAdminContent() {
         if (!currentScope) return;
 
         const loadInitialUnits = async () => {
-            // If National, load States
-            if (currentScope.level === 'National') {
-                const res = await unitsApi.list({ type: 'State', limit: 100 });
-                // Handle both paginated and non-paginated responses
-                if (res.data) {
-                    const statesList = Array.isArray(res.data)
-                        ? res.data
-                        : (Array.isArray(res.data.data) ? res.data.data : []);
-                    setStates(statesList as Unit[]);
+            try {
+                // If National, load National units and top-level children (Areas)
+                if (currentScope.level === 'National') {
+                    const natRes = await unitsApi.list({ type: 'National', limit: 10 });
+                    if (natRes.data) {
+                        const natList = (Array.isArray(natRes.data) ? natRes.data : natRes.data.data) || [];
+                        setNationalUnits(natList as Unit[]);
+                        if (natList.length === 1) {
+                            setSelectedNationalId(natList[0].id);
+                        }
+                    }
+
+                    // Load Areas as level 2
+                    const areaRes = await unitsApi.list({ type: 'Area', limit: 100 });
+                    if (areaRes.data) {
+                        setAreas((Array.isArray(areaRes.data) ? areaRes.data : areaRes.data.data) || []);
+                    }
                 }
-            }
-            // If Area, load States for this Area
-            else if (currentScope.level === 'Area' && currentScope.unitId) {
-                const res = await unitsApi.getChildren(currentScope.unitId);
-                if (res.data) setStates(res.data);
-            }
-            // If State, set States to [currentUnit] and load Zones
-            else if (currentScope.level === 'State' && currentScope.unitId) {
-                // Locking State selection effectively
-                const stateRes = await unitsApi.getById(currentScope.unitId);
-                if (stateRes.data) {
-                    setStates([stateRes.data]);
-                    setSelectedStateId(currentScope.unitId);
+                // If Area, lock Area and fetch States
+                else if (currentScope.level === 'Area' && currentScope.unitId) {
+                    const areaRes = await unitsApi.getById(currentScope.unitId);
+                    if (areaRes.data) {
+                        setAreas([areaRes.data]);
+                        setSelectedAreaId(currentScope.unitId);
+                    }
                 }
+                // If State, lock State and fetch Zones
+                else if (currentScope.level === 'State' && currentScope.unitId) {
+                    const stateRes = await unitsApi.getById(currentScope.unitId);
+                    if (stateRes.data) {
+                        setStates([stateRes.data]);
+                        setSelectedStateId(currentScope.unitId);
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to load initial units", e);
             }
-            // Similar logic for lower levels could apply
         };
         loadInitialUnits();
     }, [currentScope]);
 
-    // Load Zones
+    // Load States when Area changes
+    useEffect(() => {
+        const fetchStates = async () => {
+            if (!selectedAreaId) {
+                // If we have selected National but no Area, maybe load all states? 
+                // Typically follow hierarchy: Nat -> Area -> State
+                setStates([]);
+                return;
+            }
+            try {
+                const res = await unitsApi.getChildren(selectedAreaId);
+                if (res.data) setStates(res.data);
+            } catch (e) { console.error(e) }
+        };
+        fetchStates();
+        setSelectedStateId("");
+        setSelectedZoneId("");
+        setSelectedBranchId("");
+    }, [selectedAreaId]);
+
+    // Load Zones when State changes
     useEffect(() => {
         const fetchZones = async () => {
             if (!selectedStateId) {
                 setZones([]);
                 return;
             }
-            // If current scope is Zone level, lock it
-            if (currentScope?.level === 'Zone' && currentScope.unitId) {
-                const zoneRes = await unitsApi.getById(currentScope.unitId);
-                if (zoneRes.data) {
-                    setZones([zoneRes.data]);
-                    setSelectedZoneId(currentScope.unitId);
-                }
-                return;
-            }
-
-            // Otherwise fetch children
             try {
                 const res = await unitsApi.getChildren(selectedStateId);
                 if (res.data) setZones(res.data);
@@ -140,11 +172,10 @@ function AssignAdminContent() {
         };
         fetchZones();
         setSelectedZoneId("");
-        setBranches([]);
         setSelectedBranchId("");
-    }, [selectedStateId, currentScope]);
+    }, [selectedStateId]);
 
-    // Load Branches
+    // Load Branches when Zone changes
     useEffect(() => {
         const fetchBranches = async () => {
             if (!selectedZoneId) {
@@ -165,61 +196,30 @@ function AssignAdminContent() {
         if (!selectedUser) return;
 
         // Determine target unit
-        let targetUnitId = selectedBranchId || selectedZoneId || selectedStateId;
+        let targetUnitId = selectedBranchId || selectedZoneId || selectedStateId || selectedAreaId || selectedNationalId;
 
         if (!targetUnitId) {
-            setError("Please select the organizational unit (State, Zone, etc.)");
+            setError("Please select the organizational unit (National, Area, State, etc.)");
             return;
         }
 
-        // Determine Role based on mode
-        let targetRole = "";
-        if (isRegistrarMode) {
-            // Always assign Registrar role when in registrar mode
-            targetRole = "Registrar";
-        } else {
-            // Determine admin role based on Type of target unit
-            if (selectedBranchId) targetRole = "Branch Admin";
-            else if (selectedZoneId) targetRole = "Zone Admin";
-            else if (selectedStateId) targetRole = "State Admin";
-            else if (currentScope?.level === 'National') targetRole = "National Admin";
-            else targetRole = "State Admin"; // Fallback
-        }
-
-        // Note: Actual mapping depends on your Roles definition. 
-        // 'admin' might be generic, 'leader' might be branch. 
-        // Let's assume user wants "Admin" of that level.
-
-        console.log("🔍 [DEBUG] Assignment Details:", {
-            selectedUser: selectedUser.id,
-            targetRole,
-            targetUnitId,
-            selectedStateId,
-            selectedZoneId,
-            selectedBranchId
-        });
+        const targetRole = getTargetRoleMessage();
+        if (!targetRole) return;
 
         setIsSaving(true);
         setSuccessMessage(null);
         setError(null);
         try {
-            const response = await api.put(`/users/${selectedUser.id}/roles`, {
+            await api.put(`/users/${selectedUser.id}/roles`, {
                 role: targetRole,
                 unitId: targetUnitId,
-                // We might need to pass specific Unit Level too
             });
-            console.log("✅ [DEBUG] Assignment Response:", response);
             setSuccessMessage(isRegistrarMode ? "Registrar assigned successfully!" : "Admin assigned successfully!");
             setTimeout(() => {
                 router.push(isRegistrarMode ? "/admin/registrars" : "/admin/users");
             }, 1500);
         } catch (err: any) {
-            console.error("❌ [DEBUG] Assignment failed:", err);
-            console.error("❌ [DEBUG] Error details:", {
-                message: err.message,
-                response: err.response?.data,
-                status: err.response?.status
-            });
+            console.error("Assignment failed:", err);
             const errorMessage = err.response?.data?.message || err.message || "Unknown error occurred";
             setError("Failed to assign role: " + errorMessage);
         } finally {
@@ -229,7 +229,7 @@ function AssignAdminContent() {
 
     return (
         <ProtectedRoute>
-            <div className="max-w-3xl mx-auto space-y-8">
+            <div className="max-w-4xl mx-auto space-y-8">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">
                         {isRegistrarMode ? 'Assign New Registrar' : 'Assign New Admin'}
@@ -289,21 +289,66 @@ function AssignAdminContent() {
                 {/* Step 2: Assign Scope */}
                 {selectedUser && (
                     <Card>
-                        <CardHeader><CardTitle>Assign Jurisdiction</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                            <p className="text-sm text-muted-foreground mb-4">
-                                Select the organizational unit this user will administer.
+                        <CardHeader>
+                            <CardTitle>Assign Jurisdiction</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <p className="text-sm text-muted-foreground">
+                                Select the organizational unit this user will administer. The depth of your selection determines the specific role.
                             </p>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                {/* National Selection */}
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">National</label>
+                                    <select
+                                        className="w-full border rounded-md p-2 text-sm bg-white"
+                                        value={selectedNationalId}
+                                        onChange={e => {
+                                            setSelectedNationalId(e.target.value);
+                                            setSelectedAreaId("");
+                                            setSelectedStateId("");
+                                            setSelectedZoneId("");
+                                            setSelectedBranchId("");
+                                        }}
+                                        disabled={currentScope?.level !== 'National'}
+                                    >
+                                        <option value="">Select National</option>
+                                        {(nationalUnits || []).map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                                    </select>
+                                </div>
+
+                                {/* Area Selection */}
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Area</label>
+                                    <select
+                                        className="w-full border rounded-md p-2 text-sm bg-white"
+                                        value={selectedAreaId}
+                                        onChange={e => {
+                                            setSelectedAreaId(e.target.value);
+                                            setSelectedStateId("");
+                                            setSelectedZoneId("");
+                                            setSelectedBranchId("");
+                                        }}
+                                        disabled={!selectedNationalId || (currentScope?.level !== 'National' && currentScope?.level !== 'Area')}
+                                    >
+                                        <option value="">Select Area</option>
+                                        {(areas || []).map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                                    </select>
+                                </div>
+
                                 {/* State Selection */}
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">State</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">State</label>
                                     <select
-                                        className="w-full border rounded-md p-2 text-sm"
+                                        className="w-full border rounded-md p-2 text-sm bg-white"
                                         value={selectedStateId}
-                                        onChange={e => setSelectedStateId(e.target.value)}
-                                        disabled={currentScope?.level !== 'National'} // Lock if not National
+                                        onChange={e => {
+                                            setSelectedStateId(e.target.value);
+                                            setSelectedZoneId("");
+                                            setSelectedBranchId("");
+                                        }}
+                                        disabled={!selectedAreaId || (!!currentScope && !['National', 'Area', 'State'].includes(currentScope.level))}
                                     >
                                         <option value="">Select State</option>
                                         {(states || []).map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
@@ -312,12 +357,15 @@ function AssignAdminContent() {
 
                                 {/* Zone Selection */}
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Zone / Area</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Zone</label>
                                     <select
-                                        className="w-full border rounded-md p-2 text-sm"
+                                        className="w-full border rounded-md p-2 text-sm bg-white"
                                         value={selectedZoneId}
-                                        onChange={e => setSelectedZoneId(e.target.value)}
-                                        disabled={!selectedStateId || (currentScope?.level === 'Zone')}
+                                        onChange={e => {
+                                            setSelectedZoneId(e.target.value);
+                                            setSelectedBranchId("");
+                                        }}
+                                        disabled={!selectedStateId}
                                     >
                                         <option value="">Select Zone</option>
                                         {(zones || []).map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
@@ -326,9 +374,9 @@ function AssignAdminContent() {
 
                                 {/* Branch Selection */}
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Branch</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Branch</label>
                                     <select
-                                        className="w-full border rounded-md p-2 text-sm"
+                                        className="w-full border rounded-md p-2 text-sm bg-white"
                                         value={selectedBranchId}
                                         onChange={e => setSelectedBranchId(e.target.value)}
                                         disabled={!selectedZoneId}
@@ -339,10 +387,34 @@ function AssignAdminContent() {
                                 </div>
                             </div>
 
+                            {/* Status Message */}
+                            {getTargetRoleMessage() && (
+                                <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                                    <div className="p-2 bg-blue-500 rounded-lg text-white">
+                                        <UserPlus className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-sm font-semibold text-blue-900">
+                                            Role to be assigned: <span className="text-blue-600 px-2 py-0.5 bg-white rounded-md shadow-sm ml-1">{getTargetRoleMessage()}</span>
+                                        </p>
+                                        <p className="text-xs text-blue-700 mt-1">
+                                            Assigning to: <span className="font-bold">
+                                                {selectedBranchId ? branches.find(b => b.id === selectedBranchId)?.name :
+                                                    selectedZoneId ? zones.find(z => z.id === selectedZoneId)?.name :
+                                                        selectedStateId ? states.find(s => s.id === selectedStateId)?.name :
+                                                            selectedAreaId ? areas.find(a => a.id === selectedAreaId)?.name :
+                                                                nationalUnits.find(n => n.id === selectedNationalId)?.name}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="pt-4 mt-4 border-t flex justify-end">
                                 <Button
                                     onClick={handleAssign}
-                                    disabled={!selectedStateId || isSaving}
+                                    disabled={(!selectedStateId && !selectedNationalId && !selectedAreaId) || isSaving}
+                                    className="px-8"
                                 >
                                     {isSaving ? <Loader2 className="animate-spin mr-2" /> : <UserPlus className="mr-2 w-4 h-4" />}
                                     Confirm Assignment
@@ -353,6 +425,7 @@ function AssignAdminContent() {
                 )}
             </div>
         </ProtectedRoute>
+
     );
 }
 
