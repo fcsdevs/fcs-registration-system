@@ -10,12 +10,19 @@ import Link from "next/link";
 
 const UNIT_TYPES = [
   { value: "National", label: "National" },
-  { value: "Regional", label: "Regional" },
+  { value: "Area", label: "Area" },
   { value: "State", label: "State" },
   { value: "Zone", label: "Zone" },
-  { value: "Area", label: "Area" },
   { value: "Branch", label: "Branch" },
 ];
+
+const HIERARCHY: Record<string, string[]> = {
+  "National": [],
+  "Area": ["National"],
+  "State": ["Area", "National"],
+  "Zone": ["State"],
+  "Branch": ["Zone", "State"],
+};
 
 export default function NewUnitPage() {
   const router = useRouter();
@@ -110,7 +117,15 @@ export default function NewUnitPage() {
                   <select
                     required
                     value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    onChange={(e) => {
+                      const newType = e.target.value;
+                      setFormData({
+                        ...formData,
+                        type: newType,
+                        name: newType === 'National' ? 'Nigeria' : formData.name,
+                        parentUnitId: ""
+                      });
+                    }}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     {UNIT_TYPES.map((type) => (
@@ -129,14 +144,16 @@ export default function NewUnitPage() {
                     value={formData.parentUnitId}
                     onChange={(e) => setFormData({ ...formData, parentUnitId: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    disabled={loadingUnits}
+                    disabled={loadingUnits || formData.type === 'National'}
                   >
-                    <option value="">None (Root Unit)</option>
-                    {units.map((unit) => (
-                      <option key={unit.id} value={unit.id}>
-                        {unit.name} ({unit.type})
-                      </option>
-                    ))}
+                    <option value="">{formData.type === 'National' ? 'No Parent (Root)' : 'Select Parent Unit'}</option>
+                    {units
+                      .filter(u => HIERARCHY[formData.type]?.includes(u.type))
+                      .map((unit) => (
+                        <option key={unit.id} value={unit.id}>
+                          {unit.name} ({unit.type})
+                        </option>
+                      ))}
                   </select>
                   <p className="mt-1 text-sm text-gray-500">Optional: Select a parent unit for hierarchy</p>
                 </div>

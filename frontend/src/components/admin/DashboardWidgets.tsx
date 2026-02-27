@@ -54,7 +54,7 @@ export function DashboardWidgets() {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             {/* Welcome Section */}
             <div>
                 <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>

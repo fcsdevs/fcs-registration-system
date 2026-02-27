@@ -304,20 +304,25 @@ export default function EventPage() {
                       </Link>
                       {isAdmin && (
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => router.push(`/events/${event.id}/edit`)}
-                            className="p-2.5 bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 transition-all border border-gray-100"
-                            title="Edit Event"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(event.id, event.title)}
-                            className="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all border border-red-100"
-                            title="Delete Event"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {(user?.roles?.some(r => r.toLowerCase().includes('national')) ||
+                            (event.unit as any)?.unitType?.name !== 'National') && (
+                              <>
+                                <button
+                                  onClick={() => router.push(`/events/${event.id}/edit`)}
+                                  className="p-2.5 bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 transition-all border border-gray-100"
+                                  title="Edit Event"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(event.id, event.title)}
+                                  className="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all border border-red-100"
+                                  title="Delete Event"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
                         </div>
                       )}
                     </div>

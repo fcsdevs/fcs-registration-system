@@ -87,7 +87,7 @@ export default function AdminUsersPage() {
 
     return (
         <ProtectedRoute>
-            <div className="space-y-6">
+            <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Admin Management</h1>
@@ -106,7 +106,7 @@ export default function AdminUsersPage() {
                 {!isLoading && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <Card>
-                            <CardContent className="p-6 flex items-center justify-between">
+                            <CardContent className="p-4 flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-500">Total Admins</p>
                                     <h3 className="text-3xl font-bold mt-2 text-gray-900">{totalAdmins}</h3>
@@ -115,7 +115,7 @@ export default function AdminUsersPage() {
                             </CardContent>
                         </Card>
                         <Card>
-                            <CardContent className="p-6 flex items-center justify-between">
+                            <CardContent className="p-4 flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-500">Active Roles</p>
                                     <h3 className="text-3xl font-bold mt-2 text-green-600">{uniqueRoles}</h3>
@@ -126,7 +126,7 @@ export default function AdminUsersPage() {
                             </CardContent>
                         </Card>
                         <Card>
-                            <CardContent className="p-6 flex items-center justify-between">
+                            <CardContent className="p-4 flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-500">Levels Managed</p>
                                     <h3 className="text-3xl font-bold mt-2 text-purple-600">{uniqueLevels}</h3>

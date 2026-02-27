@@ -92,10 +92,10 @@ export default function ReportPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
 
           {/* Header */}
-          <div className="mb-10">
+          <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Reports & Analytics</h1>
             <p className="text-gray-500 mt-1 max-w-2xl">
               Generate comprehensive reports, analyze trends, and export data for external use.
@@ -103,14 +103,14 @@ export default function ReportPage() {
           </div>
 
           {/* Quick Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             {[
               { label: "Total Events", value: stats.totalEvents, icon: Calendar, color: "text-blue-600", bg: "bg-blue-50" },
               { label: "Total Members", value: stats.totalMembers, icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
               { label: "Registrations", value: stats.totalRegistrations, icon: FileSpreadsheet, color: "text-green-600", bg: "bg-green-50" },
               { label: "Avg Attendance", value: `${stats.avgAttendance}%`, icon: TrendingUp, color: "text-orange-600", bg: "bg-orange-50" },
             ].map((stat, i) => (
-              <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between hover:shadow-md transition-shadow">
+              <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 flex items-center justify-between hover:shadow-md transition-shadow">
                 <div>
                   <p className="text-sm font-medium text-gray-500">{stat.label}</p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">
@@ -141,7 +141,7 @@ export default function ReportPage() {
               };
 
               return (
-                <div key={report.title} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all group relative overflow-hidden">
+                <div key={report.title} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-lg transition-all group relative overflow-hidden">
                   <div className="flex items-start gap-5 relative z-10">
                     <div className={`p-4 rounded-xl transition-colors duration-300 ${colorClasses[report.color as keyof typeof colorClasses]}`}>
                       <Icon className="w-8 h-8" />
@@ -151,7 +151,7 @@ export default function ReportPage() {
                       <p className="text-gray-500 text-sm mb-6 leading-relaxed">{report.description}</p>
                       <button
                         onClick={() => handleOpenReport(report)}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-50 text-gray-700 font-medium rounded-lg hover:bg-gray-100 border border-gray-200 transition-all hover:border-gray-300 active:scale-95"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 font-medium rounded-lg hover:bg-gray-100 border border-gray-200 transition-all hover:border-gray-300 active:scale-95"
                       >
                         <Download className="w-4 h-4" />
                         Configure & Download

@@ -78,15 +78,15 @@ export default function UserDashboardPage() {
     return (
         <ProtectedRoute>
             <div className="min-h-screen bg-gray-50">
-                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     {/* Welcome Section */}
-                    <div className="mb-8">
+                    <div className="mb-6">
                         <h1 className="text-3xl font-bold text-gray-900">Welcome, {user?.firstName}!</h1>
                         <p className="text-gray-600 mt-1">Manage your membership and registrations.</p>
                     </div>
 
                     {/* Action Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <DashboardCard
                             title="Edit Profile"
                             description="Update your personal information"

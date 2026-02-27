@@ -22,8 +22,33 @@ export default function NewCenterPage() {
     centerName: "",
     country: "Nigeria",
     stateId: "",
+    zoneId: "",
     address: "",
   });
+
+  const [zones, setZones] = useState<Unit[]>([]);
+  const [loadingZones, setLoadingZones] = useState(false);
+
+  useEffect(() => {
+    const fetchZones = async () => {
+      if (!formData.stateId) {
+        setZones([]);
+        return;
+      }
+      setLoadingZones(true);
+      try {
+        const res = await unitsApi.getChildren(formData.stateId);
+        const data = res.data || (res as any).data || [];
+        setZones(data);
+      } catch (err) {
+        console.error("Failed to fetch zones:", err);
+      } finally {
+        setLoadingZones(false);
+      }
+    };
+    fetchZones();
+    setFormData(prev => ({ ...prev, zoneId: "" }));
+  }, [formData.stateId]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,7 +59,6 @@ export default function NewCenterPage() {
           unitsApi.list({ type: 'State', limit: 300 }),
         ]);
 
-        // Handle backend response structure { data: { data: [] } } or { data: [] }
         const eventsData = Array.isArray(eventsRes.data) ? eventsRes.data : ((eventsRes as any).data?.data || []);
         const unitsData = Array.isArray(unitsRes.data) ? unitsRes.data : ((unitsRes as any).data?.data || []);
 
@@ -63,6 +87,7 @@ export default function NewCenterPage() {
         centerName: formData.centerName,
         country: formData.country,
         stateId: formData.stateId,
+        zoneId: formData.zoneId || undefined,
         address: formData.address,
       });
       router.push("/centers");
@@ -159,7 +184,7 @@ export default function NewCenterPage() {
 
                 <div className="space-y-3">
                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
-                    State / Unit Assignment
+                    State Assignment
                   </label>
                   <select
                     required
@@ -170,6 +195,25 @@ export default function NewCenterPage() {
                   >
                     <option value="">Select a state</option>
                     {units.map((unit) => (
+                      <option key={unit.id} value={unit.id}>
+                        {unit.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                    Zone Assignment (Optional)
+                  </label>
+                  <select
+                    value={formData.zoneId}
+                    onChange={(e) => setFormData({ ...formData, zoneId: e.target.value })}
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none font-bold text-slate-700 disabled:opacity-50"
+                    disabled={!formData.stateId || loadingZones}
+                  >
+                    <option value="">{loadingZones ? "Loading..." : "Select a zone"}</option>
+                    {zones.map((unit) => (
                       <option key={unit.id} value={unit.id}>
                         {unit.name}
                       </option>

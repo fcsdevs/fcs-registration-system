@@ -390,6 +390,8 @@ export interface CreateCenterRequest {
   centerName: string;
   country?: string;
   stateId?: string;
+  areaId?: string;
+  zoneId?: string;
   address: string;
 }
 
