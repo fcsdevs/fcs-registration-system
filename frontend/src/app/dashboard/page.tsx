@@ -80,32 +80,35 @@ export default function UserDashboardPage() {
             <div className="min-h-screen bg-gray-50">
                 <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     {/* Welcome Section */}
-                    <div className="mb-6">
-                        <h1 className="text-3xl font-bold text-gray-900">Welcome, {user?.firstName}!</h1>
-                        <p className="text-gray-600 mt-1">Manage your membership and registrations.</p>
+                    <div className="mb-10 bg-gradient-to-r from-[#010030] to-blue-900 rounded-[2rem] p-8 md:p-12 text-white relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
+                        <div className="relative z-10">
+                            <h1 className="text-3xl md:text-4xl font-black mb-2">Shalom, {user?.firstName}!</h1>
+                            <p className="text-blue-100/80 text-lg font-medium">Manage your membership and event registrations.</p>
+                        </div>
                     </div>
 
                     {/* Action Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-10">
                         <DashboardCard
                             title="Edit Profile"
-                            description="Update your personal information"
+                            description="Keep your information current"
                             icon={User}
                             href="/profile"
                             color="blue"
                         />
                         <DashboardCard
-                            title="My Registrations"
-                            description="View your active tickets"
+                            title="My Tickets"
+                            description="View and print your badges"
                             icon={Ticket}
-                            href="/my-events" // Assuming this route exists based on file listings
+                            href="/my-events"
                             color="purple"
                         />
                         <DashboardCard
-                            title="Find Events"
-                            description="Browse all available programs"
+                            title="Explore Events"
+                            description="Join upcoming programs"
                             icon={Calendar}
-                            href="/events"
+                            href="/my-events"
                             color="green"
                         />
                     </div>
@@ -148,23 +151,23 @@ export default function UserDashboardPage() {
 
 function DashboardCard({ title, description, icon: Icon, href, color }: any) {
     const colorClasses: Record<string, string> = {
-        blue: "bg-blue-100 text-blue-600",
-        purple: "bg-purple-100 text-purple-600",
-        green: "bg-green-100 text-green-600",
+        blue: "bg-blue-50 text-blue-600 border-blue-100",
+        purple: "bg-purple-50 text-purple-600 border-purple-100",
+        green: "bg-emerald-50 text-emerald-600 border-emerald-100",
     };
 
     return (
         <Link href={href} className="block group">
-            <Card className="h-full transition-shadow hover:shadow-md">
-                <CardContent className="p-6 flex items-start space-x-4">
-                    <div className={`p-3 rounded-lg ${colorClasses[color] || "bg-gray-100"}`}>
+            <Card className="h-full transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-gray-100 group-hover:border-blue-100">
+                <CardContent className="p-5 flex items-center space-x-4">
+                    <div className={`p-3.5 rounded-2xl border ${colorClasses[color] || "bg-gray-100"}`}>
                         <Icon className="w-6 h-6" />
                     </div>
                     <div>
-                        <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary transition-colors">
+                        <h3 className="font-bold text-lg text-gray-900 group-hover:text-blue-700 transition-colors">
                             {title}
                         </h3>
-                        <p className="text-sm text-gray-500 mt-1">{description}</p>
+                        <p className="text-xs text-gray-500 mt-0.5 font-medium">{description}</p>
                     </div>
                 </CardContent>
             </Card>

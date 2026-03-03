@@ -10,6 +10,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     AlertCircle,
+    Loader2
 } from 'lucide-react';
 import { Event, EventGroup, EventCenter, CreateRegistrationRequest } from '@/types/api';
 import { api } from '@/lib/api/client';
@@ -32,7 +33,7 @@ interface RegistrationFormProps {
 
 interface FormState {
     attendanceIntent: 'CONFIRMED' | 'TENTATIVE';
-    participationMode: 'ONLINE' | 'ONSITE' | 'HYBRID';
+    participationMode: 'ONLINE' | 'ONSITE';
     centerId: string;
     workshopId: string;
     seminarId: string;
@@ -56,18 +57,18 @@ interface FormState {
 }
 
 // Helper for clean form fields with horizontal layout
-const FormField = ({ label, required, children, error, icon: Icon }: any) => (
-    <div className="grid grid-cols-12 gap-2 items-center">
-        <div className="col-span-12 md:col-span-3 flex items-center justify-end md:text-right">
-            <Label className="text-sm font-bold text-gray-700">
-                {label} {required && <span className="text-red-500">*</span>}:
+const FormField = ({ label, required, children, error }: any) => (
+    <div className="flex flex-col md:grid md:grid-cols-12 gap-1 md:gap-4 items-start md:items-center">
+        <div className="md:col-span-3 w-full md:text-right">
+            <Label className="text-xs md:text-sm font-bold text-gray-500 md:text-gray-700 uppercase md:capitalize tracking-wider md:tracking-normal">
+                {label} {required && <span className="text-red-500">*</span>}
             </Label>
         </div>
-        <div className="col-span-12 md:col-span-9">
+        <div className="w-full md:col-span-9">
             <div className="relative">
                 {children}
             </div>
-            {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+            {error && <p className="text-[10px] md:text-xs text-red-500 mt-1 font-bold">{error}</p>}
         </div>
     </div>
 );
@@ -91,7 +92,7 @@ export function EventRegistrationForm({
 
     const [formData, setFormData] = useState<FormState>({
         attendanceIntent: 'CONFIRMED',
-        participationMode: event.participationMode === 'HYBRID' ? 'ONSITE' : (event.participationMode as any),
+        participationMode: (event.participationMode === 'HYBRID' || event.participationMode === 'ONSITE') ? 'ONSITE' : 'ONLINE',
         centerId: '',
         workshopId: '',
         seminarId: '',
@@ -212,7 +213,7 @@ export function EventRegistrationForm({
             newErrors.participationMode = 'Please select participation mode';
         }
 
-        if ((formData.participationMode === 'ONSITE' || formData.participationMode === 'HYBRID') && !formData.centerId) {
+        if (formData.participationMode === 'ONSITE' && !formData.centerId) {
             newErrors.centerId = 'Please select an event center';
         }
 
@@ -247,8 +248,8 @@ export function EventRegistrationForm({
                 level: formData.level,
                 course: formData.course,
                 graduationYear: formData.graduationYear ? parseInt(formData.graduationYear) : undefined,
-                occupation: formData.membershipCategory === 'ASSOCIATE' || formData.membershipCategory === 'STAFF' ? formData.occupation : undefined,
-                placeOfWork: formData.membershipCategory === 'ASSOCIATE' || formData.membershipCategory === 'STAFF' ? formData.placeOfWork : undefined,
+                occupation: ['ASSOCIATE', 'STAFF', 'ALUMNI'].includes(formData.membershipCategory) ? formData.occupation : undefined,
+                placeOfWork: ['ASSOCIATE', 'STAFF', 'ALUMNI'].includes(formData.membershipCategory) ? formData.placeOfWork : undefined,
                 department: formData.membershipCategory === 'STAFF' ? formData.department : undefined,
                 ageBracket: formData.ageBracket,
                 guardianName: formData.guardianName,
@@ -269,7 +270,7 @@ export function EventRegistrationForm({
                 memberId: member.id,
                 participationMode: formData.participationMode,
                 attendanceIntent: formData.attendanceIntent,
-                centerId: (formData.participationMode === 'ONSITE' || formData.participationMode === 'HYBRID') ? formData.centerId : undefined,
+                centerId: formData.participationMode === 'ONSITE' ? formData.centerId : undefined,
             };
 
             const response = await api.post<{ data: { id: string } }>('/registrations', request);
@@ -341,8 +342,9 @@ export function EventRegistrationForm({
                                 <SelectItem value="PRIMARY">Primary Student</SelectItem>
                                 <SelectItem value="SECONDARY">Secondary Student</SelectItem>
                                 <SelectItem value="TERTIARY">Tertiary Student</SelectItem>
-                                <SelectItem value="ASSOCIATE">Associate (Staff/Graduate)</SelectItem>
-                                <SelectItem value="STAFF">FCS Staff / Volunteer</SelectItem>
+                                <SelectItem value="ASSOCIATE">Associate</SelectItem>
+                                <SelectItem value="STAFF">Staff</SelectItem>
+                                <SelectItem value="ALUMNI">Alumni</SelectItem>
                             </SelectContent>
                         </Select>
                     </FormField>
@@ -542,13 +544,12 @@ export function EventRegistrationForm({
                             <SelectContent className="bg-white">
                                 <SelectItem value="ONLINE">Online</SelectItem>
                                 <SelectItem value="ONSITE">On-site</SelectItem>
-                                <SelectItem value="HYBRID">Hybrid</SelectItem>
                             </SelectContent>
                         </Select>
                     </FormField>
 
                     {/* Location Selection */}
-                    {(formData.participationMode === 'ONSITE' || formData.participationMode === 'HYBRID') && (
+                    {formData.participationMode === 'ONSITE' && (
                         <>
                             <FormField label="State" required>
                                 <Select
@@ -668,13 +669,18 @@ export function EventRegistrationForm({
                 </Alert>
             )}
 
-            <div className="pt-4 flex justify-end">
+            <div className="pt-8 border-t border-gray-100 flex justify-end">
                 <Button
                     type="submit"
                     disabled={submitting}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 h-10 font-bold uppercase text-sm tracking-wider"
+                    className="w-full md:w-auto bg-[#060CCD] hover:bg-[#010030] text-white px-10 py-6 h-auto rounded-2xl font-bold uppercase text-xs tracking-[0.2em] shadow-xl shadow-blue-200 transition-all active:scale-95"
                 >
-                    {submitting ? 'Processing...' : 'Complete Registration'}
+                    {submitting ? (
+                        <div className="flex items-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Processing...</span>
+                        </div>
+                    ) : 'Complete Registration'}
                 </Button>
             </div>
         </form>

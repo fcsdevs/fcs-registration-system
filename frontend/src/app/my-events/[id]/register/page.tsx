@@ -6,7 +6,7 @@ import { ProtectedRoute } from '@/components/common/route-guards';
 import { EventRegistrationForm } from '@/components/registrations/event-registration-form';
 import { Event } from '@/types/api';
 import { api } from '@/lib/api/client';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 export default function EventRegistrationPage() {
@@ -88,25 +88,30 @@ export default function EventRegistrationPage() {
                     </div>
 
                     {/* Main Container */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden mb-12">
 
                         {/* Header */}
-                        <div className="bg-white border-b border-gray-100 p-6 md:p-8">
-                            <div className="mb-2">
-                                <span className="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded">
-                                    REGISTRATION OPEN
-                                </span>
+                        <div className="bg-gradient-to-br from-[#010030] to-blue-900 px-8 py-4 md:px-12 md:py-6 text-white relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
+
+                            <div className="relative z-10">
+                                <div className="mb-2">
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur-md text-blue-100 text-[10px] font-black uppercase tracking-[0.2em] rounded-full border border-white/10">
+                                        <Sparkles className="w-3 h-3 text-blue-300" />
+                                        Registration Open
+                                    </span>
+                                </div>
+                                <h1 className="text-xl md:text-2xl font-black mb-1 leading-tight">
+                                    {event.title}
+                                </h1>
+                                <p className="text-blue-100/70 text-sm md:text-base font-medium max-w-2xl line-clamp-1 md:line-clamp-none">
+                                    {event.description || "Join us for this special spiritual gathering."}
+                                </p>
                             </div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-                                {event.title}
-                            </h1>
-                            <p className="text-gray-600">
-                                {event.description}
-                            </p>
                         </div>
 
                         {/* Form Section */}
-                        <div className="p-6 md:p-8">
+                        <div className="p-6 md:p-12">
                             <EventRegistrationForm
                                 event={event}
                                 member={user.member || user}

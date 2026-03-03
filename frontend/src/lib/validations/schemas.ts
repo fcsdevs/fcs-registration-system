@@ -26,7 +26,7 @@ export const signupSchema = z.object({
     .regex(/[0-9]/, "Password must contain a number"),
   confirmPassword: z.string(),
 
-  membershipCategory: z.enum(["PRIMARY", "SECONDARY", "TERTIARY", "ASSOCIATE", "STAFF"]),
+  membershipCategory: z.enum(["PRIMARY", "SECONDARY", "TERTIARY", "ASSOCIATE", "STAFF", "ALUMNI"]),
 
   institutionName: z.string().optional(),
   institutionType: z.enum(["PRIMARY", "SECONDARY", "TERTIARY"]).optional(),

@@ -194,7 +194,7 @@ export interface UpdateMemberRequest {
   level?: string | null;
   course?: string | null;
   graduationYear?: number | null;
-  membershipCategory?: 'PRIMARY' | 'SECONDARY' | 'TERTIARY' | 'ASSOCIATE' | 'STAFF';
+  membershipCategory?: 'PRIMARY' | 'SECONDARY' | 'TERTIARY' | 'ASSOCIATE' | 'STAFF' | 'ALUMNI';
   yearJoined?: number | null;
   state?: string | null;
   zone?: string | null;
@@ -436,7 +436,7 @@ export interface Registration {
   centerId?: string;
   groupId?: string;
   attendanceIntent?: 'CONFIRMED' | 'TENTATIVE';
-  participationMode: 'ONLINE' | 'ONSITE' | 'HYBRID';
+  participationMode: 'ONLINE' | 'ONSITE';
   status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'WAITLISTED' | 'CHECKED_IN';
   registeredBy: string;
   registeredAt: string;
@@ -489,7 +489,7 @@ export interface CreateRegistrationRequest {
   eventId: string;
   memberId: string;
   centerId?: string;
-  participationMode?: 'ONLINE' | 'ONSITE' | 'HYBRID';
+  participationMode?: 'ONLINE' | 'ONSITE';
   attendanceIntent?: 'CONFIRMED' | 'TENTATIVE';
 }
 
@@ -500,7 +500,7 @@ export interface UpdateRegistrationStatusRequest {
 
 export interface AssignCenterRequest {
   centerId: string;
-  participationMode: 'ONLINE' | 'ONSITE' | 'HYBRID';
+  participationMode: 'ONLINE' | 'ONSITE';
 }
 
 export interface AssignGroupRequest {

@@ -72,6 +72,9 @@ export default function ProfilePage() {
     const isMinor = ["0-12", "13-17"].includes(formData.ageBracket);
     const isTertiary = formData.membershipCategory === "TERTIARY";
     const isStaff = formData.membershipCategory === "STAFF";
+    const isAlumni = formData.membershipCategory === "ALUMNI";
+    const isAssociate = formData.membershipCategory === "ASSOCIATE";
+    const hasProfessionalInfo = ["STAFF", "ASSOCIATE", "ALUMNI"].includes(formData.membershipCategory);
 
     const handleEditClick = () => {
         if (user) {
@@ -155,7 +158,7 @@ export default function ProfilePage() {
         <ProtectedRoute>
             <div className="min-h-screen bg-gray-50/50">
                 {/* Hero / Banner Section */}
-                <div className="h-64 relative overflow-hidden group">
+                <div className="h-48 md:h-64 relative overflow-hidden group">
                     <div className="absolute inset-0">
                         <img
                             src="/profile-header.png"
@@ -178,7 +181,7 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 pb-12 relative z-10">
+                <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 -mt-16 md:-mt-20 pb-12 relative z-10">
                     <div className="flex flex-col lg:flex-row gap-8">
                         {/* Sidebar: Profile Summary */}
                         <div className="w-full lg:w-1/3 flex-shrink-0">
@@ -204,11 +207,11 @@ export default function ProfilePage() {
                                         <div className="absolute bottom-6 right-8 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
                                     </div>
 
-                                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
+                                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight px-4">
                                         {user.firstName} {user.lastName}
                                     </h2>
                                     {user.preferredName && <p className="text-sm text-gray-500 italic mt-0.5">"{user.preferredName}"</p>}
-                                    <p className="text-gray-500 font-medium mb-6 mt-1 truncate w-full px-4 text-center" title={user.email}>{user.email}</p>
+                                    <p className="text-gray-500 font-medium mb-6 mt-1 break-words w-full px-4 text-center text-sm md:text-base" title={user.email}>{user.email}</p>
 
                                     <div className="w-full flex gap-3 justify-center">
                                         <Button
@@ -255,7 +258,7 @@ export default function ProfilePage() {
                                     </div>
                                     <div className="py-2">
                                         <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Role</span>
-                                        <span className="font-medium text-gray-900 block truncate capitalize" title={(user.roles || []).join(", ")}>
+                                        <span className="font-medium text-gray-900 block break-words capitalize">
                                             {(user.roles || []).join(", ")}
                                         </span>
                                     </div>
@@ -267,13 +270,13 @@ export default function ProfilePage() {
                         <div className="flex-1 space-y-6">
                             {/* Personal Information */}
                             <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-                                <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
-                                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <div className="px-4 py-4 md:px-6 md:py-4 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
+                                    <h3 className="text-base md:text-lg font-bold text-gray-900 flex items-center gap-2">
                                         <UserCircle className="w-5 h-5 text-blue-600" />
                                         Personal Profile
                                     </h3>
                                 </div>
-                                <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                                     <ProfileField label="Full Name" value={`${user.firstName} ${user.otherNames || ""} ${user.lastName}`} />
                                     <ProfileField label="Preferred Name" value={user.preferredName} />
                                     <ProfileField label="Gender" value={user.gender} capitalize />
@@ -285,13 +288,13 @@ export default function ProfilePage() {
 
                             {/* Contact Details */}
                             <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-                                <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
-                                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <div className="px-4 py-4 md:px-6 md:py-4 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
+                                    <h3 className="text-base md:text-lg font-bold text-gray-900 flex items-center gap-2">
                                         <Phone className="w-5 h-5 text-green-600" />
                                         Contact Information
                                     </h3>
                                 </div>
-                                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                                     <ProfileField icon={<Mail className="w-4 h-4" />} label="Email Address" value={user.email} />
                                     <ProfileField icon={<Phone className="w-4 h-4" />} label="Phone Number" value={user.phone} />
                                     <ProfileField icon={<Phone className="w-4 h-4" />} label="WhatsApp Number" value={user.whatsappNumber} />
@@ -309,7 +312,10 @@ export default function ProfilePage() {
                                 </div>
                                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     <div className="md:col-span-2 lg:col-span-1">
-                                        <ProfileField label={user.membershipCategory === 'STAFF' ? "Office / Position" : "Occupation"} value={user.occupation} />
+                                        <ProfileField
+                                            label={user.membershipCategory === 'STAFF' ? "Office / Position" : user.membershipCategory === 'ALUMNI' ? "Vocation / Office" : "Occupation"}
+                                            value={user.occupation}
+                                        />
                                     </div>
                                     <div className="md:col-span-2">
                                         <ProfileField label="Place of Work" value={user.placeOfWork} />
@@ -375,9 +381,9 @@ export default function ProfilePage() {
                         <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden ring-1 ring-white/20">
                             {/* Modal Header */}
                             <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white z-20">
-                                <div>
-                                    <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Edit Profile</h2>
-                                    <p className="text-slate-500 text-sm mt-1">Make changes to your personal and professional details</p>
+                                <div className="pr-2">
+                                    <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Edit Profile</h2>
+                                    <p className="text-slate-500 text-xs md:text-sm mt-1">Make changes to your personal details</p>
                                 </div>
                                 <button
                                     onClick={() => setIsEditing(false)}
@@ -473,7 +479,7 @@ export default function ProfilePage() {
                                             <h3 className="text-lg font-bold text-slate-800">Professional & Academic</h3>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            <Field label={isStaff ? "Office / Position" : "Occupation"} value={formData.occupation} onChange={(v) => setFormData({ ...formData, occupation: v })} />
+                                            <Field label={isStaff ? "Office / Position" : (isAlumni || isAssociate) ? "Vocation / Occupation" : "Occupation"} value={formData.occupation} onChange={(v) => setFormData({ ...formData, occupation: v })} />
                                             {isStaff && (
                                                 <Field label="Department / Unit" value={formData.department} onChange={(v) => setFormData({ ...formData, department: v })} required />
                                             )}
@@ -541,7 +547,7 @@ export default function ProfilePage() {
                                             <Field label="Branch" value={formData.branch} onChange={(v) => setFormData({ ...formData, branch: v })} />
                                             <Field label="Zone" value={formData.zone} onChange={(v) => setFormData({ ...formData, zone: v })} />
                                             <Field label="State / Chapter" value={formData.state} onChange={(v) => setFormData({ ...formData, state: v })} />
-                                            <SelectField label="Membership Category" value={formData.membershipCategory} onChange={(v) => setFormData({ ...formData, membershipCategory: v })} options={[{ l: 'Primary', v: 'PRIMARY' }, { l: 'Secondary', v: 'SECONDARY' }, { l: 'Tertiary', v: 'TERTIARY' }, { l: 'Associate', v: 'ASSOCIATE' }, { l: 'Staff', v: 'STAFF' }]} />
+                                            <SelectField label="Membership Category" value={formData.membershipCategory} onChange={(v) => setFormData({ ...formData, membershipCategory: v })} options={[{ l: 'Primary', v: 'PRIMARY' }, { l: 'Secondary', v: 'SECONDARY' }, { l: 'Tertiary', v: 'TERTIARY' }, { l: 'Associate', v: 'ASSOCIATE' }, { l: 'Staff', v: 'STAFF' }, { l: 'Alumni', v: 'ALUMNI' }]} />
                                             <Field label="Year Joined" type="number" value={formData.yearJoined} onChange={(v) => setFormData({ ...formData, yearJoined: v })} />
                                         </div>
                                     </div>
@@ -586,11 +592,11 @@ export default function ProfilePage() {
                             </form>
 
                             {/* Modal Footer */}
-                            <div className="px-8 py-5 border-t border-slate-100 bg-white flex justify-end gap-3 z-20">
-                                <Button type="button" variant="ghost" onClick={() => setIsEditing(false)} className="text-slate-600 hover:bg-slate-50 hover:text-slate-900">Cancel</Button>
+                            <div className="px-4 md:px-8 py-4 md:py-5 border-t border-slate-100 bg-white flex flex-col-reverse md:flex-row justify-end gap-3 z-20">
+                                <Button type="button" variant="ghost" onClick={() => setIsEditing(false)} className="text-slate-600 hover:bg-slate-50 hover:text-slate-900 w-full md:w-auto">Cancel</Button>
                                 <Button
                                     onClick={handleSave}
-                                    className="bg-slate-900 hover:bg-slate-800 text-white px-8 rounded-xl shadow-lg shadow-slate-900/10 transition-all flex items-center gap-2 font-medium"
+                                    className="bg-slate-900 hover:bg-slate-800 text-white px-8 rounded-xl shadow-lg shadow-slate-900/10 transition-all flex items-center justify-center gap-2 font-medium w-full md:w-auto"
                                     disabled={isLoading}
                                 >
                                     {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
@@ -618,7 +624,7 @@ function ProfileField({ label, value, capitalize = false, icon = null }: { label
                 </div>
                 <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{label}</span>
             </div>
-            <p className={`text-sm font-medium text-slate-900 pl-11 truncate ${capitalize ? 'capitalize' : ''}`} title={value}>
+            <p className={`text-sm font-medium text-slate-900 pl-0 md:pl-11 break-words ${capitalize ? 'capitalize' : ''}`} title={value}>
                 {value || <span className="text-slate-300 italic">Not set</span>}
             </p>
         </div>
