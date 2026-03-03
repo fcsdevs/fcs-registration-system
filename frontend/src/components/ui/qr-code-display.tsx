@@ -92,18 +92,11 @@ export function QRCodeDisplay({
 
       // --- HEADER CONTENT (Swapped) ---
 
-      // Helper to draw shadow text (simulates stroke/shadow for readability on image)
-      const drawShadowText = (text: string | string[], x: number, y: number, options: any, fontSize: number, fontStyle: string = 'bold') => {
+      // Helper to draw text with better quality (no shadow if user considers it 'unnecessary overlay')
+      const drawCleanText = (text: string | string[], x: number, y: number, options: any, fontSize: number, fontStyle: string = 'bold', color: number[] = [255, 255, 255]) => {
         doc.setFont('helvetica', fontStyle);
         doc.setFontSize(fontSize);
-
-        // Shadow (Black, offset)
-        doc.setTextColor(0, 0, 0);
-        const shadowOffset = 0.4;
-        doc.text(text, x + shadowOffset, y + shadowOffset, options);
-
-        // Main Text (White)
-        doc.setTextColor(255, 255, 255);
+        doc.setTextColor(color[0], color[1], color[2]);
         doc.text(text, x, y, options);
       };
 
@@ -115,21 +108,17 @@ export function QRCodeDisplay({
         doc.addImage(fcsLogo, 'PNG', logoX, logoY, logoSize, logoSize);
       }
 
-      // Org Name (Left aligned, below logo or wrapped next to it)
-      // "FELLOWSHIP OF CHRISTIAN STUDENTS"
       const orgNameLines = doc.splitTextToSize("FELLOWSHIP OF CHRISTIAN STUDENTS", 45);
-      drawShadowText(orgNameLines, 5, 20, { align: 'left' }, 9, 'bold'); // Increased size + Shadow
+      drawCleanText(orgNameLines, 5, 20, { align: 'left' }, 9, 'bold');
 
       // RIGHT: Event Title + Date
       const eventNameLines = doc.splitTextToSize(eventName, 55);
       // Event Name needs to be Top Right
-      drawShadowText(eventNameLines, 100, 10, { align: 'right' }, 14, 'bold');
+      drawCleanText(eventNameLines, 100, 10, { align: 'right' }, 14, 'bold');
 
       if (dates) {
-        // Position dates below event name
-        // Calculate Y based on lines
         const dateY = 10 + (Array.isArray(eventNameLines) ? eventNameLines.length * 6 : 6);
-        drawShadowText(dates, 100, dateY, { align: 'right' }, 10, 'bold'); // Increased size + Shadow
+        drawCleanText(dates, 100, dateY, { align: 'right' }, 10, 'bold', [240, 240, 240]);
       }
 
 
@@ -186,14 +175,22 @@ export function QRCodeDisplay({
       const lastName = nameParts.slice(1).join(' '); // Join remaining parts
 
       // Surname (Big)
-      doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
+      const maxSurnameFontSize = 22;
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(22);
+      doc.setFontSize(maxSurnameFontSize);
+      doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
 
-      const surnameDisplay = lastName || firstName; // Fallback
+      const surnameDisplay = (lastName || firstName).toUpperCase();
       const firstnameDisplay = lastName ? firstName : '';
 
-      doc.text(surnameDisplay.toUpperCase(), textX, avatarY + 10, { maxWidth: textWidth });
+      // Dynamically adjust font size for surname if too long to prevent wrapping/overlap
+      let currentSurnameFontSize = maxSurnameFontSize;
+      while (doc.getTextWidth(surnameDisplay) > textWidth && currentSurnameFontSize > 12) {
+        currentSurnameFontSize -= 1;
+        doc.setFontSize(currentSurnameFontSize);
+      }
+
+      doc.text(surnameDisplay, textX, avatarY + 10, { maxWidth: textWidth });
 
       // First Name
       doc.setTextColor(80, 80, 80);
@@ -512,7 +509,9 @@ export function QRCodeDisplay({
 
         {/* Right: Event */}
         <div className="relative z-10 flex-1 text-right pl-2 pt-1">
-          <h2 className="text-xl font-extrabold leading-none drop-shadow-lg text-white mb-2">{eventName}</h2>
+          <h2 className={`font-extrabold leading-tight text-white mb-2 break-words drop-shadow-lg ${eventName.length > 30 ? 'text-base' : 'text-xl'}`}>
+            {eventName}
+          </h2>
           {dates && <p className="text-sm font-bold opacity-100 drop-shadow-md text-gray-100">{dates}</p>}
         </div>
       </div>
@@ -536,10 +535,10 @@ export function QRCodeDisplay({
             )}
           </div>
           <div className="text-left overflow-hidden">
-            <h3 className="text-2xl font-black text-[#010030] uppercase leading-none truncate w-full">
+            <h3 className={`font-black text-[#010030] uppercase leading-none break-words w-full ${participantName.length > 15 ? 'text-lg' : 'text-2xl'}`}>
               {participantName.split(' ').slice(1).join(' ') || participantName.split(' ')[0]}
             </h3>
-            <p className="text-sm font-medium text-gray-500 truncate w-full mb-1">
+            <p className="text-sm font-medium text-gray-500 break-words w-full mb-1">
               {participantName.split(' ').slice(1).join(' ') ? participantName.split(' ')[0] : ''}
             </p>
             <div className="flex flex-col gap-1">

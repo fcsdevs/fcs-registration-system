@@ -265,8 +265,8 @@ export function EnhancedHeader() {
             />
 
             {/* Menu Content */}
-            <div className="relative bg-white border-t border-gray-200 shadow-xl max-h-[calc(100vh-4rem)] overflow-y-auto animate-in slide-in-from-top-2 duration-200">
-              <div className="px-4 py-6 space-y-6">
+            <div className="relative bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-2xl max-h-[calc(100vh-4rem)] overflow-y-auto animate-in slide-in-from-top-2 duration-300 rounded-b-[2rem]">
+              <div className="px-6 py-8 space-y-8">
                 {navigationGroups.map((group) => (
                   <div key={group.label}>
                     <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
@@ -278,8 +278,8 @@ export function EnhancedHeader() {
                           key={item.href}
                           href={item.href}
                           onClick={() => setShowMobileMenu(false)}
-                          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive(item.href)
-                            ? "bg-blue-50 text-blue-700"
+                          className={`flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive(item.href)
+                            ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
                             : "text-gray-700 hover:bg-gray-100"
                             }`}
                         >
@@ -293,13 +293,13 @@ export function EnhancedHeader() {
 
                 {/* Mobile User Profile Section */}
                 <div className="pt-6 border-t border-gray-100">
-                  <div className="flex items-center gap-3 px-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-[#010030] text-white flex items-center justify-center font-bold text-lg select-none">
+                  <div className="flex items-center gap-4 px-3 mb-6 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#010030] to-blue-900 text-white flex items-center justify-center font-black text-xl select-none shadow-lg shadow-blue-900/20">
                       {user?.firstName?.[0] || "U"}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
-                      <p className="text-xs text-gray-500">{user?.email}</p>
+                      <p className="font-bold text-gray-900 text-lg leading-tight">{user?.firstName} {user?.lastName}</p>
+                      <p className="text-sm text-gray-500 font-medium">{user?.email}</p>
                     </div>
                   </div>
                   <div className="space-y-1">

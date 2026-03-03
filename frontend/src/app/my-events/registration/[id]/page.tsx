@@ -128,15 +128,14 @@ export default function RegistrationDetailsPage() {
                                 <p className="text-gray-500 text-lg">Manage your registration and view status information.</p>
                             </div>
 
-                            <div className="bg-white/80 backdrop-blur-md rounded-[2rem] shadow-xl border border-white/50 p-6 md:p-10 relative overflow-hidden">
+                            <div className="bg-white/80 backdrop-blur-md rounded-[2.5rem] shadow-xl border border-white/50 p-6 md:p-12 relative overflow-hidden">
                                 {/* Decorative top border */}
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
+                                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#010030] via-blue-600 to-indigo-600" />
 
                                 {/* Event Header */}
                                 <div className="border-b border-gray-100 pb-8 mb-8">
-                                    <h2 className="text-2xl font-bold text-gray-900 leading-tight mb-4">{registration.event?.title || 'Event'}</h2>
-                                    <div className="flex flex-wrap items-center gap-3">
-                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${registration.status === 'CONFIRMED'
+                                    <div className="flex flex-wrap items-center gap-3 mb-4">
+                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${registration.status === 'CONFIRMED'
                                             ? 'bg-green-50 text-green-700 border-green-200'
                                             : registration.status === 'PENDING'
                                                 ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
@@ -145,77 +144,74 @@ export default function RegistrationDetailsPage() {
                                             {registration.status === 'CONFIRMED' ? <CheckCircle className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
                                             {registration.status}
                                         </span>
-                                        <span className="text-sm text-gray-500 font-medium">
-                                            Refs: {registration.id.substring(0, 8).toUpperCase()}
+                                        <span className="text-xs text-gray-400 font-bold tracking-widest uppercase">
+                                            ID: {registration.id.substring(0, 8).toUpperCase()}
                                         </span>
                                     </div>
+                                    <h2 className="text-3xl font-black text-[#010030] leading-tight">{registration.event?.title || 'Event'}</h2>
                                 </div>
 
                                 {/* Info Grid */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-6">
-                                    <div className="space-y-1">
-                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Participant</p>
-                                        <p className="font-bold text-gray-900 text-lg">{registration.member?.firstName} {registration.member?.lastName}</p>
-                                        <p className="text-sm text-blue-600 font-mono bg-blue-50 inline-block px-2 py-0.5 rounded">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-8">
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Participant</p>
+                                        <p className="font-black text-gray-900 text-xl">{registration.member?.firstName} {registration.member?.lastName}</p>
+                                        <p className="text-sm text-blue-700 font-mono bg-blue-50/50 inline-block px-3 py-1 rounded-xl border border-blue-100/50">
                                             {registration.member?.fcsCode}
                                         </p>
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Mode</p>
-                                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg font-semibold text-sm ${registration.participationMode === 'ONLINE' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Participation Mode</p>
+                                        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-bold text-sm ${registration.participationMode === 'ONLINE' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
                                             }`}>
-                                            {registration.participationMode === 'ONLINE' ? '💻 Online' : registration.participationMode === 'HYBRID' ? '🌐 Hybrid' : '🏛️ On-site'}
+                                            {registration.participationMode === 'ONLINE' ? '💻 Online Portal' : '🏛️ On-site Delegate'}
                                         </div>
                                     </div>
 
                                     {registration.center && (
-                                        <div className="space-y-1 col-span-full">
-                                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Event Center</p>
-                                            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                                <div className="p-2 bg-white rounded-lg shadow-sm">
-                                                    <MapPin className="w-5 h-5 text-gray-500" />
+                                        <div className="space-y-2 col-span-full">
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Event Location</p>
+                                            <div className="flex items-start gap-4 p-5 bg-gray-50/50 rounded-3xl border border-gray-100 transition-all hover:bg-white hover:shadow-lg hover:shadow-gray-200/20 group">
+                                                <div className="p-3 bg-white rounded-2xl shadow-sm border border-gray-100 group-hover:scale-110 transition-transform">
+                                                    <MapPin className="w-6 h-6 text-blue-600" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-gray-900">{registration.center.name}</p>
-                                                    <p className="text-sm text-gray-500">Designated Center</p>
+                                                    <p className="font-black text-[#010030] text-lg">{registration.center.name}</p>
+                                                    <p className="text-sm text-gray-500 font-medium">Designated Regional Center</p>
                                                 </div>
                                             </div>
                                         </div>
                                     )}
 
                                     {registration.group && (
-                                        <div className="space-y-1 col-span-full">
-                                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Assigned Group</p>
-                                            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                                <div className="p-2 bg-white rounded-lg shadow-sm">
-                                                    <Users className="w-5 h-5 text-gray-500" />
+                                        <div className="space-y-2 col-span-full">
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Assigned Group</p>
+                                            <div className="flex items-start gap-4 p-5 bg-gray-50/50 rounded-3xl border border-gray-100 transition-all hover:bg-white hover:shadow-lg hover:shadow-gray-200/20 group">
+                                                <div className="p-3 bg-white rounded-2xl shadow-sm border border-gray-100 group-hover:scale-110 transition-transform">
+                                                    <Users className="w-6 h-6 text-indigo-600" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-gray-900">{registration.group.name}</p>
-                                                    <p className="text-sm text-gray-500">Bible Study Group</p>
+                                                    <p className="font-black text-[#010030] text-lg">{registration.group.name}</p>
+                                                    <p className="text-sm text-gray-500 font-medium">Bible Study / Discussion Group</p>
                                                 </div>
                                             </div>
                                         </div>
                                     )}
 
-                                    <div className="col-span-full pt-4 border-t border-gray-100">
-                                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                                            <Calendar className="w-4 h-4" />
-                                            Registered on {new Date(registration.registeredAt).toLocaleString()}
+                                    <div className="col-span-full pt-6 border-t border-gray-100">
+                                        <div className="flex items-center gap-2 text-xs text-gray-400 font-bold uppercase tracking-widest">
+                                            <Calendar className="w-4 h-4 text-blue-500" />
+                                            Active since {new Date(registration.registeredAt).toLocaleDateString()}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Actions */}
-                                <div className="flex gap-4 mt-8 pt-8 border-t border-gray-100">
-                                    {/* <button className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 text-gray-700 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
-                                          <Edit className="w-4 h-4" />
-                                          Edit Details
-                                      </button> */}
+                                <div className="flex flex-col sm:flex-row gap-4 mt-12 pt-8 border-t border-gray-100">
                                     <button
                                         onClick={handleCancelRegistration}
-                                        className="flex items-center justify-center gap-2 px-6 py-3 bg-red-50 text-red-600 rounded-xl font-semibold hover:bg-red-100 transition-colors border border-red-100"
+                                        className="flex-1 flex items-center justify-center gap-2 px-8 py-4 bg-red-50 text-red-600 rounded-2xl font-bold text-sm uppercase tracking-wider hover:bg-red-100 transition-all border border-red-100 active:scale-95"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                         Cancel Registration

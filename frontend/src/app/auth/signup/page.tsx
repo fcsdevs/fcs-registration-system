@@ -329,7 +329,7 @@ export default function SignupPage() {
     } else if (step === 2) {
       fieldsToValidate = ["gender", "maritalStatus", "dateOfBirth", "membershipCategory"];
     } else if (step === 3) {
-      if (membershipCategory === "ASSOCIATE" || membershipCategory === "STAFF") {
+      if (["ASSOCIATE", "STAFF", "ALUMNI"].includes(membershipCategory)) {
         fieldsToValidate = ["occupation", "placeOfWork"];
       } else {
         fieldsToValidate = ["institutionName", "institutionType", "level"];
@@ -774,7 +774,7 @@ export default function SignupPage() {
                   Membership Category
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  {["PRIMARY", "SECONDARY", "TERTIARY", "ASSOCIATE", "STAFF"].map((cat) => (
+                  {["PRIMARY", "SECONDARY", "TERTIARY", "ASSOCIATE", "STAFF", "ALUMNI"].map((cat) => (
                     <button
                       key={cat}
                       type="button"
@@ -782,9 +782,9 @@ export default function SignupPage() {
                       className={`px-3 py-2.5 border rounded-lg text-xs font-bold transition-all ${membershipCategory === cat
                         ? "bg-primary text-white border-primary shadow-md scale-[1.02]"
                         : "bg-gray-50 text-gray-600 border-gray-200 hover:border-primary/50"
-                        } ${cat === "STAFF" ? "col-span-2" : ""}`}
+                        } ${cat === "STAFF" || cat === "ALUMNI" ? "col-span-1" : ""}`}
                     >
-                      {cat}
+                      {cat === "ASSOCIATE" ? "ASSOCIATE" : cat === "STAFF" ? "STAFF" : cat}
                     </button>
                   ))}
                 </div>
@@ -815,11 +815,11 @@ export default function SignupPage() {
 
           {step === 3 && (
             <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
-              {(membershipCategory === "ASSOCIATE" || membershipCategory === "STAFF") ? (
+              {["ASSOCIATE", "STAFF", "ALUMNI"].includes(membershipCategory) ? (
                 <div className="space-y-5">
                   <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100/50">
                     <p className="text-blue-800 text-[10px] font-bold uppercase tracking-wider mb-1">
-                      {membershipCategory === "STAFF" ? "FCS Staff Member" : "Associate / Senior Friend"}
+                      {membershipCategory === "STAFF" ? "FCS Staff Member" : membershipCategory === "ALUMNI" ? "FCS Alumni" : "Associate / Senior Friend"}
                     </p>
                     <p className="text-blue-600 text-xs">Please provide your professional background.</p>
                   </div>
