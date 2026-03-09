@@ -31,16 +31,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install PM2
-RUN npm install -g pm2
-
 # Copy built app and required files from builder
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/next.config.js ./ 
 COPY --from=builder /app/node_modules ./node_modules
-COPY ecosystem.config.cjs ./
 
 # Set ownership to node user
 RUN chown -R node:node /app
@@ -52,5 +48,5 @@ EXPOSE 3000
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start application with PM2 runtime
-CMD ["pm2-runtime", "start", "ecosystem.config.cjs", "--env", "production"]
+# Start application directly without PM2 for better stability in Docker
+CMD ["npm", "start"]
