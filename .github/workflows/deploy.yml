@@ -51,7 +51,7 @@ jobs:
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
             # Update frontend code
-            cd ~/fcs-registration-system/frontend
+            cd /var/www/fcsregistration/fcs-registration-system/frontend
             git pull origin main
             
             # Login to registry on VPS
