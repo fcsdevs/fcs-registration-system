@@ -28,7 +28,7 @@ export function Hero() {
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600"></span>
                             </span>
-                            Official Portal v2.0
+                            Official Portal V1.0
                         </div>
 
                         <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight text-gray-900 mb-8 leading-[1.1] animate-slide-up opacity-0" style={{ animationDelay: '0.1s' }}>
@@ -39,7 +39,7 @@ export function Hero() {
                         </h1>
 
                         <p className="text-lg lg:text-xl text-gray-600 mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0 animate-slide-up opacity-0" style={{ animationDelay: '0.2s' }}>
-                            The complete digital infrastructure for FCS Nigeria. Streamline registration, track attendance in real-time, and manage events with enterprise-grade precision.
+                            The complete digital infrastructure for FCS Nigeria. A unified platform to be used by all formations—branches, zones, states/areas, regions, and the national body—for programme registration and coordination. Streamline registrations, track attendance in real time, and manage events, conferences, programmes, retreats, and more with enterprise-grade precision.
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center lg:justify-start animate-slide-up opacity-0" style={{ animationDelay: '0.3s' }}>
@@ -51,11 +51,11 @@ export function Hero() {
                                 <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
                             </Link>
                             <Link
-                                href="#features"
+                                href="/auth/login"
                                 className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-gray-700 transition-all bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 hover:shadow-md hover:-translate-y-1 active:scale-95"
                             >
                                 <Play className="w-4 h-4 mr-2 fill-gray-700" />
-                                Explore System
+                                Sign in
                             </Link>
                         </div>
 
