@@ -39,7 +39,7 @@ export function Navbar() {
                     <div className="flex items-center justify-between">
                         {/* Logo */}
                         <div className="flex items-center gap-3">
-                            <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-tr from-blue-600 to-blue-500 shadow-lg shadow-blue-500/20">
+                            <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-tr from-blue-600 to-blue-500">
                                 <Image
                                     src="/fcs_logo.png"
                                     alt="FCS Logo"
