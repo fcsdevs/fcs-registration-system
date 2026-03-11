@@ -58,8 +58,8 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
             # Restart service
-            docker-compose pull
-            docker-compose up -d
+            docker compose pull
+            docker compose up -d --build
             
             # System Cleanup: Free up space by removing unused Docker data
             docker system prune -f
