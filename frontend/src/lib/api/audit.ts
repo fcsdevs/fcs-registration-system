@@ -1,6 +1,7 @@
 /**
  * Audit API Service
  * Handles audit logging and compliance endpoints
+ * basically for admin
  */
 
 import { api } from './client';
