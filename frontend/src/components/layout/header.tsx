@@ -75,7 +75,7 @@ export function Header() {
               }`}>
               {user?.firstName?.[0] || "U"}
             </div>
-            <span className="text-gray-700">{user?.firstName || "User"}</span>
+            <span className="text-gray-700">{user?.firstName} {user?.lastName}</span>
           </div>
 
           {/* Mobile Menu Toggle */}

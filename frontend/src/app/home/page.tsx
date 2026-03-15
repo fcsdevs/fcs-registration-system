@@ -226,7 +226,7 @@ export default function HomePage() {
 
                 <div className="mt-6 pt-6" style={{ borderTop: "1px solid var(--color-border)" }}>
                   <h4 className="text-sm font-semibold mb-4" style={{ color: "var(--color-text-primary)" }}>
-                    Attendance by Center
+                    Attendance by Branch / School
                   </h4>
                   <div className="space-y-3">
                     {recentSession.centers?.length > 0 ? recentSession.centers.map((item: any, i: number) => (

@@ -208,7 +208,7 @@ export default function RegistrationTrayPage() {
                             </div>
                             <h1 className="text-2xl font-black text-[#0F172A] leading-none">Registration Tray</h1>
                             <p className="text-sm text-[#64748B] mt-2 font-medium">
-                                Welcome back, <span className="text-[#060CCD] font-bold">{user?.firstName}</span>
+                                Welcome back, <span className="text-[#060CCD] font-bold">{user?.firstName} {user?.lastName}</span>
                             </p>
                         </div>
 
@@ -366,7 +366,7 @@ export default function RegistrationTrayPage() {
                                     <TableHead className="font-bold text-[#1e293b]">FCS Identity</TableHead>
                                     <TableHead className="font-bold text-[#1e293b]">Participation</TableHead>
                                     <TableHead className="font-bold text-[#1e293b]">Current Status</TableHead>
-                                    <TableHead className="text-right font-bold text-[#1e293b] px-6">Center Location</TableHead>
+                                    <TableHead className="text-right font-bold text-[#1e293b] px-6">Branch / Address</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -477,7 +477,7 @@ export default function RegistrationTrayPage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 pt-2 border-t border-[#F8FAFC]">
                                     <div>
-                                        <p className="text-[8px] font-black text-[#94A3B8] uppercase tracking-widest leading-none mb-0.5">Center</p>
+                                        <p className="text-[8px] font-black text-[#94A3B8] uppercase tracking-widest leading-none mb-0.5">Branch / School</p>
                                         <p className="text-[10px] font-bold text-[#475569] truncate">{reg.participation?.center?.centerName || 'Main'}</p>
                                     </div>
                                     <div className="text-right">

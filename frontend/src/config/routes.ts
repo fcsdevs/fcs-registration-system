@@ -61,12 +61,6 @@ export const routes = {
   },
 
   // Protected Routes - Admin/Leadership
-  admin: {
-    path: "/admin",
-    label: "Admin",
-    public: false,
-    description: "Admin panel"
-  },
   reports: {
     path: "/reports",
     label: "Reports",
