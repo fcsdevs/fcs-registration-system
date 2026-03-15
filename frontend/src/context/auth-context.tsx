@@ -15,13 +15,16 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (data: any) => Promise<{ email: string } | void>;
+  signup: (data: any) => Promise<any>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
   forgotPassword: (emailOrCode: string) => Promise<void>;
   resetPassword: (emailOrCode: string, otp: string, password: string) => Promise<void>;
   sendOTP: (emailOrPhone: string, purpose?: string) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  searchRecoveryAccounts: (params: { fcsCode?: string; fullName?: string }) => Promise<any[]>;
+  verifyRecoveryDob: (memberId: string, dob: string) => Promise<string>;
+  resetPasswordByToken: (token: string, password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -179,19 +182,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = async (data: any) => {
     setIsLoading(true);
     try {
-      // Check if phone exists
-      if (!data.phone) {
-        throw new Error('Phone number is required');
+      // Transform phone number to international format (234...) if provided
+      let phoneNumber = null;
+      if (data.phone) {
+        phoneNumber = data.phone.replace(/\s/g, ''); // Remove spaces
+        if (phoneNumber.startsWith('0')) {
+          phoneNumber = '234' + phoneNumber.substring(1); // Replace leading 0 with 234
+        } else if (!phoneNumber.startsWith('234') && !phoneNumber.startsWith('+234')) {
+          phoneNumber = '234' + phoneNumber; // Add 234 prefix
+        }
+        phoneNumber = phoneNumber.replace(/^\+/, ''); // Remove + if present
       }
-
-      // Transform phone number to international format (234...)
-      let phoneNumber = data.phone.replace(/\s/g, ''); // Remove spaces
-      if (phoneNumber.startsWith('0')) {
-        phoneNumber = '234' + phoneNumber.substring(1); // Replace leading 0 with 234
-      } else if (!phoneNumber.startsWith('234') && !phoneNumber.startsWith('+234')) {
-        phoneNumber = '234' + phoneNumber; // Add 234 prefix
-      }
-      phoneNumber = phoneNumber.replace(/^\+/, ''); // Remove + if present
 
       // Map frontend form fields to backend API fields
       const payload = {
@@ -289,8 +290,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(userData);
       }
 
-      // Return the email for backward compatibility if needed, though we probably won't use it for login form prefill anymore
-      return { email: data.email };
+      // Return the whole response data for frontend to handle FCS code display & OTP redirection
+      return authData;
     } catch (error: any) {
       // Re-throw with the actual error message from backend
       throw new Error(error.message || 'Signup failed');
@@ -402,6 +403,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const searchRecoveryAccounts = async (params: { fcsCode?: string; fullName?: string }): Promise<any[]> => {
+    setIsLoading(true);
+    try {
+      const response = await api.post<any>("/auth/recovery/search", params);
+      return response.data || response;
+    } catch (error: any) {
+      throw new Error(error.message || "Failed to find accounts");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const verifyRecoveryDob = async (memberId: string, dob: string): Promise<string> => {
+    setIsLoading(true);
+    try {
+      const response = await api.post<any>("/auth/recovery/verify-dob", { memberId, dob });
+      const data = response.data || response;
+      return data.token;
+    } catch (error: any) {
+      throw new Error(error.message || "Failed to verify identity");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resetPasswordByToken = async (token: string, password: string): Promise<void> => {
+    setIsLoading(true);
+    try {
+      await api.post("/auth/recovery/reset-password", {
+        token,
+        newPassword: password
+      });
+    } catch (error: any) {
+      throw new Error(error.message || "Failed to reset password");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <AuthContext.Provider
@@ -417,6 +457,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         resetPassword,
         sendOTP,
         changePassword,
+        searchRecoveryAccounts,
+        verifyRecoveryDob,
+        resetPasswordByToken,
       }}
     >
       {children}

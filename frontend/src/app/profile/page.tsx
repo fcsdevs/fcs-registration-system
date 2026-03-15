@@ -251,7 +251,7 @@ export default function ProfilePage() {
                                         <span className="font-mono font-medium text-blue-700 bg-blue-50 px-2 py-1 rounded">{user.memberCode || "N/A"}</span>
                                     </div>
                                     <div className="py-2 border-b border-gray-50">
-                                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Structure</span>
+                                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Branch / Address</span>
                                         <span className="font-medium text-gray-900 block truncate" title={user.unitName || user.unitId || "Not assigned"}>
                                             {user.unitName || user.unitId || "Not assigned"}
                                         </span>
@@ -337,7 +337,7 @@ export default function ProfilePage() {
                                     </h3>
                                 </div>
                                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    <ProfileField label="Structure (Branch)" value={user.unitName || user.branch} />
+                                    <ProfileField label="Branch / School / Address" value={user.unitName || user.branch} />
                                     <ProfileField label="Zone / Area" value={user.zone} />
                                     <ProfileField label="State / Chapter" value={user.state} />
                                     <ProfileField label="Year Joined" value={user.yearJoined} />
@@ -544,7 +544,7 @@ export default function ProfilePage() {
                                             <h3 className="text-lg font-bold text-slate-800">FCS Details</h3>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            <Field label="Branch" value={formData.branch} onChange={(v) => setFormData({ ...formData, branch: v })} />
+                                            <Field label="Branch / School / Address" value={formData.branch} onChange={(v) => setFormData({ ...formData, branch: v })} />
                                             <Field label="Zone" value={formData.zone} onChange={(v) => setFormData({ ...formData, zone: v })} />
                                             <Field label="State / Chapter" value={formData.state} onChange={(v) => setFormData({ ...formData, state: v })} />
                                             <SelectField label="Membership Category" value={formData.membershipCategory} onChange={(v) => setFormData({ ...formData, membershipCategory: v })} options={[{ l: 'Primary', v: 'PRIMARY' }, { l: 'Secondary', v: 'SECONDARY' }, { l: 'Tertiary', v: 'TERTIARY' }, { l: 'Associate', v: 'ASSOCIATE' }, { l: 'Staff', v: 'STAFF' }, { l: 'Alumni', v: 'ALUMNI' }]} />

@@ -81,7 +81,6 @@ export function EnhancedHeader() {
         { href: "/reports", label: "Reports", icon: BarChart3 },
         { href: "/notifications", label: "Notifications", icon: Bell },
         { href: "/settings", label: "Settings", icon: Settings },
-        { href: "/admin", label: "Admin Panel", icon: Shield },
       ],
     },
   ];
@@ -217,14 +216,6 @@ export function EnhancedHeader() {
                             >
                               <Settings className="w-4 h-4" />
                               Settings
-                            </Link>
-                            <Link
-                              href="/admin"
-                              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              onClick={() => setShowUserMenu(false)}
-                            >
-                              <Shield className="w-4 h-4" />
-                              Admin Panel
                             </Link>
                           </>
                         )}

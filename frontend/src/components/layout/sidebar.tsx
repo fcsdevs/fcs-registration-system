@@ -64,7 +64,7 @@ export function Sidebar() {
       label: "Management",
       items: [
         { href: "/units", label: "Units", icon: Building2 },
-        { href: "/centers", label: "Centers", icon: MapPin },
+        { href: "/centers", label: "Branches / Schools", icon: MapPin },
         { href: "/groups", label: "Groups", icon: UsersRound },
         { href: "/attendance", label: "Attendance", icon: CheckSquare },
         { href: "/admin/users", label: "Manage Admins", icon: Shield },
@@ -83,7 +83,6 @@ export function Sidebar() {
       items: [
         { href: "/notifications", label: "Notifications", icon: Bell },
         { href: "/settings", label: "Settings", icon: Settings },
-        { href: "/admin", label: "Admin Panel", icon: Shield },
       ],
     },
   ];

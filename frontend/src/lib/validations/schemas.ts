@@ -7,7 +7,7 @@ import { z } from "zod";
 
 // Auth Schemas
 export const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  identifier: z.string().min(1, "Email or FCS Code is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -17,7 +17,7 @@ export const signupSchema = z.object({
   otherNames: z.string().optional(),
   preferredName: z.string().optional(),
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
-  phone: z.string().regex(/^\+?[\d\s\-()]+$/, "Invalid phone number"),
+  phone: z.string().regex(/^\+?[\d\s\-()]+$/, "Invalid phone number").optional().or(z.literal("")),
   whatsappNumber: z.string().optional(),
   password: z
     .string()

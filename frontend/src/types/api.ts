@@ -117,6 +117,29 @@ export interface VerifyOTPRequest {
   purpose?: string;
 }
 
+export interface SearchRecoveryRequest {
+  fcsCode?: string;
+  fullName?: string;
+}
+
+export interface RecoveryAccount {
+  memberId: string;
+  fcsCode: string;
+  name: string;
+  email: string | null;
+  phoneNumber: string | null;
+}
+
+export interface VerifyDobRequest {
+  memberId: string;
+  dob: string; // YYYY-MM-DD
+}
+
+export interface ResetPasswordByTokenRequest {
+  token: string;
+  newPassword: string;
+}
+
 export interface CurrentUser {
   id: string;
   phoneNumber: string;

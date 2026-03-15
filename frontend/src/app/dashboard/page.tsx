@@ -83,7 +83,7 @@ export default function UserDashboardPage() {
                     <div className="mb-10 bg-gradient-to-r from-[#010030] to-blue-900 rounded-[2rem] p-8 md:p-12 text-white relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
                         <div className="relative z-10">
-                            <h1 className="text-3xl md:text-4xl font-black mb-2">Shalom, {user?.firstName}!</h1>
+                            <h1 className="text-3xl md:text-4xl font-black mb-2">Welcome, {user?.firstName} {user?.lastName}!</h1>
                             <p className="text-blue-100/80 text-lg font-medium">Manage your membership and event registrations.</p>
                         </div>
                     </div>
@@ -135,7 +135,7 @@ export default function UserDashboardPage() {
                         ) : (
                             <div className="bg-white rounded-lg shadow-sm p-8 text-center border border-dashed border-gray-300">
                                 <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                <h3 className="text-lg font-medium text-gray-900">No events found for your branch</h3>
+                                <h3 className="text-lg font-medium text-gray-900">No events found for your branch / school</h3>
                                 <p className="text-gray-500 mt-2">Check back later or browse all events.</p>
                                 <Link href="/events" className="mt-4 inline-block">
                                     <Button variant="outline">Browse All Events</Button>

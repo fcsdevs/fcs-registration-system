@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useAdmin } from "@/context/admin-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { unitsApi } from "@/lib/api/units";
+import { reportsApi } from "@/lib/api/reports";
 import { UnitStatistics, Unit } from "@/types/api";
 import { OrganizationalLevel } from "@/types";
 import { Loader2, Users, Calendar, MapPin, TrendingUp } from "lucide-react";
@@ -20,8 +21,31 @@ export function DashboardWidgets() {
 
             setIsLoading(true);
             try {
-                // Only fetch stats for non-global scope
-                if (currentScope.unitId) {
+                if (currentScope.isGlobal || !currentScope.unitId) {
+                    const [dashboardRes, allUnitsRes] = await Promise.all([
+                        reportsApi.getDashboard(),
+                        unitsApi.list({ limit: 500 })
+                    ]);
+
+                    const rootUnits = allUnitsRes.data?.data?.filter(u => !u.parentId) || [];
+                    const topLevelUnitsRes = { data: rootUnits };
+
+                    if (dashboardRes.data) {
+                        setStats({
+                            unit: { id: 'national', name: 'National', type: 'National' },
+                            statistics: {
+                                members: dashboardRes.data.overview.totalMembers,
+                                events: dashboardRes.data.overview.activeEvents,
+                                registrations: dashboardRes.data.overview.thisMonthRegistrations,
+                                childUnits: topLevelUnitsRes.data?.length || 0,
+                            },
+                            membersByState: []
+                        });
+                    }
+                    if (topLevelUnitsRes.data) {
+                        setSubUnits(topLevelUnitsRes.data);
+                    }
+                } else {
                     const [statsRes, subUnitsRes] = await Promise.all([
                         unitsApi.getStatistics(currentScope.unitId),
                         unitsApi.getChildren(currentScope.unitId)
@@ -30,7 +54,6 @@ export function DashboardWidgets() {
                     if (statsRes.data) setStats(statsRes.data);
                     if (subUnitsRes.data) setSubUnits(subUnitsRes.data);
                 }
-
             } catch (err) {
                 console.error("Failed to fetch dashboard data", err);
             } finally {

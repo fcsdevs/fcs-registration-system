@@ -14,6 +14,10 @@ import type {
   CurrentUser,
   ForgotPasswordRequest,
   ResetPasswordRequest,
+  SearchRecoveryRequest,
+  RecoveryAccount,
+  VerifyDobRequest,
+  ResetPasswordByTokenRequest,
 } from '@/types/api';
 
 export const authApi = {
@@ -96,5 +100,29 @@ export const authApi = {
    */
   changePassword: async (data: { currentPassword: string; newPassword: string; confirmPassword: string }): Promise<ApiResponse<{ message: string }>> => {
     return api.post('/auth/change-password', data);
+  },
+
+  /**
+   * POST /api/auth/recovery/search
+   * Search for accounts for recovery
+   */
+  searchRecoveryAccounts: async (data: SearchRecoveryRequest): Promise<ApiResponse<RecoveryAccount[]>> => {
+    return api.post('/auth/recovery/search', data);
+  },
+
+  /**
+   * POST /api/auth/recovery/verify-dob
+   * Verify identity using DOB
+   */
+  verifyRecoveryDob: async (data: VerifyDobRequest): Promise<ApiResponse<{ token: string; message: string }>> => {
+    return api.post('/auth/recovery/verify-dob', data);
+  },
+
+  /**
+   * POST /api/auth/recovery/reset-password
+   * Reset password using recovery token
+   */
+  resetPasswordByToken: async (data: ResetPasswordByTokenRequest): Promise<ApiResponse<{ message: string }>> => {
+    return api.post('/auth/recovery/reset-password', data);
   },
 };
