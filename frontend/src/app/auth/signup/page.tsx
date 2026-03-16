@@ -369,12 +369,12 @@ export default function SignupPage() {
             const { field, message } = response.data;
             if (field === 'email' && email) setFormError("email", { type: "manual", message });
             else if (field === 'phoneNumber' && phone) setFormError("phone", { type: "manual", message });
-            
+
             // If the field isn't exactly matching what we sent but backend found something
             if (!errors.email && !errors.phone) {
-               setError(message);
+              setError(message);
             }
-            
+
             setIsChecking(false);
             return;
           }
@@ -383,9 +383,9 @@ export default function SignupPage() {
         // Email Verification Logic
         if (email && !isEmailVerified) {
           try {
-            await authApi.sendOTP({ 
-              email, 
-              purpose: 'REGISTRATION' 
+            await authApi.sendOTP({
+              email,
+              purpose: 'REGISTRATION'
             });
             setVerifiedEmail(email);
             setShowEmailOTP(true);
@@ -410,17 +410,17 @@ export default function SignupPage() {
 
   const handleVerifyEmailOTP = async () => {
     if (emailOTP.length !== 6) return;
-    
+
     try {
       setIsVerifyingOTP(true);
       setOtpError(null);
-      
+
       const response = await authApi.verifyOTP({
         email: verifiedEmail,
         code: emailOTP,
         purpose: 'REGISTRATION'
       });
-      
+
       if (response.data?.verified) {
         setIsEmailVerified(true);
         setShowEmailOTP(false);
@@ -437,9 +437,9 @@ export default function SignupPage() {
 
   const handleResendEmailOTP = async () => {
     try {
-      await authApi.sendOTP({ 
-        email: verifiedEmail, 
-        purpose: 'REGISTRATION' 
+      await authApi.sendOTP({
+        email: verifiedEmail,
+        purpose: 'REGISTRATION'
       });
       setOtpError(null);
     } catch (err: any) {
@@ -616,7 +616,7 @@ export default function SignupPage() {
               {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address
+                  Email Address <span className="text-gray-400 font-normal">(Optional)</span>
                 </label>
                 <div className="relative">
                   <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -635,7 +635,7 @@ export default function SignupPage() {
               {/* Phone */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone Number <span className="text-xs text-primary">(Used for Login)</span>
+                  Phone Number <span className="text-gray-400 font-normal">(Optional)</span><span className="text-xs text-primary">(Used for Login)</span>
                 </label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -1200,12 +1200,12 @@ export default function SignupPage() {
               <div className="absolute top-10 left-10 w-20 h-20 border-2 border-white rounded-full" />
               <div className="absolute bottom-10 right-10 w-32 h-32 border-2 border-white rounded-3xl rotate-12" />
             </div>
-            
+
             <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-md rounded-full mb-6 relative">
               <CheckCircle2 className="w-10 h-10 text-white" />
               <div className="absolute inset-0 bg-white/20 rounded-full animate-ping opacity-75" />
             </div>
-            
+
             <DialogTitle className="text-3xl font-bold mb-2">Welcome to FCS!</DialogTitle>
             <DialogDescription className="text-blue-100 text-lg">
               Registration Successful
@@ -1221,7 +1221,7 @@ export default function SignupPage() {
                   <span className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tighter">
                     {registeredData?.member?.fcsCode || "FCS-X-XXXXX"}
                   </span>
-                  <button 
+                  <button
                     onClick={copyFCSCode}
                     className="p-2 hover:bg-white rounded-xl transition-all active:scale-90"
                   >
@@ -1232,18 +1232,18 @@ export default function SignupPage() {
             </div>
 
             <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100 mb-8 relative overflow-hidden">
-               <div className="absolute top-0 right-0 w-16 h-16 bg-amber-100/50 rounded-bl-full pointer-events-none" />
-               <div className="flex gap-4 relative z-10">
-                 <div className="flex-shrink-0 w-10 h-10 bg-amber-200/50 rounded-xl flex items-center justify-center text-amber-700">
-                   <ShieldCheck className="w-6 h-6" />
-                 </div>
-                 <div>
-                   <h4 className="font-bold text-amber-800 mb-1">Take note & Safe keep!</h4>
-                   <p className="text-xs text-amber-700 leading-relaxed">
-                     This is your primary login identifier. Copy and save it safely. You'll need it to sign in or access registration features.
-                   </p>
-                 </div>
-               </div>
+              <div className="absolute top-0 right-0 w-16 h-16 bg-amber-100/50 rounded-bl-full pointer-events-none" />
+              <div className="flex gap-4 relative z-10">
+                <div className="flex-shrink-0 w-10 h-10 bg-amber-200/50 rounded-xl flex items-center justify-center text-amber-700">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-amber-800 mb-1">Take note & Safe keep!</h4>
+                  <p className="text-xs text-amber-700 leading-relaxed">
+                    This is your primary login identifier. Copy and save it safely. You'll need it to sign in or access registration features.
+                  </p>
+                </div>
+              </div>
             </div>
 
             <DialogFooter className="flex flex-col gap-3">
@@ -1254,7 +1254,7 @@ export default function SignupPage() {
                 {registeredData?.email ? "Go to Verification" : "Continue to Dashboard"}
                 <ChevronRight className="w-5 h-5" />
               </button>
-              
+
               <p className="text-center text-[10px] text-gray-400 font-medium">
                 By clicking continue, you agree to our membership guidelines.
               </p>
@@ -1263,55 +1263,55 @@ export default function SignupPage() {
         </DialogContent>
       </Dialog>
       {/* Email Verification Modal */}
-        <Dialog open={showEmailOTP} onOpenChange={setShowEmailOTP}>
-          <DialogContent className="sm:max-w-md bg-white border-none rounded-3xl shadow-2xl p-8">
-            <DialogHeader>
-              <DialogTitle className="text-center text-2xl font-bold">Verify Your Email</DialogTitle>
-              <DialogDescription className="text-center">
-                We've sent a 6-digit verification code to <span className="font-semibold text-primary">{verifiedEmail}</span>. 
-                Enter the code to continue.
-              </DialogDescription>
-            </DialogHeader>
+      <Dialog open={showEmailOTP} onOpenChange={setShowEmailOTP}>
+        <DialogContent className="sm:max-w-md bg-white border-none rounded-3xl shadow-2xl p-8">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl font-bold">Verify Your Email</DialogTitle>
+            <DialogDescription className="text-center">
+              We've sent a 6-digit verification code to <span className="font-semibold text-primary">{verifiedEmail}</span>.
+              Enter the code to continue.
+            </DialogDescription>
+          </DialogHeader>
 
-            {otpError && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" />
-                {otpError}
-              </div>
-            )}
-
-            <div className="space-y-6 py-4">
-              <input
-                type="text"
-                maxLength={6}
-                value={emailOTP}
-                onChange={(e) => setEmailOTP(e.target.value.replace(/\D/g, ''))}
-                className="w-full text-center text-3xl font-bold tracking-[0.5em] py-4 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                placeholder="000000"
-              />
-
-              <div className="flex flex-col gap-3">
-                <button
-                  type="button"
-                  onClick={handleVerifyEmailOTP}
-                  disabled={isVerifyingOTP || emailOTP.length !== 6}
-                  className="w-full bg-primary text-white py-3 rounded-xl font-bold hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isVerifyingOTP ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5" />}
-                  Verify & Continue
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={handleResendEmailOTP}
-                  className="text-sm text-gray-500 hover:text-primary transition-colors text-center"
-                >
-                  Didn't receive code? Resend
-                </button>
-              </div>
+          {otpError && (
+            <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" />
+              {otpError}
             </div>
-          </DialogContent>
-        </Dialog>
+          )}
+
+          <div className="space-y-6 py-4">
+            <input
+              type="text"
+              maxLength={6}
+              value={emailOTP}
+              onChange={(e) => setEmailOTP(e.target.value.replace(/\D/g, ''))}
+              className="w-full text-center text-3xl font-bold tracking-[0.5em] py-4 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              placeholder="000000"
+            />
+
+            <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={handleVerifyEmailOTP}
+                disabled={isVerifyingOTP || emailOTP.length !== 6}
+                className="w-full bg-primary text-white py-3 rounded-xl font-bold hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isVerifyingOTP ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5" />}
+                Verify & Continue
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResendEmailOTP}
+                className="text-sm text-gray-500 hover:text-primary transition-colors text-center"
+              >
+                Didn't receive code? Resend
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
