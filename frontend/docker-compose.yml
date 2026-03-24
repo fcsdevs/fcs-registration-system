@@ -8,7 +8,8 @@ services:
     ports:
       - "3000:3000"
     networks:
-      - fcs-network
+      - proxy
 
 networks:
-  fcs-network:
+  proxy:
+    external: true
