@@ -96,10 +96,12 @@ export default function RegistrationDetailsPage() {
         );
     }
 
-    // Generate QR code using public API
-    const qrValue = registration.id;
-    const mockQRCode = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrValue)}`;
-    const mockSAC = registration.id.substring(0, 8).toUpperCase();
+    // QR code encodes only the fcsCode — plain text, directly searchable by the scanner
+    const fcsCode = registration.member?.fcsCode || '';
+    const mockQRCode = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(fcsCode)}`;
+    // SAC shown under QR is the same fcsCode for manual entry
+    const mockSAC = fcsCode || registration.id.substring(0, 8).toUpperCase();
+
 
     return (
         <ProtectedRoute>

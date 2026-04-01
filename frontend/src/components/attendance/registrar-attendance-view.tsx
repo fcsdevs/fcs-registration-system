@@ -124,7 +124,6 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
         setLastCheckIn(null);
 
         try {
-            // Intelligent Lookup Phase
             // 1. Search for this code in the CURRENT event context first
             let response = await registrationsApi.list({
                 eventId: selectedEventId,
@@ -136,8 +135,6 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
 
             // 2. Conflict Analysis Strategy
             if (!matchedReg) {
-                // If not found in current event, let's see if they are registered AT ALL globally
-                // This helps solve "Where is my registration?" confusion
                 const globalSearch = await registrationsApi.list({
                     search: code,
                     limit: 1
@@ -146,27 +143,25 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
                 const globalReg = globalSearch.data?.data?.[0] || (globalSearch.data as any)?.[0];
 
                 if (globalReg) {
-                    // FOUND GLOABLLY but not for this event!
-                    const eventTitle = globalReg.event?.title || "another session";
+                    const eventTitle = globalReg.event?.title || 'another session';
                     setErrorMsg({
                         type: 'wrong_event',
-                        title: "Mismatched Session",
+                        title: 'Mismatched Session',
                         detail: `Member is registered for "${eventTitle}", not this event.`
                     });
                     return;
                 } else {
-                    // Not found anywhere
                     setErrorMsg({
                         type: 'not_found',
-                        title: "Record Not Found",
-                        detail: "No registration found with this identification code."
+                        title: 'Record Not Found',
+                        detail: 'No registration found with this identification code.'
                     });
                     return;
                 }
             }
 
             // 3. Status Handling & Attendance Marking
-            if (matchedReg.status === "CHECKED_IN" || matchedReg.status === "ATTENDED") {
+            if (matchedReg.status === 'CHECKED_IN' || matchedReg.status === 'ATTENDED') {
                 setLastCheckIn({ ...matchedReg, alreadyCheckedIn: true });
             } else {
                 await attendanceApi.checkIn({
@@ -181,29 +176,29 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
         } catch (err: any) {
             setErrorMsg({
                 type: 'generic',
-                title: "Processing Error",
-                detail: err.message || "Something went wrong while verifying this badge."
+                title: 'Processing Error',
+                detail: err.message || 'Something went wrong while verifying this badge.'
             });
         } finally {
             setProcessing(false);
         }
     };
 
+
     const processingRef = useRef(false);
     useEffect(() => { processingRef.current = processing; }, [processing]);
 
     const onScanSuccess = async (decodedText: string) => {
         if (processingRef.current) return;
-
-        // Filter out UI noise that scanners might pick up
-        if (decodedText.length < 5) return;
+        // Filter out UI noise
+        if (decodedText.trim().length < 3) return;
 
         try {
             processingRef.current = true;
             if (scannerRef.current?.pause) scannerRef.current.pause(true);
-            await handleCheckIn(decodedText, 'QR');
+            await handleCheckIn(decodedText.trim(), 'QR');
         } catch (error) {
-            toast.error("Scan verification failed");
+            toast.error('Scan verification failed');
         } finally {
             setTimeout(() => {
                 if (scannerRef.current?.resume) scannerRef.current.resume();
@@ -211,6 +206,7 @@ export function RegistrarAttendanceView({ onEventChange }: RegistrarAttendanceVi
             }, 1500);
         }
     };
+
 
     const stopScanner = async () => {
         if (scannerRef.current) {

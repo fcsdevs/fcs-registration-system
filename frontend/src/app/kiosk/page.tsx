@@ -73,9 +73,7 @@ export default function KioskPage() {
       setSearchResult(null);
       setRegistration(null);
 
-      const response = await api.get<any>(`/registrations?eventId=${selectedEventId}&search=${encodeURIComponent(query)}&limit=1`);
-
-      // Handle the consistent backend response structure: { data: { data: [...], pagination: {...} } }
+      const response = await api.get<any>(`/registrations?eventId=${selectedEventId}&search=${encodeURIComponent(query.trim())}&limit=1`);
       const registrations = response.data?.data || [];
       const foundRegistration = Array.isArray(registrations) ? registrations[0] : null;
 
@@ -92,6 +90,7 @@ export default function KioskPage() {
       setLoading(false);
     }
   };
+
 
   const checkCameraPermission = async () => {
     try {
@@ -119,7 +118,7 @@ export default function KioskPage() {
 
       reader.decodeFromVideoElement(videoRef.current, (result, err) => {
         if (result) {
-          const barcode = result.getText();
+          const barcode = result.getText().trim();
           console.log("Barcode scanned:", barcode);
           setSearchQuery(barcode);
           setScannerActive(false);
