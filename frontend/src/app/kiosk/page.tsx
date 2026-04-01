@@ -35,6 +35,13 @@ export default function KioskPage() {
           console.error("Error stopping scanner:", e);
         }
       }
+      if (videoRef.current && videoRef.current.srcObject) {
+         try {
+           const stream = videoRef.current.srcObject as MediaStream;
+           stream.getTracks().forEach(track => track.stop());
+           videoRef.current.srcObject = null;
+         } catch (err) {}
+      }
     };
   }, [scannerActive, cameraPermission]);
 
@@ -101,6 +108,11 @@ export default function KioskPage() {
     if (!videoRef.current) return;
 
     try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      videoRef.current.srcObject = stream;
+      videoRef.current.setAttribute("playsinline", "true");
+      await videoRef.current.play();
+
       const { BrowserMultiFormatReader } = await import("@zxing/browser");
       const reader = new BrowserMultiFormatReader();
       readerRef.current = reader;

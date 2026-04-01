@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../fcs-registration-backend"
+		}
+	],
+	"settings": {}
+}
