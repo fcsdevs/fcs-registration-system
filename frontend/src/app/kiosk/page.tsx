@@ -17,6 +17,8 @@ export default function KioskPage() {
   const [cameraPermission, setCameraPermission] = useState<"granted" | "denied" | "pending">("pending");
   const videoRef = useRef<HTMLVideoElement>(null);
   const readerRef = useRef<any>(null);
+  const isScanningRef = useRef(false);
+
 
   useEffect(() => {
     fetchEvents();
@@ -74,7 +76,10 @@ export default function KioskPage() {
       setRegistration(null);
 
       const response = await api.get<any>(`/registrations?eventId=${selectedEventId}&search=${encodeURIComponent(query.trim())}&limit=1`);
-      const registrations = response.data || [];
+
+      // Handle nested data structure { data: { data: [], pagination: {} } } or simple { data: [] }
+      const body = response.data;
+      const registrations = body?.data || body || [];
       const foundRegistration = Array.isArray(registrations) ? registrations[0] : null;
 
       if (foundRegistration) {
@@ -90,6 +95,7 @@ export default function KioskPage() {
       setLoading(false);
     }
   };
+
 
 
   const checkCameraPermission = async () => {
@@ -117,7 +123,8 @@ export default function KioskPage() {
       readerRef.current = reader;
 
       reader.decodeFromVideoElement(videoRef.current, (result, err) => {
-        if (result) {
+        if (result && !isScanningRef.current) {
+          isScanningRef.current = true;
           const barcode = result.getText().trim();
           console.log("Barcode scanned:", barcode);
           setSearchQuery(barcode);
@@ -225,8 +232,13 @@ export default function KioskPage() {
               {/* Scanner Toggle */}
               {cameraPermission === "granted" && (
                 <button
-                  onClick={() => setScannerActive(!scannerActive)}
+                  onClick={() => {
+                    const newState = !scannerActive;
+                    setScannerActive(newState);
+                    if (newState) isScanningRef.current = false;
+                  }}
                   className={`w-full py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md border-2 ${scannerActive
+
                     ? "bg-rose-50 border-rose-300 text-rose-700 hover:bg-rose-100"
                     : "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100"
                     }`}
@@ -356,6 +368,7 @@ export default function KioskPage() {
                         setSearchResult(null);
                         setRegistration(null);
                         setMessage(null);
+                        isScanningRef.current = false;
                         setScannerActive(true);
                       }}
                       className="w-full py-2 rounded-lg font-semibold text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
