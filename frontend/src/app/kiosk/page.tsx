@@ -74,7 +74,7 @@ export default function KioskPage() {
       setRegistration(null);
 
       const response = await api.get<any>(`/registrations?eventId=${selectedEventId}&search=${encodeURIComponent(query.trim())}&limit=1`);
-      const registrations = response.data?.data || [];
+      const registrations = response.data || [];
       const foundRegistration = Array.isArray(registrations) ? registrations[0] : null;
 
       if (foundRegistration) {
