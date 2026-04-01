@@ -25,6 +25,9 @@ interface AuthContextType {
   searchRecoveryAccounts: (params: { fcsCode?: string; fullName?: string }) => Promise<any[]>;
   verifyRecoveryDob: (memberId: string, dob: string) => Promise<string>;
   resetPasswordByToken: (token: string, password: string) => Promise<void>;
+  isAdminView: boolean;
+  actualIsAdmin: boolean;
+  switchViewMode: (mode: 'admin' | 'member') => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,6 +35,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'admin' | 'member'>('admin');
   const router = useRouter();
 
   // Check if user is already authenticated on mount
@@ -88,6 +92,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           };
 
           setUser(userData);
+          
+          const storedMode = sessionStorage.getItem('fcs_view_mode') as 'admin' | 'member';
+          if (storedMode) {
+              setViewMode(storedMode);
+          }
         }
       } catch (error) {
         console.error("Auth check failed:", error);
@@ -100,6 +109,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     checkAuth();
   }, []);
+
+  const actualIsAdmin = user?.roles?.some((r: string) => {
+    const role = r.toLowerCase();
+    return role.includes('admin') || role === 'leader';
+  }) || false;
+
+  const isAdminView = actualIsAdmin && viewMode === 'admin';
+
+  const switchViewMode = (mode: 'admin' | 'member') => {
+      sessionStorage.setItem('fcs_view_mode', mode);
+      setViewMode(mode);
+      if (mode === 'admin') {
+          router.push('/home');
+      } else {
+          router.push('/dashboard');
+      }
+  };
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
@@ -167,7 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const isAdmin = userData.roles.some((r: string) => r.toLowerCase().includes('admin') || r.toLowerCase() === 'leader');
 
       if (isAdmin) {
-        router.replace('/home');
+        router.replace('/auth/role-select');
       } else {
         router.replace('/dashboard');
       }
@@ -449,6 +475,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isLoading,
         isAuthenticated: !!user,
+        isAdminView,
+        actualIsAdmin,
+        switchViewMode,
         login,
         signup,
         logout,

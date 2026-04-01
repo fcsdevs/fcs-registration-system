@@ -12,25 +12,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function UserDashboardPage() {
-    const { user } = useAuth();
+    const { user, isAdminView, isLoading: authLoading } = useAuth();
     const router = useRouter();
     const [events, setEvents] = useState<Event[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     // Redirect admin users to admin dashboard
     useEffect(() => {
-        if (user) {
-            const isAdmin = user.roles?.some((r: any) => {
-                const role = r.toLowerCase();
-                return role.includes('admin') || role === 'leader';
-            });
-
-            if (isAdmin) {
+        if (user && !authLoading) {
+            if (isAdminView) {
                 router.replace('/home');
-                return;
             }
         }
-    }, [user, router]);
+    }, [user, isAdminView, authLoading, router]);
 
     useEffect(() => {
         const fetchEvents = async () => {

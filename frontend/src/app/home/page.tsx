@@ -29,25 +29,19 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 export default function HomePage() {
-  const { user } = useAuth();
+  const { user, isAdminView, isLoading } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
 
   useEffect(() => {
-    // Redirect non-admin users to member dashboard
-    if (user) {
-      const isAdmin = user.roles?.some((r: any) => {
-        const role = r.toLowerCase();
-        return role.includes('admin') || role === 'leader';
-      });
-
-      if (!isAdmin) {
+    // Redirect non-admin view to member dashboard
+    if (user && !isLoading) {
+      if (!isAdminView) {
         router.replace('/dashboard');
-        return;
       }
     }
-  }, [user, router]);
+  }, [user, isAdminView, isLoading, router]);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
 
   useEffect(() => {

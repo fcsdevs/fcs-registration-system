@@ -37,13 +37,10 @@ interface NavGroup {
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, isAdminView, actualIsAdmin } = useAuth();
   const [expandedGroups, setExpandedGroups] = useState<string[]>(["Main", "Management", "Menu", "Registrar Portal"]);
 
-  const isAdmin = user?.roles?.some((r: any) => {
-    const role = r.toLowerCase();
-    return role.includes('admin') || role === 'leader';
-  });
+  const isAdmin = isAdminView;
 
   const isRegistrar = user?.roles?.some((r: any) => {
     const role = r.toLowerCase();

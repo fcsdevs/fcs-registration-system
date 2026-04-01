@@ -28,18 +28,14 @@ import {
 import { useState, useEffect } from "react";
 
 export function EnhancedHeader() {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdminView, actualIsAdmin, switchViewMode } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [notificationCount] = useState(0); // Reset mock count for now
 
-
-  const isAdmin = user?.roles?.some((r: any) => {
-    const role = r.toLowerCase();
-    return role.includes('admin') || role === 'leader';
-  });
+  const isAdmin = isAdminView;
 
   const isRegistrar = user?.roles?.some((r: any) => {
     const role = r.toLowerCase();
@@ -207,6 +203,18 @@ export function EnhancedHeader() {
                           <UserCircle className="w-4 h-4" />
                           Profile
                         </Link>
+                        {actualIsAdmin && (
+                          <button
+                            onClick={() => {
+                              switchViewMode(isAdminView ? 'member' : 'admin');
+                              setShowUserMenu(false);
+                            }}
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                          >
+                            <Shield className="w-4 h-4" />
+                            {isAdminView ? 'Switch to Member View' : 'Switch to Admin View'}
+                          </button>
+                        )}
                         {isAdmin && (
                           <>
                             <Link
@@ -302,6 +310,18 @@ export function EnhancedHeader() {
                       <UserCircle className="w-5 h-5" />
                       My Profile
                     </Link>
+                    {actualIsAdmin && (
+                      <button
+                        onClick={() => {
+                          switchViewMode(isAdminView ? 'member' : 'admin');
+                          setShowMobileMenu(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100"
+                      >
+                        <Shield className="w-5 h-5" />
+                        {isAdminView ? 'Switch to Member View' : 'Switch to Admin View'}
+                      </button>
+                    )}
                     <button
                       onClick={handleLogout}
                       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50"
