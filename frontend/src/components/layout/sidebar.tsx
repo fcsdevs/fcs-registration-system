@@ -72,7 +72,7 @@ export function Sidebar() {
       label: "Analytics",
       items: [
         { href: "/reports", label: "Reports", icon: BarChart3 },
-        { href: "/kiosk", label: "Kiosk Mode", icon: FileText },
+        { href: "/kiosk", label: "Mark Attendance", icon: FileText },
       ],
     },
     {

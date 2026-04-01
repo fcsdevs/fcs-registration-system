@@ -24,6 +24,7 @@ import {
   UsersRound,
   X,
   User,
+  FileText,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -72,9 +73,15 @@ export function EnhancedHeader() {
       ],
     },
     {
-      label: "System",
+      label: "Analytics",
       items: [
         { href: "/reports", label: "Reports", icon: BarChart3 },
+        { href: "/kiosk", label: "Mark Attendance", icon: FileText },
+      ],
+    },
+    {
+      label: "System",
+      items: [
         { href: "/notifications", label: "Notifications", icon: Bell },
         { href: "/settings", label: "Settings", icon: Settings },
       ],

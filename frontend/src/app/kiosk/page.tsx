@@ -155,7 +155,7 @@ export default function KioskPage() {
             <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-lg shadow-blue-300/40 mb-5 animate-pulse">
               <UserCheck className="w-7 h-7 text-white" />
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">Check-In Kiosk</h1>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">Check-In Mark Attendance</h1>
             <p className="text-slate-600 text-sm sm:text-base max-w-lg mx-auto font-medium">Scan QR codes or search members for rapid event check-in</p>
           </div>
 
