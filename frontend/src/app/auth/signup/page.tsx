@@ -613,6 +613,13 @@ export default function SignupPage() {
                 </div>
               </div>
 
+              <div className="bg-blue-50/80 border border-blue-100 rounded-lg p-3 mt-2 flex items-start gap-2.5">
+                <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-800 leading-relaxed">
+                  <span className="font-medium">Good to know:</span> Email and phone number are optional. You can complete your signup without providing them.
+                </p>
+              </div>
+
               {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -635,7 +642,7 @@ export default function SignupPage() {
               {/* Phone */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone Number <span className="text-gray-400 font-normal">(Optional)</span><span className="text-xs text-primary">(Used for Login)</span>
+                  Phone Number <span className="text-gray-400 font-normal">(Optional)</span>
                 </label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
