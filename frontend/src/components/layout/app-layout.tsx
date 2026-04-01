@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { EnhancedHeader } from "./enhanced-header";
 import { Sidebar } from "./sidebar";
+import { RegistrationPromptModal } from "@/components/events/registration-prompt-modal";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -27,6 +28,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <RegistrationPromptModal />
       <EnhancedHeader />
 
       <div className="flex">

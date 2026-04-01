@@ -337,6 +337,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("hasSeenRegistrationPrompt");
       setUser(null);
       setIsLoading(false);
     }
